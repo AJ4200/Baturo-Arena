@@ -1,0 +1,18 @@
+{
+  "name": "ttt",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ttt.js",
+  "scripts": {
+    "start": "node ttt.js",
+    "dev": "node ttt.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.1.0",
+    "sql.js": "^1.13.0"
+  }
+}
