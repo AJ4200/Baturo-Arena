@@ -20,6 +20,7 @@ const {
 } = require("../repositories/roomRepository");
 const { createRoomCode } = require("../utils/roomCode");
 const { checkWinner } = require("../utils/game");
+const { listGames, getGameById } = require("./gamesCatalog");
 
 function serializePlayer(player) {
   if (!player) {
@@ -74,6 +75,8 @@ async function buildRoomResponse(room, playerId) {
     room: {
       code: room.code,
       name: room.name,
+      gameType: room.game_type || "tic-tac-two",
+      maxPlayers: Number(room.max_players || 4),
       isPublic: room.is_public,
       board: room.board,
       turn: room.turn,
@@ -84,9 +87,9 @@ async function buildRoomResponse(room, playerId) {
         playerId: entry.player_id,
         name: entry.name,
         symbol: entry.symbol,
-        wins: entry.wins,
-        losses: entry.losses,
-        draws: entry.draws,
+        wins: Number(entry.wins),
+        losses: Number(entry.losses),
+        draws: Number(entry.draws),
       })),
     },
     yourSymbol: youMembership ? youMembership.symbol : null,
@@ -94,15 +97,30 @@ async function buildRoomResponse(room, playerId) {
   };
 }
 
+function getRoomStatusByPlayerCount(playerCount) {
+  return playerCount >= 2 ? "playing" : "waiting";
+}
+
+function pickSymbol(players) {
+  const xCount = players.filter((entry) => entry.symbol === "X").length;
+  const oCount = players.filter((entry) => entry.symbol === "O").length;
+  return xCount <= oCount ? "X" : "O";
+}
+
 async function registerPlayer({ playerId, name }) {
   const player = await upsertPlayer({ playerId, name });
   return serializePlayer(player);
 }
 
-async function createNewRoom({ playerId, roomName, isPublic }) {
+async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
   const owner = await getPlayerById(playerId);
   if (!owner) {
     throw new HttpError(400, "Invalid playerId");
+  }
+
+  const selectedGame = getGameById(gameType || "tic-tac-two");
+  if (!selectedGame) {
+    throw new HttpError(400, "Unsupported game type");
   }
 
   let code = null;
@@ -126,6 +144,8 @@ async function createNewRoom({ playerId, roomName, isPublic }) {
     name: safeName,
     isPublic: Boolean(isPublic),
     creatorPlayerId: playerId,
+    gameType: selectedGame.id,
+    maxPlayers: selectedGame.maxPlayers,
   });
 
   await addPlayerToRoom(room.id, playerId, "X");
@@ -148,18 +168,16 @@ async function joinExistingRoom({ playerId, code }) {
   const existingMembership = await findRoomPlayer(room.id, playerId);
   if (!existingMembership) {
     const players = await listRoomPlayers(room.id);
-    if (players.length >= 2) {
+    const maxPlayers = Number(room.max_players || 4);
+    if (players.length >= maxPlayers) {
       throw new HttpError(409, "Room is full");
     }
 
-    const hasX = players.some((entry) => entry.symbol === "X");
-    const symbol = hasX ? "O" : "X";
+    const symbol = pickSymbol(players);
     await addPlayerToRoom(room.id, playerId, symbol);
 
     const playerCount = await countRoomPlayers(room.id);
-    if (playerCount === 2) {
-      await resetRoom(room.id, "playing");
-    }
+    await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
   }
 
   const refreshedRoom = await getRoomById(room.id);
@@ -238,8 +256,7 @@ async function rematchRoom({ code, playerId }) {
   }
 
   const playerCount = await countRoomPlayers(room.id);
-  const status = playerCount === 2 ? "playing" : "waiting";
-  await resetRoom(room.id, status);
+  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
 
   const refreshedRoom = await getRoomById(room.id);
   return buildRoomResponse(refreshedRoom, playerId);
@@ -256,8 +273,7 @@ async function leaveRoom({ code, playerId }) {
 
   await removePlayerFromRoom(room.id, playerId);
   const playerCount = await countRoomPlayers(room.id);
-  const status = playerCount === 2 ? "playing" : "waiting";
-  await resetRoom(room.id, status);
+  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
 
   const refreshedRoom = await getRoomById(room.id);
   return buildRoomResponse(refreshedRoom, null);
@@ -281,4 +297,5 @@ module.exports = {
   rematchRoom,
   leaveRoom,
   listPublicRooms,
+  listGames,
 };

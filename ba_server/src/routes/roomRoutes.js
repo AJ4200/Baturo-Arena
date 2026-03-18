@@ -27,6 +27,7 @@ router.post(
       playerId: req.body.playerId,
       roomName: req.body.roomName,
       isPublic: req.body.isPublic,
+      gameType: req.body.gameType,
     });
     res.json(payload);
   })

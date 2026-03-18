@@ -25,9 +25,9 @@ export function MainMenu({
   return (
     <section className="title-screen-content">
       <h1>
-        <span>Tic-</span>
-        <span>Tac</span>
-        <span>-Two</span>
+        <span>Baruto</span>
+        <span>-</span>
+        <span>Arena</span>
       </h1>
 
       <motion.div

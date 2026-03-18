@@ -10,16 +10,17 @@ function parseRoom(row) {
     is_public: Boolean(row.is_public),
     result_recorded: Boolean(row.result_recorded),
     board: JSON.parse(row.board),
+    max_players: Number(row.max_players || 4),
   };
 }
 
-async function createRoom({ code, name, isPublic, creatorPlayerId }) {
+async function createRoom({ code, name, isPublic, creatorPlayerId, gameType, maxPlayers }) {
   const emptyBoard = JSON.stringify(Array(9).fill(null));
   const insertResult = await run(
     `INSERT INTO rooms (
-      code, name, is_public, creator_player_id, board, turn, status, winner, result_recorded, updated_at
-    ) VALUES (?, ?, ?, ?, ?, 'X', 'waiting', NULL, 0, CURRENT_TIMESTAMP)`,
-    [code, name, isPublic ? 1 : 0, creatorPlayerId, emptyBoard]
+      code, name, is_public, creator_player_id, game_type, max_players, board, turn, status, winner, result_recorded, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'X', 'waiting', NULL, 0, CURRENT_TIMESTAMP)`,
+    [code, name, isPublic ? 1 : 0, creatorPlayerId, gameType, maxPlayers, emptyBoard]
   );
   return getRoomById(insertResult.lastID);
 }
@@ -39,6 +40,8 @@ async function listPublicRooms() {
     `SELECT
       r.code,
       r.name,
+      r.game_type,
+      r.max_players,
       r.status,
       r.is_public,
       COUNT(rp.player_id) AS players_count
@@ -52,6 +55,8 @@ async function listPublicRooms() {
   return rows.map((row) => ({
     code: row.code,
     name: row.name,
+    gameType: row.game_type,
+    maxPlayers: Number(row.max_players || 4),
     status: row.status,
     isPublic: Boolean(row.is_public),
     playersCount: Number(row.players_count),
