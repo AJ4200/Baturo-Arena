@@ -122,6 +122,7 @@ export function CpuTicTacToe({
     lastReportedWinnerRef.current = winner;
     onMatchComplete({
       mode: "cpu",
+      gameType: "tic-tac-two",
       outcome: winner === "draw" ? "draw" : winner === "X" ? "win" : "loss",
       opponent: `CPU (${difficulty})`,
     });
@@ -158,9 +159,9 @@ export function CpuTicTacToe({
     <>
       <div>
         <h1>
-          <span>Tic-</span>
-          <span>Tac</span>
-          <span>-Two</span>
+          <span>Baruto</span>
+          <span>-</span>
+          <span>Arena</span>
         </h1>
       </div>
       <div>

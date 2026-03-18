@@ -165,11 +165,16 @@ export default function Home() {
           ((entry as MatchHistoryEntry).outcome === "win" ||
             (entry as MatchHistoryEntry).outcome === "loss" ||
             (entry as MatchHistoryEntry).outcome === "draw") &&
+          (((entry as MatchHistoryEntry).gameType === "tic-tac-two") ||
+            !("gameType" in (entry as Record<string, unknown>))) &&
           typeof (entry as MatchHistoryEntry).opponent === "string"
         );
       });
 
-      return safeEntries.slice(0, 20);
+      return safeEntries.slice(0, 20).map((entry) => ({
+        ...entry,
+        gameType: entry.gameType || "tic-tac-two",
+      }));
     } catch (_error) {
       return [];
     }
@@ -264,6 +269,7 @@ export default function Home() {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       finishedAt: new Date().toISOString(),
       mode: result.mode,
+      gameType: result.gameType,
       outcome: result.outcome,
       opponent: result.opponent,
     };
@@ -328,6 +334,7 @@ export default function Home() {
           playerId: registeredPlayer.playerId,
           roomName,
           isPublic,
+          gameType: "tic-tac-two",
         }),
       });
 
@@ -661,7 +668,7 @@ export default function Home() {
       {showSaveTip ? (
         <div className="save-tip-card">
           <p>
-            Server stats can reset after redeploy. Go to Settings any time to load your local save backup.
+            Arena stats can reset after redeploy. Go to Settings any time to load your local save backup.
           </p>
           <label className="save-tip-check">
             <input

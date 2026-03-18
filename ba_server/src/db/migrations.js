@@ -1,4 +1,17 @@
-const { run } = require("./client");
+const { run, all } = require("./client");
+
+async function ensureRoomColumns() {
+  const columns = await all("PRAGMA table_info(rooms)");
+  const columnNames = new Set(columns.map((column) => column.name));
+
+  if (!columnNames.has("game_type")) {
+    await run("ALTER TABLE rooms ADD COLUMN game_type TEXT NOT NULL DEFAULT 'tic-tac-two'");
+  }
+
+  if (!columnNames.has("max_players")) {
+    await run("ALTER TABLE rooms ADD COLUMN max_players INTEGER NOT NULL DEFAULT 4");
+  }
+}
 
 async function runMigrations() {
   await run(`
@@ -20,6 +33,8 @@ async function runMigrations() {
       name TEXT NOT NULL,
       is_public INTEGER NOT NULL DEFAULT 0,
       creator_player_id TEXT NOT NULL,
+      game_type TEXT NOT NULL DEFAULT 'tic-tac-two',
+      max_players INTEGER NOT NULL DEFAULT 4,
       board TEXT NOT NULL,
       turn TEXT NOT NULL DEFAULT 'X',
       status TEXT NOT NULL DEFAULT 'waiting',
@@ -30,6 +45,8 @@ async function runMigrations() {
       FOREIGN KEY (creator_player_id) REFERENCES players(id)
     )
   `);
+
+  await ensureRoomColumns();
 
   await run(`
     CREATE TABLE IF NOT EXISTS room_players (

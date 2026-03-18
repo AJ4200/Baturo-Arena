@@ -47,7 +47,7 @@ export function HistoryScreen({ history, onBack, onClear }: HistoryScreenProps) 
                   {entry.outcome.toUpperCase()}
                 </span>
                 <span className="settings-history-opponent">
-                  {entry.mode === "cpu" ? "CPU" : "ONLINE"} vs {entry.opponent}
+                  {entry.gameType} | {entry.mode === "cpu" ? "CPU" : "ONLINE"} vs {entry.opponent}
                 </span>
                 <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
               </li>

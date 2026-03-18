@@ -67,9 +67,9 @@ export function LobbyScreen({
   return (
     <section className="title-screen-content">
       <h1>
-        <span>Tic-</span>
-        <span>Tac</span>
-        <span>-Two</span>
+        <span>Baruto</span>
+        <span>-</span>
+        <span>Arena</span>
       </h1>
 
       <div className="lobby-card mt-8">
@@ -156,7 +156,7 @@ export function LobbyScreen({
                     ) : (
                       <AiOutlineCheckCircle />
                     )}{" "}
-                    {roomItem.status} |{" "}
+                    {roomItem.status} | {roomItem.gameType} |{" "}
                     <span className="public-room-code-badge">{roomItem.code}</span>
                     <button
                       className="room-code-copy-btn"
@@ -167,7 +167,7 @@ export function LobbyScreen({
                     >
                       <AiOutlineCopy />
                     </button>
-                    | <AiOutlineTeam /> {roomItem.playersCount}/2 players
+                    | <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
                   </p>
                 </div>
                 <button

@@ -60,8 +60,10 @@ export function OnlineTicTacToe({
   const [isRoomCardCollapsed, setIsRoomCardCollapsed] = useState(false);
   const lastReportedResultRef = useRef<string | null>(null);
 
-  const xPlayer = room?.players.find((entry) => entry.symbol === "X") || null;
-  const oPlayer = room?.players.find((entry) => entry.symbol === "O") || null;
+  const xPlayers = room?.players.filter((entry) => entry.symbol === "X") || [];
+  const oPlayers = room?.players.filter((entry) => entry.symbol === "O") || [];
+  const xPlayer = xPlayers[0] || null;
+  const oPlayer = oPlayers[0] || null;
 
   const status = useMemo(() => {
     if (!room) {
@@ -69,7 +71,7 @@ export function OnlineTicTacToe({
     }
 
     if (room.status === "waiting") {
-      return `Room ${room.code} | Waiting for opponent`;
+      return `Room ${room.code} | Waiting for players (${room.playersCount}/${room.maxPlayers})`;
     }
 
     if (room.status === "playing") {
@@ -242,12 +244,16 @@ export function OnlineTicTacToe({
           ? "win"
           : "loss";
     const opponent = playerSymbol
-      ? room.players.find((entry) => entry.symbol !== playerSymbol)?.name || "Opponent"
+      ? room.players
+          .filter((entry) => entry.symbol !== playerSymbol)
+          .map((entry) => entry.name)
+          .join(", ") || "Opponent"
       : "Opponent";
 
     lastReportedResultRef.current = resultKey;
     onMatchComplete({
       mode: "online",
+      gameType: room.gameType,
       outcome,
       opponent,
     });
@@ -297,7 +303,7 @@ export function OnlineTicTacToe({
                     <AiOutlineDrag /> drag
                   </span>
                   <span className="room-float-title">
-                    {room ? `${room.name} (${room.code})` : "Loading room"}
+                    {room ? `${room.name} (${room.code}) • ${room.gameType}` : "Loading room"}
                   </span>
                   <button
                     className="room-float-toggle-btn"
@@ -318,7 +324,7 @@ export function OnlineTicTacToe({
 
                 <div className="room-joined">
                   <p className="room-joined-title">
-                    <AiOutlineTeam /> Joined Players
+                    <AiOutlineTeam /> Joined Players ({room?.playersCount || 0}/{room?.maxPlayers || 4})
                   </p>
                   {room?.players && room.players.length > 0 ? (
                     room.players.map((joinedPlayer) => (
@@ -405,7 +411,7 @@ export function OnlineTicTacToe({
       </div>
 
       <PlayerX
-        alias={xPlayer?.name || "Waiting..."}
+        alias={xPlayers.map((entry) => entry.name).join(" & ") || "Waiting..."}
         picture={`https://robohash.org/${xPlayer?.name || "X"}`}
         wins={xPlayer?.wins || 0}
         losses={xPlayer?.losses || 0}
@@ -428,7 +434,7 @@ export function OnlineTicTacToe({
         }
       />
       <PlayerO
-        alias={oPlayer?.name || "Waiting..."}
+        alias={oPlayers.map((entry) => entry.name).join(" & ") || "Waiting..."}
         picture={`https://robohash.org/${oPlayer?.name || "O"}`}
         wins={oPlayer?.wins || 0}
         losses={oPlayer?.losses || 0}
