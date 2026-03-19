@@ -2,8 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
+  AiOutlineDrag,
+  AiOutlineInfoCircle,
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
   AiOutlineArrowUp,
@@ -184,9 +187,17 @@ export function Solo2048Game({
 }: Solo2048GameProps) {
   const [state, setState] = useState<Solo2048State>(() => createPrerenderState());
   const [bestScore, setBestScore] = useState(0);
+  const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const gameLabel = formatGameName('2048', gameDefinitions);
   const maxTile = useMemo(() => Math.max(...state.board), [state.board]);
+  const runStatus = state.isGameOver
+    ? state.hasWon
+      ? 'Completed'
+      : 'No Moves'
+    : state.hasWon
+      ? 'Target Hit'
+      : 'Running';
 
   const handleDirection = useCallback((direction: Direction) => {
     setState((currentState) => {
@@ -296,44 +307,86 @@ export function Solo2048Game({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
-      <section className="solo-2048-shell">
-        <div className="solo-2048-top">
-          <div className="solo-2048-meta">
-            <div className="solo-2048-stat">
-              <span>Player</span>
-              <strong>{player.name}</strong>
-            </div>
-            <div className="solo-2048-stat">
-              <span>Score</span>
-              <strong>{state.score}</strong>
-            </div>
-            <div className="solo-2048-stat">
-              <span>Best</span>
-              <strong>{bestScore}</strong>
-            </div>
-            <div className="solo-2048-stat">
-              <span>Moves</span>
-              <strong>{state.moves}</strong>
-            </div>
-            <div className="solo-2048-stat">
-              <span>Top Tile</span>
-              <strong>{maxTile}</strong>
-            </div>
-          </div>
+      <motion.div
+        drag
+        dragMomentum={false}
+        className="room-float-drag-root"
+        animate={{ y: [6, -6, 6] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+          {isInfoCardCollapsed ? (
+            <button
+              className="room-float-collapsed-center"
+              type="button"
+              onClick={() => setIsInfoCardCollapsed(false)}
+              aria-label="Expand game info"
+              title="Expand game info"
+            >
+              <AiOutlineInfoCircle />
+            </button>
+          ) : (
+            <>
+              <div className="room-float-header">
+                <span className="room-float-anchor">
+                  <AiOutlineDrag /> drag
+                </span>
+                <span className="room-float-title">{gameLabel} Solo</span>
+                <button
+                  className="room-float-toggle-btn"
+                  type="button"
+                  onClick={() => setIsInfoCardCollapsed(true)}
+                  aria-label="Collapse game info"
+                  title="Collapse game info"
+                >
+                  <AiOutlineInfoCircle />
+                </button>
+              </div>
 
-          <div className="solo-2048-actions">
-            <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleReset}>
-              <AiOutlineReload /> New Run
-            </button>
-            <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
-              <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-            </button>
-            <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
-              Leave
-            </button>
-          </div>
+              <div className="solo-float-stats">
+                <div className="solo-float-stat">
+                  <span>Player</span>
+                  <strong>{player.name}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Status</span>
+                  <strong>{runStatus}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Score</span>
+                  <strong>{state.score}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Best</span>
+                  <strong>{bestScore}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Moves</span>
+                  <strong>{state.moves}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Top Tile</span>
+                  <strong>{maxTile}</strong>
+                </div>
+              </div>
+
+              <div className="solo-float-actions">
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleReset}>
+                  <AiOutlineReload /> New Run
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                  <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                  Leave
+                </button>
+              </div>
+            </>
+          )}
         </div>
+      </motion.div>
 
+      <section className="solo-2048-shell">
         <div className="solo-2048-board" role="grid" aria-label="2048 board">
           {state.board.map((value, index) => (
             <div
@@ -350,7 +403,11 @@ export function Solo2048Game({
           ))}
         </div>
 
-        <div className="solo-2048-controls">
+        <motion.div
+          className="solo-2048-controls"
+          animate={{ y: [6, -6, 6] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        >
           <button className="solo-2048-control solo-2048-up" type="button" onClick={() => handleDirection('up')} aria-label="Move up">
             <AiOutlineArrowUp />
           </button>
@@ -363,7 +420,7 @@ export function Solo2048Game({
           <button className="solo-2048-control solo-2048-down" type="button" onClick={() => handleDirection('down')} aria-label="Move down">
             <AiOutlineArrowDown />
           </button>
-        </div>
+        </motion.div>
 
         <p className="solo-2048-message">
           {state.isGameOver

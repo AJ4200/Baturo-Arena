@@ -2,8 +2,11 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { motion } from 'framer-motion';
 import {
+  AiOutlineDrag,
   AiOutlineFlag,
+  AiOutlineInfoCircle,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
@@ -76,6 +79,7 @@ export function SoloMemoryMatchGame({
 }: SoloMemoryMatchGameProps) {
   const [state, setState] = useState<MemoryState>(() => createInitialState());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const mismatchTimeoutRef = useRef<number | null>(null);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const gameLabel = formatGameName('memory-match', gameDefinitions);
@@ -268,6 +272,7 @@ export function SoloMemoryMatchGame({
     }
     return Math.round((state.matchedPairs / state.moves) * 100);
   }, [state.matchedPairs, state.moves]);
+  const runStatus = state.status === 'ready' ? 'Ready' : state.status.toUpperCase();
 
   return (
     <>
@@ -275,54 +280,94 @@ export function SoloMemoryMatchGame({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
+      <motion.div
+        drag
+        dragMomentum={false}
+        className="room-float-drag-root"
+        animate={{ y: [6, -6, 6] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+          {isInfoCardCollapsed ? (
+            <button
+              className="room-float-collapsed-center"
+              type="button"
+              onClick={() => setIsInfoCardCollapsed(false)}
+              aria-label="Expand game info"
+              title="Expand game info"
+            >
+              <AiOutlineInfoCircle />
+            </button>
+          ) : (
+            <>
+              <div className="room-float-header">
+                <span className="room-float-anchor">
+                  <AiOutlineDrag /> drag
+                </span>
+                <span className="room-float-title">{gameLabel} Solo</span>
+                <button
+                  className="room-float-toggle-btn"
+                  type="button"
+                  onClick={() => setIsInfoCardCollapsed(true)}
+                  aria-label="Collapse game info"
+                  title="Collapse game info"
+                >
+                  <AiOutlineInfoCircle />
+                </button>
+              </div>
+
+              <div className="solo-float-stats">
+                <div className="solo-float-stat">
+                  <span>Player</span>
+                  <strong>{player.name}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Status</span>
+                  <strong>{runStatus}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Moves</span>
+                  <strong>{state.moves}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Pairs Left</span>
+                  <strong>{pairsLeft}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Accuracy</span>
+                  <strong>{accuracy}%</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Time</span>
+                  <strong>{elapsedSeconds}s</strong>
+                </div>
+              </div>
+
+              <div className="solo-float-actions">
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleNewBoard}>
+                  <AiOutlineReload /> New Board
+                </button>
+                <button
+                  className={classnames('lobby-btn', 'custome-shadow')}
+                  type="button"
+                  disabled={state.status === 'won' || state.status === 'lost'}
+                  onClick={handleGiveUp}
+                >
+                  <AiOutlineFlag /> Give Up
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                  <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                  Leave
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+
       <section className="solo-memory-shell">
-        <div className="solo-memory-meta">
-          <div className="solo-memory-stat">
-            <span>Player</span>
-            <strong>{player.name}</strong>
-          </div>
-          <div className="solo-memory-stat">
-            <span>Status</span>
-            <strong>{state.status.toUpperCase()}</strong>
-          </div>
-          <div className="solo-memory-stat">
-            <span>Moves</span>
-            <strong>{state.moves}</strong>
-          </div>
-          <div className="solo-memory-stat">
-            <span>Pairs Left</span>
-            <strong>{pairsLeft}</strong>
-          </div>
-          <div className="solo-memory-stat">
-            <span>Accuracy</span>
-            <strong>{accuracy}%</strong>
-          </div>
-          <div className="solo-memory-stat">
-            <span>Time</span>
-            <strong>{elapsedSeconds}s</strong>
-          </div>
-        </div>
-
-        <div className="solo-memory-actions">
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleNewBoard}>
-            <AiOutlineReload /> New Board
-          </button>
-          <button
-            className={classnames('lobby-btn', 'custome-shadow')}
-            type="button"
-            disabled={state.status === 'won' || state.status === 'lost'}
-            onClick={handleGiveUp}
-          >
-            <AiOutlineFlag /> Give Up
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
-            <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
-            Leave
-          </button>
-        </div>
-
         <div className="solo-memory-board" role="grid" aria-label="Memory Match board">
           {state.cards.map((card, index) => {
             const isVisible = card.isFaceUp || card.isMatched || state.status === 'lost';

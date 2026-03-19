@@ -2,7 +2,9 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { motion } from 'framer-motion';
 import {
+  AiOutlineDrag,
   AiOutlineFlag,
   AiOutlineInfoCircle,
   AiOutlineReload,
@@ -129,6 +131,7 @@ export function SoloMinesweeperGame({
 }: SoloMinesweeperGameProps) {
   const [state, setState] = useState<MinesweeperState>(() => createInitialState());
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const gameLabel = formatGameName('minesweeper', gameDefinitions);
 
@@ -139,6 +142,8 @@ export function SoloMinesweeperGame({
   const minesRemaining = state.mineCount - flaggedCount;
   const safeTilesTotal = TILE_COUNT - state.mineCount;
   const safeTilesLeft = safeTilesTotal - state.revealedSafeCount;
+  const boardStatusLabel =
+    state.status === 'idle' ? 'Ready' : state.status === 'playing' ? 'Playing' : state.status.toUpperCase();
 
   const resetBoard = useCallback(() => {
     lastReportedOutcomeRef.current = null;
@@ -296,54 +301,94 @@ export function SoloMinesweeperGame({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
+      <motion.div
+        drag
+        dragMomentum={false}
+        className="room-float-drag-root"
+        animate={{ y: [6, -6, 6] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+          {isInfoCardCollapsed ? (
+            <button
+              className="room-float-collapsed-center"
+              type="button"
+              onClick={() => setIsInfoCardCollapsed(false)}
+              aria-label="Expand game info"
+              title="Expand game info"
+            >
+              <AiOutlineInfoCircle />
+            </button>
+          ) : (
+            <>
+              <div className="room-float-header">
+                <span className="room-float-anchor">
+                  <AiOutlineDrag /> drag
+                </span>
+                <span className="room-float-title">{gameLabel} Solo</span>
+                <button
+                  className="room-float-toggle-btn"
+                  type="button"
+                  onClick={() => setIsInfoCardCollapsed(true)}
+                  aria-label="Collapse game info"
+                  title="Collapse game info"
+                >
+                  <AiOutlineInfoCircle />
+                </button>
+              </div>
+
+              <div className="solo-float-stats">
+                <div className="solo-float-stat">
+                  <span>Player</span>
+                  <strong>{player.name}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Status</span>
+                  <strong>{boardStatusLabel}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Mines Left</span>
+                  <strong>{minesRemaining}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Safe Left</span>
+                  <strong>{safeTilesLeft}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Time</span>
+                  <strong>{elapsedSeconds}s</strong>
+                </div>
+              </div>
+
+              <div className="solo-float-actions">
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={resetBoard}>
+                  <AiOutlineReload /> New Board
+                </button>
+                <button
+                  className={classnames('lobby-btn', 'custome-shadow')}
+                  type="button"
+                  onClick={() =>
+                    setState((currentState) => ({
+                      ...currentState,
+                      flagMode: !currentState.flagMode,
+                    }))
+                  }
+                >
+                  <AiOutlineFlag /> {state.flagMode ? 'Flag Mode On' : 'Reveal Mode On'}
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                  <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                  Leave
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+
       <section className="solo-mines-shell">
-        <div className="solo-mines-meta">
-          <div className="solo-mines-stat">
-            <span>Player</span>
-            <strong>{player.name}</strong>
-          </div>
-          <div className="solo-mines-stat">
-            <span>Status</span>
-            <strong>{state.status.toUpperCase()}</strong>
-          </div>
-          <div className="solo-mines-stat">
-            <span>Mines Left</span>
-            <strong>{minesRemaining}</strong>
-          </div>
-          <div className="solo-mines-stat">
-            <span>Safe Left</span>
-            <strong>{safeTilesLeft}</strong>
-          </div>
-          <div className="solo-mines-stat">
-            <span>Time</span>
-            <strong>{elapsedSeconds}s</strong>
-          </div>
-        </div>
-
-        <div className="solo-mines-actions">
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={resetBoard}>
-            <AiOutlineReload /> New Board
-          </button>
-          <button
-            className={classnames('lobby-btn', 'custome-shadow')}
-            type="button"
-            onClick={() =>
-              setState((currentState) => ({
-                ...currentState,
-                flagMode: !currentState.flagMode,
-              }))
-            }
-          >
-            <AiOutlineFlag /> {state.flagMode ? 'Flag Mode On' : 'Reveal Mode On'}
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
-            <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
-            Leave
-          </button>
-        </div>
-
         <div className="solo-mines-board" role="grid" aria-label="Minesweeper board">
           {state.tiles.map((tile, index) => (
             <button

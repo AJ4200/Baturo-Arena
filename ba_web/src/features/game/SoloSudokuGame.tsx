@@ -2,9 +2,12 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { motion } from 'framer-motion';
 import {
   AiOutlineCloseCircle,
+  AiOutlineDrag,
   AiOutlineFlag,
+  AiOutlineInfoCircle,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
@@ -220,11 +223,13 @@ export function SoloSudokuGame({
   onLeave,
 }: SoloSudokuGameProps) {
   const [state, setState] = useState<SoloSudokuState>(() => createPrerenderState());
+  const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const gameLabel = formatGameName('sudoku', gameDefinitions);
 
   const conflictIndexes = useMemo(() => getConflictingIndexes(state.board), [state.board]);
   const filledCells = useMemo(() => state.board.filter((value) => value !== 0).length, [state.board]);
+  const runStatus = state.isComplete ? 'Solved' : state.hasGivenUp ? 'Revealed' : 'In Progress';
 
   const setCellValue = useCallback((nextValue: number) => {
     setState((currentState) => {
@@ -379,51 +384,95 @@ export function SoloSudokuGame({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
+      <motion.div
+        drag
+        dragMomentum={false}
+        className="room-float-drag-root"
+        animate={{ y: [6, -6, 6] }}
+        transition={{ duration: 4, repeat: Infinity }}
+      >
+        <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+          {isInfoCardCollapsed ? (
+            <button
+              className="room-float-collapsed-center"
+              type="button"
+              onClick={() => setIsInfoCardCollapsed(false)}
+              aria-label="Expand game info"
+              title="Expand game info"
+            >
+              <AiOutlineInfoCircle />
+            </button>
+          ) : (
+            <>
+              <div className="room-float-header">
+                <span className="room-float-anchor">
+                  <AiOutlineDrag /> drag
+                </span>
+                <span className="room-float-title">{gameLabel} Solo</span>
+                <button
+                  className="room-float-toggle-btn"
+                  type="button"
+                  onClick={() => setIsInfoCardCollapsed(true)}
+                  aria-label="Collapse game info"
+                  title="Collapse game info"
+                >
+                  <AiOutlineInfoCircle />
+                </button>
+              </div>
+
+              <div className="solo-float-stats">
+                <div className="solo-float-stat">
+                  <span>Player</span>
+                  <strong>{player.name}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Status</span>
+                  <strong>{runStatus}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Difficulty</span>
+                  <strong>{state.puzzle.difficulty}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Filled</span>
+                  <strong>
+                    {filledCells}/{GRID_CELLS}
+                  </strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Mistakes</span>
+                  <strong>{state.mistakes}</strong>
+                </div>
+              </div>
+
+              <div className="solo-float-actions">
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleNewPuzzle}>
+                  <AiOutlineReload /> New Puzzle
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleClearCell}>
+                  <AiOutlineCloseCircle /> Clear Cell
+                </button>
+                <button
+                  className={classnames('lobby-btn', 'custome-shadow')}
+                  type="button"
+                  disabled={state.hasGivenUp || state.isComplete}
+                  onClick={handleGiveUp}
+                >
+                  <AiOutlineFlag /> Give Up
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                  <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                  Leave
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+
       <section className="solo-sudoku-shell">
-        <div className="solo-sudoku-meta">
-          <div className="solo-sudoku-stat">
-            <span>Player</span>
-            <strong>{player.name}</strong>
-          </div>
-          <div className="solo-sudoku-stat">
-            <span>Difficulty</span>
-            <strong>{state.puzzle.difficulty}</strong>
-          </div>
-          <div className="solo-sudoku-stat">
-            <span>Filled</span>
-            <strong>
-              {filledCells}/{GRID_CELLS}
-            </strong>
-          </div>
-          <div className="solo-sudoku-stat">
-            <span>Mistakes</span>
-            <strong>{state.mistakes}</strong>
-          </div>
-        </div>
-
-        <div className="solo-sudoku-actions">
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleNewPuzzle}>
-            <AiOutlineReload /> New Puzzle
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleClearCell}>
-            <AiOutlineCloseCircle /> Clear Cell
-          </button>
-          <button
-            className={classnames('lobby-btn', 'custome-shadow')}
-            type="button"
-            disabled={state.hasGivenUp || state.isComplete}
-            onClick={handleGiveUp}
-          >
-            <AiOutlineFlag /> Give Up
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
-            <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
-            Leave
-          </button>
-        </div>
-
         <div className="solo-sudoku-board" role="grid" aria-label="Sudoku board">
           {state.board.map((value, index) => {
             const row = Math.floor(index / GRID_SIZE);
@@ -466,7 +515,11 @@ export function SoloSudokuGame({
           })}
         </div>
 
-        <div className="solo-sudoku-pad">
+        <motion.div
+          className="solo-sudoku-pad"
+          animate={{ y: [6, -6, 6] }}
+          transition={{ duration: 4, repeat: Infinity }}
+        >
           {Array.from({ length: 9 }, (_, i) => i + 1).map((value) => (
             <button
               key={value}
@@ -480,7 +533,7 @@ export function SoloSudokuGame({
           <button className="solo-sudoku-pad-btn solo-sudoku-pad-clear" type="button" onClick={handleClearCell}>
             Clear
           </button>
-        </div>
+        </motion.div>
 
         <p className="solo-sudoku-message">
           {state.isComplete
