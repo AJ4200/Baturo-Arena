@@ -1,11 +1,11 @@
 {
-  "name": "ttt",
+  "name": "baturo-arena-server",
   "version": "1.0.0",
   "description": "",
-  "main": "ttt.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node ttt.js",
-    "dev": "node ttt.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "keywords": [],
   "author": "",

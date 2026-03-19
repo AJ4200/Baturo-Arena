@@ -1,8 +1,8 @@
-export type Screen = "home" | "lobby" | "leaderboard" | "history" | "settings" | "game";
+export type Screen = 'home' | 'lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
-export type GameMode = "online" | "cpu";
+export type GameMode = 'online' | 'cpu';
 
-export type GameType = "tic-tac-two";
+export type GameType = 'tic-tac-two' | 'connect-all-four' | 'orbital-flip';
 
 export type GameDefinition = {
   id: GameType;
@@ -10,11 +10,16 @@ export type GameDefinition = {
   minPlayers: number;
   maxPlayers: number;
   description: string;
+  rows: number;
+  columns: number;
+  connect: number;
+  moveMode: 'cell' | 'column' | 'flip';
+  winCondition?: 'connect' | 'majority';
 };
 
-export type CpuDifficulty = "easy" | "medium" | "hard";
+export type CpuDifficulty = 'easy' | 'medium' | 'hard';
 
-export type MatchOutcome = "win" | "loss" | "draw";
+export type MatchOutcome = 'win' | 'loss' | 'draw';
 
 export type MatchResultEvent = {
   mode: GameMode;
@@ -40,7 +45,7 @@ export type PublicRoom = {
   code: string;
   name: string;
   gameType: GameType;
-  status: "waiting" | "playing" | "finished";
+  status: 'waiting' | 'playing' | 'finished';
   playersCount: number;
   maxPlayers: number;
   isPublic: boolean;
@@ -50,14 +55,31 @@ export type LeaderboardPlayer = PlayerProfile & {
   score: number;
 };
 
+export type LeaderboardCategory = {
+  gameType: GameType | 'overall';
+  name: string;
+  players: LeaderboardPlayer[];
+};
+
+export type LeaderboardPayload = {
+  overall: LeaderboardPlayer[];
+  byGame: Array<{
+    gameType: GameType;
+    name: string;
+    players: LeaderboardPlayer[];
+  }>;
+};
+
 export type RoomPlayer = {
   playerId: string;
   name: string;
-  symbol: "X" | "O";
+  symbol: 'X' | 'O';
   wins: number;
   losses: number;
   draws: number;
 };
+
+export type BoardCell = 'X' | 'O' | null;
 
 export type RoomState = {
   code: string;
@@ -65,10 +87,10 @@ export type RoomState = {
   gameType: GameType;
   maxPlayers: number;
   isPublic: boolean;
-  board: Array<"X" | "O" | null>;
-  turn: "X" | "O";
-  status: "waiting" | "playing" | "finished";
-  winner: "X" | "O" | "draw" | null;
+  board: BoardCell[];
+  turn: 'X' | 'O';
+  status: 'waiting' | 'playing' | 'finished';
+  winner: 'X' | 'O' | 'draw' | null;
   playersCount: number;
   players: RoomPlayer[];
 };
@@ -76,12 +98,13 @@ export type RoomState = {
 export type RoomPayload = {
   room: {
     code: string;
+    gameType: GameType;
   };
   you: PlayerProfile | null;
 };
 
 export type RoomStatePayload = {
   room: RoomState;
-  yourSymbol: "X" | "O" | null;
+  yourSymbol: 'X' | 'O' | null;
   you: PlayerProfile | null;
 };

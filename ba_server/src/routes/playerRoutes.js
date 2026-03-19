@@ -18,8 +18,8 @@ router.post(
 router.get(
   "/leaderboard",
   asyncHandler(async (_req, res) => {
-    const players = await getLeaderboard();
-    res.json({ players });
+    const leaderboard = await getLeaderboard();
+    res.json(leaderboard);
   })
 );
 
