@@ -9,6 +9,7 @@ const GAME_RULES = {
     maxPlayers: 4,
     description: 'Classic tic-tac-toe for teams X and O. Up to 4 players can join (2 per side).',
     moveMode: 'cell',
+    winCondition: 'connect',
   },
   'connect-all-four': {
     id: 'connect-all-four',
@@ -20,6 +21,19 @@ const GAME_RULES = {
     maxPlayers: 2,
     description: 'Drop pieces into columns and connect four before your rival does.',
     moveMode: 'column',
+    winCondition: 'connect',
+  },
+  'orbital-flip': {
+    id: 'orbital-flip',
+    name: 'Orbital-Flip',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Start from a live center core, place a piece each turn, and flip every neighboring enemy tile to control the board.',
+    moveMode: 'flip',
+    winCondition: 'majority',
   },
 };
 
@@ -37,7 +51,20 @@ function createEmptyBoard(gameType) {
     throw new Error(`Unsupported game type: ${gameType}`);
   }
 
-  return Array(rules.rows * rules.columns).fill(null);
+  const board = Array(rules.rows * rules.columns).fill(null);
+
+  if (rules.id === 'orbital-flip') {
+    const midLeft = getCellIndex(1, 1, rules.columns);
+    const midRight = getCellIndex(1, 2, rules.columns);
+    const lowLeft = getCellIndex(2, 1, rules.columns);
+    const lowRight = getCellIndex(2, 2, rules.columns);
+    board[midLeft] = 'X';
+    board[midRight] = 'O';
+    board[lowLeft] = 'O';
+    board[lowRight] = 'X';
+  }
+
+  return board;
 }
 
 function getBoardDimensions(gameType) {
@@ -51,6 +78,7 @@ function getBoardDimensions(gameType) {
     columns: rules.columns,
     connect: rules.connect,
     moveMode: rules.moveMode,
+    winCondition: rules.winCondition || 'connect',
   };
 }
 
@@ -66,6 +94,28 @@ function checkWinner(gameType, board) {
   const rules = getGameRules(gameType);
   if (!rules) {
     throw new Error(`Unsupported game type: ${gameType}`);
+  }
+
+  if (rules.winCondition === 'majority') {
+    const xCount = board.filter((cell) => cell === 'X').length;
+    const oCount = board.filter((cell) => cell === 'O').length;
+
+    if (xCount === 0) {
+      return 'O';
+    }
+
+    if (oCount === 0) {
+      return 'X';
+    }
+
+    if (isBoardFull(board)) {
+      if (xCount === oCount) {
+        return 'draw';
+      }
+      return xCount > oCount ? 'X' : 'O';
+    }
+
+    return null;
   }
 
   const directions = [
@@ -128,7 +178,7 @@ function getAvailableMoves(gameType, board) {
     throw new Error(`Unsupported game type: ${gameType}`);
   }
 
-  if (rules.moveMode === 'cell') {
+  if (rules.moveMode === 'cell' || rules.moveMode === 'flip') {
     return board.reduce((moves, cell, index) => {
       if (cell === null) {
         moves.push(index);
@@ -164,6 +214,38 @@ function applyMove(gameType, board, move, symbol) {
 
   if (rules.moveMode === 'cell') {
     nextBoard[move] = symbol;
+    return nextBoard;
+  }
+
+  if (rules.moveMode === 'flip') {
+    nextBoard[move] = symbol;
+    const row = Math.floor(move / rules.columns);
+    const column = move % rules.columns;
+
+    for (let rowStep = -1; rowStep <= 1; rowStep += 1) {
+      for (let columnStep = -1; columnStep <= 1; columnStep += 1) {
+        if (rowStep === 0 && columnStep === 0) {
+          continue;
+        }
+
+        const nextRow = row + rowStep;
+        const nextColumn = column + columnStep;
+        if (
+          nextRow < 0 ||
+          nextRow >= rules.rows ||
+          nextColumn < 0 ||
+          nextColumn >= rules.columns
+        ) {
+          continue;
+        }
+
+        const nextIndex = getCellIndex(nextRow, nextColumn, rules.columns);
+        if (nextBoard[nextIndex] && nextBoard[nextIndex] !== symbol) {
+          nextBoard[nextIndex] = symbol;
+        }
+      }
+    }
+
     return nextBoard;
   }
 

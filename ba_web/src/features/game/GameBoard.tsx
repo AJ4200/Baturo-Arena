@@ -20,7 +20,7 @@ export function GameBoard({ gameType, board, gameDefinitions, disabled = false, 
     return (
       <button
         key={cellIndex}
-        className={classnames('square', gameType === 'connect-all-four' && 'square-connect-four')}
+        className={classnames('square', gameType === 'connect-all-four' && 'square-connect-four', gameType === 'orbital-flip' && 'square-orbital-flip')}
         type="button"
         disabled={disabled}
         onClick={() => onMove(moveIndex)}
@@ -30,9 +30,9 @@ export function GameBoard({ gameType, board, gameDefinitions, disabled = false, 
     );
   };
 
-  if (game.moveMode === 'cell') {
+  if (game.moveMode === 'cell' || game.moveMode === 'flip') {
     return (
-      <div className={classnames('board', 'board-grid', `board-${game.id}`)}>
+      <div className={classnames('board', 'board-grid', `board-${game.id}`, gameType === 'orbital-flip' && 'board-orbital-flip')}>
         {Array.from({ length: game.rows }).map((_, row) => (
           <div key={row} className="board-row">
             {Array.from({ length: game.columns }).map((__, column) => {

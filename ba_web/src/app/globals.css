@@ -997,6 +997,17 @@ transform: skewX(-5deg);
   padding: 0.35rem;
 }
 
+.board-orbital-flip {
+  background: radial-gradient(circle at top, rgba(111, 88, 255, 0.45), rgba(20, 18, 38, 0.82));
+  border-radius: 24px;
+  padding: 0.35rem;
+}
+
+.square-orbital-flip {
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .board-row-connect-four {
   display: flex;
 }

@@ -11,6 +11,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     columns: 3,
     connect: 3,
     moveMode: 'cell',
+    winCondition: 'connect',
   },
   {
     id: 'connect-all-four',
@@ -22,6 +23,19 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     columns: 7,
     connect: 4,
     moveMode: 'column',
+    winCondition: 'connect',
+  },
+  {
+    id: 'orbital-flip',
+    name: 'Orbital-Flip',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Start from a live center core, place a piece each turn, and flip every neighboring enemy tile to control the board.',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    moveMode: 'flip',
+    winCondition: 'majority',
   },
 ];
 
@@ -31,7 +45,16 @@ export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): G
 
 export const createEmptyBoard = (gameType: GameType, games = FALLBACK_GAMES): BoardCell[] => {
   const game = getGameDefinition(gameType, games);
-  return Array(game.rows * game.columns).fill(null);
+  const board = Array(game.rows * game.columns).fill(null);
+
+  if (game.id === 'orbital-flip') {
+    board[5] = 'X';
+    board[6] = 'O';
+    board[9] = 'O';
+    board[10] = 'X';
+  }
+
+  return board;
 };
 
 const getCellIndex = (row: number, column: number, columns: number) => row * columns + column;
@@ -39,7 +62,7 @@ const getCellIndex = (row: number, column: number, columns: number) => row * col
 export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games = FALLBACK_GAMES): number[] => {
   const game = getGameDefinition(gameType, games);
 
-  if (game.moveMode === 'cell') {
+  if (game.moveMode === 'cell' || game.moveMode === 'flip') {
     return board.reduce<number[]>((moves, cell, index) => {
       if (cell === null) {
         moves.push(index);
@@ -77,6 +100,38 @@ export const applyMove = (
     return nextBoard;
   }
 
+  if (game.moveMode === 'flip') {
+    nextBoard[move] = symbol;
+    const row = Math.floor(move / game.columns);
+    const column = move % game.columns;
+
+    for (let rowStep = -1; rowStep <= 1; rowStep += 1) {
+      for (let columnStep = -1; columnStep <= 1; columnStep += 1) {
+        if (rowStep === 0 && columnStep === 0) {
+          continue;
+        }
+
+        const nextRow = row + rowStep;
+        const nextColumn = column + columnStep;
+        if (
+          nextRow < 0 ||
+          nextRow >= game.rows ||
+          nextColumn < 0 ||
+          nextColumn >= game.columns
+        ) {
+          continue;
+        }
+
+        const nextIndex = getCellIndex(nextRow, nextColumn, game.columns);
+        if (nextBoard[nextIndex] && nextBoard[nextIndex] !== symbol) {
+          nextBoard[nextIndex] = symbol;
+        }
+      }
+    }
+
+    return nextBoard;
+  }
+
   for (let row = game.rows - 1; row >= 0; row -= 1) {
     const index = getCellIndex(row, move, game.columns);
     if (nextBoard[index] === null) {
@@ -94,6 +149,28 @@ export const evaluateBoard = (
   games = FALLBACK_GAMES
 ): 'X' | 'O' | 'draw' | null => {
   const game = getGameDefinition(gameType, games);
+  if (game.winCondition === 'majority') {
+    const xCount = board.filter((cell) => cell === 'X').length;
+    const oCount = board.filter((cell) => cell === 'O').length;
+
+    if (xCount === 0) {
+      return 'O';
+    }
+
+    if (oCount === 0) {
+      return 'X';
+    }
+
+    if (board.every((cell) => cell !== null)) {
+      if (xCount === oCount) {
+        return 'draw';
+      }
+      return xCount > oCount ? 'X' : 'O';
+    }
+
+    return null;
+  }
+
   const directions = [
     [0, 1],
     [1, 0],

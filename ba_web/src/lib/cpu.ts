@@ -24,9 +24,26 @@ const findImmediateMove = (gameType: GameType, board: Board, symbol: Symbol): nu
   return null;
 };
 
-const scoreConnectAllFourMove = (board: Board, move: number): number => {
+const scoreConnectAllFourMove = (move: number): number => {
   const centerPreference = [3, 4, 2, 5, 1, 6, 0];
   return centerPreference.findIndex((entry) => entry === move) * -1;
+};
+
+const scoreCellMove = (gameType: GameType, move: number): number => {
+  const game = getGameDefinition(gameType);
+  const row = Math.floor(move / game.columns);
+  const column = move % game.columns;
+  const centerRow = (game.rows - 1) / 2;
+  const centerColumn = (game.columns - 1) / 2;
+  return -(Math.abs(row - centerRow) + Math.abs(column - centerColumn));
+};
+
+const scoreOrbitalFlipMove = (board: Board, move: number): number => {
+  const nextBoard = applyMove('orbital-flip', board, move, 'O');
+  const gainedTiles = nextBoard.filter((cell) => cell === 'O').length - board.filter((cell) => cell === 'O').length;
+  const cornerBonus = [0, 3, 12, 15].includes(move) ? 3 : 0;
+  const edgeBonus = [1, 2, 4, 7, 8, 11, 13, 14].includes(move) ? 1 : 0;
+  return gainedTiles * 4 + cornerBonus + edgeBonus;
 };
 
 const minimaxTicTacTwo = (board: Board, isCpuTurn: boolean): number => {
@@ -81,7 +98,17 @@ const hardMove = (gameType: GameType, board: Board): number | null => {
     return bestMove;
   }
 
-  return [...moves].sort((left, right) => scoreConnectAllFourMove(board, right) - scoreConnectAllFourMove(board, left))[0] ?? null;
+  const game = getGameDefinition(gameType);
+
+  if (game.moveMode === 'column') {
+    return [...moves].sort((left, right) => scoreConnectAllFourMove(right) - scoreConnectAllFourMove(left))[0] ?? null;
+  }
+
+  if (gameType === 'orbital-flip') {
+    return [...moves].sort((left, right) => scoreOrbitalFlipMove(board, right) - scoreOrbitalFlipMove(board, left))[0] ?? null;
+  }
+
+  return [...moves].sort((left, right) => scoreCellMove(gameType, right) - scoreCellMove(gameType, left))[0] ?? null;
 };
 
 export const getCpuMove = (
@@ -105,6 +132,10 @@ export const getCpuMove = (
 
   if (difficulty === 'medium') {
     const game = getGameDefinition(gameType);
+    if (game.moveMode === 'flip') {
+      return [...getAvailableMoves(gameType, board)].sort((left, right) => scoreOrbitalFlipMove(board, right) - scoreOrbitalFlipMove(board, left))[0] ?? null;
+    }
+
     if (game.moveMode === 'cell') {
       const centerIndex = Math.floor(board.length / 2);
       if (board[centerIndex] === null) {

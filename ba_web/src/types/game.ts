@@ -2,7 +2,7 @@ export type Screen = 'home' | 'lobby' | 'leaderboard' | 'history' | 'settings' |
 
 export type GameMode = 'online' | 'cpu';
 
-export type GameType = 'tic-tac-two' | 'connect-all-four';
+export type GameType = 'tic-tac-two' | 'connect-all-four' | 'orbital-flip';
 
 export type GameDefinition = {
   id: GameType;
@@ -13,7 +13,8 @@ export type GameDefinition = {
   rows: number;
   columns: number;
   connect: number;
-  moveMode: 'cell' | 'column';
+  moveMode: 'cell' | 'column' | 'flip';
+  winCondition?: 'connect' | 'majority';
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';

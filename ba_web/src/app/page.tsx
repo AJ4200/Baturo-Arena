@@ -458,10 +458,11 @@ export default function Home() {
     if (savedDifficulty === 'easy' || savedDifficulty === 'medium' || savedDifficulty === 'hard') {
       setCpuDifficulty(savedDifficulty);
     }
-    if (savedPreferredGame === 'tic-tac-two' || savedPreferredGame === 'connect-all-four') {
-      setSelectedGame(savedPreferredGame);
-      setLeaderboardCategory(savedPreferredGame);
-      setHistoryCategory(savedPreferredGame);
+    if (savedPreferredGame) {
+      const normalizedPreferredGame = normalizeGameType(savedPreferredGame);
+      setSelectedGame(normalizedPreferredGame);
+      setLeaderboardCategory(normalizedPreferredGame);
+      setHistoryCategory(normalizedPreferredGame);
     }
 
     refreshGames()
