@@ -1,15 +1,15 @@
-const { run, all } = require("./client");
+const { run, all } = require('./client');
 
 async function ensureRoomColumns() {
-  const columns = await all("PRAGMA table_info(rooms)");
+  const columns = await all('PRAGMA table_info(rooms)');
   const columnNames = new Set(columns.map((column) => column.name));
 
-  if (!columnNames.has("game_type")) {
+  if (!columnNames.has('game_type')) {
     await run("ALTER TABLE rooms ADD COLUMN game_type TEXT NOT NULL DEFAULT 'tic-tac-two'");
   }
 
-  if (!columnNames.has("max_players")) {
-    await run("ALTER TABLE rooms ADD COLUMN max_players INTEGER NOT NULL DEFAULT 4");
+  if (!columnNames.has('max_players')) {
+    await run('ALTER TABLE rooms ADD COLUMN max_players INTEGER NOT NULL DEFAULT 4');
   }
 }
 
@@ -58,6 +58,25 @@ async function runMigrations() {
       FOREIGN KEY (room_id) REFERENCES rooms(id) ON DELETE CASCADE,
       FOREIGN KEY (player_id) REFERENCES players(id)
     )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS player_game_stats (
+      player_id TEXT NOT NULL,
+      game_type TEXT NOT NULL,
+      wins INTEGER NOT NULL DEFAULT 0,
+      losses INTEGER NOT NULL DEFAULT 0,
+      draws INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (player_id, game_type),
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    INSERT OR IGNORE INTO player_game_stats (player_id, game_type, wins, losses, draws, updated_at)
+    SELECT id, 'tic-tac-two', wins, losses, draws, CURRENT_TIMESTAMP
+    FROM players
   `);
 }
 
