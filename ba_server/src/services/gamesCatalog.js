@@ -1,19 +1,26 @@
-const GAME_CATALOG = {
-  "tic-tac-two": {
-    id: "tic-tac-two",
-    name: "Tic-Tac-Two",
-    minPlayers: 2,
-    maxPlayers: 4,
-    description: "Classic tic-tac-toe for teams X and O. Up to 4 players can join (2 per side).",
-  },
-};
+const { listGameRules, getGameRules } = require('../utils/game');
+
+function toGameDefinition(rules) {
+  return {
+    id: rules.id,
+    name: rules.name,
+    minPlayers: rules.minPlayers,
+    maxPlayers: rules.maxPlayers,
+    description: rules.description,
+    rows: rules.rows,
+    columns: rules.columns,
+    connect: rules.connect,
+    moveMode: rules.moveMode,
+  };
+}
 
 function listGames() {
-  return Object.values(GAME_CATALOG);
+  return listGameRules().map(toGameDefinition);
 }
 
 function getGameById(gameId) {
-  return GAME_CATALOG[gameId] || null;
+  const rules = getGameRules(gameId);
+  return rules ? toGameDefinition(rules) : null;
 }
 
 module.exports = {

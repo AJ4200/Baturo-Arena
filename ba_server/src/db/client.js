@@ -3,7 +3,8 @@ const path = require("path");
 const initSqlJs = require("sql.js");
 
 const dbDirectory = path.join(__dirname, "..", "..", "data");
-const dbPath = path.join(dbDirectory, "ttt.sqlite");
+const dbPath = path.join(dbDirectory, 'baturo-arena.sqlite');
+const legacyDbPath = path.join(dbDirectory, 'ttt.sqlite');
 
 let SQL = null;
 let db = null;
@@ -42,9 +43,14 @@ async function initializeClient() {
     locateFile: (file) => path.join(__dirname, "..", "..", "node_modules", "sql.js", "dist", file),
   });
 
-  if (fs.existsSync(dbPath)) {
-    const fileBuffer = fs.readFileSync(dbPath);
+  const sourceDbPath = fs.existsSync(dbPath) ? dbPath : legacyDbPath;
+
+  if (fs.existsSync(sourceDbPath)) {
+    const fileBuffer = fs.readFileSync(sourceDbPath);
     db = new SQL.Database(fileBuffer);
+    if (sourceDbPath !== dbPath) {
+      persistDatabase();
+    }
   } else {
     db = new SQL.Database();
     persistDatabase();

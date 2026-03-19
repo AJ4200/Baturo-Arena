@@ -1,4 +1,5 @@
-const { run, get, all } = require("../db/client");
+const { run, get, all } = require('../db/client');
+const { createEmptyBoard } = require('../utils/game');
 
 function parseRoom(row) {
   if (!row) {
@@ -15,7 +16,7 @@ function parseRoom(row) {
 }
 
 async function createRoom({ code, name, isPublic, creatorPlayerId, gameType, maxPlayers }) {
-  const emptyBoard = JSON.stringify(Array(9).fill(null));
+  const emptyBoard = JSON.stringify(createEmptyBoard(gameType));
   const insertResult = await run(
     `INSERT INTO rooms (
       code, name, is_public, creator_player_id, game_type, max_players, board, turn, status, winner, result_recorded, updated_at
@@ -26,12 +27,12 @@ async function createRoom({ code, name, isPublic, creatorPlayerId, gameType, max
 }
 
 async function getRoomByCode(code) {
-  const row = await get("SELECT * FROM rooms WHERE code = ?", [code]);
+  const row = await get('SELECT * FROM rooms WHERE code = ?', [code]);
   return parseRoom(row);
 }
 
 async function getRoomById(roomId) {
-  const row = await get("SELECT * FROM rooms WHERE id = ?", [roomId]);
+  const row = await get('SELECT * FROM rooms WHERE id = ?', [roomId]);
   return parseRoom(row);
 }
 
@@ -72,17 +73,11 @@ async function addPlayerToRoom(roomId, playerId, symbol) {
 }
 
 async function removePlayerFromRoom(roomId, playerId) {
-  await run(
-    "DELETE FROM room_players WHERE room_id = ? AND player_id = ?",
-    [roomId, playerId]
-  );
+  await run('DELETE FROM room_players WHERE room_id = ? AND player_id = ?', [roomId, playerId]);
 }
 
 async function findRoomPlayer(roomId, playerId) {
-  return get(
-    "SELECT * FROM room_players WHERE room_id = ? AND player_id = ?",
-    [roomId, playerId]
-  );
+  return get('SELECT * FROM room_players WHERE room_id = ? AND player_id = ?', [roomId, playerId]);
 }
 
 async function listRoomPlayers(roomId) {
@@ -112,19 +107,21 @@ async function updateRoomState(roomId, { board, turn, status, winner, resultReco
 }
 
 async function resetRoom(roomId, status) {
+  const room = await getRoomById(roomId);
+  if (!room) {
+    return;
+  }
+
   await run(
     `UPDATE rooms
      SET board = ?, turn = 'X', status = ?, winner = NULL, result_recorded = 0, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [JSON.stringify(Array(9).fill(null)), status, roomId]
+    [JSON.stringify(createEmptyBoard(room.game_type)), status, roomId]
   );
 }
 
 async function countRoomPlayers(roomId) {
-  const row = await get(
-    "SELECT COUNT(*) AS total FROM room_players WHERE room_id = ?",
-    [roomId]
-  );
+  const row = await get('SELECT COUNT(*) AS total FROM room_players WHERE room_id = ?', [roomId]);
   return Number(row ? row.total : 0);
 }
 
