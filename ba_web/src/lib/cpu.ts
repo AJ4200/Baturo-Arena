@@ -153,6 +153,16 @@ export const getCpuMove = (
   board: Board,
   difficulty: CpuDifficulty
 ): number | null => {
+  const game = getGameDefinition(gameType);
+  if (
+    game.moveMode === 'solo-2048' ||
+    game.moveMode === 'solo-sudoku' ||
+    game.moveMode === 'solo-minesweeper' ||
+    game.moveMode === 'solo-memory'
+  ) {
+    return null;
+  }
+
   if (difficulty === 'easy') {
     return randomMove(gameType, board);
   }
@@ -168,7 +178,6 @@ export const getCpuMove = (
   }
 
   if (difficulty === 'medium') {
-    const game = getGameDefinition(gameType);
     if (game.moveMode === 'flip') {
       return [...getAvailableMoves(gameType, board)].sort((left, right) => scoreOrbitalFlipMove(board, right) - scoreOrbitalFlipMove(board, left))[0] ?? null;
     }

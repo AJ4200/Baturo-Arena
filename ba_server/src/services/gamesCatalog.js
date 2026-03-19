@@ -12,6 +12,8 @@ function toGameDefinition(rules) {
     connect: rules.connect,
     moveMode: rules.moveMode,
     winCondition: rules.winCondition,
+    supportsOnline: Boolean(rules.supportsOnline),
+    supportsCpu: Boolean(rules.supportsCpu),
   };
 }
 

@@ -10,6 +10,8 @@ const GAME_RULES = {
     description: 'Classic tic-tac-toe for teams X and O. Up to 4 players can join (2 per side).',
     moveMode: 'cell',
     winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   'connect-all-four': {
     id: 'connect-all-four',
@@ -22,6 +24,8 @@ const GAME_RULES = {
     description: 'Drop pieces into columns and connect four before your rival does.',
     moveMode: 'column',
     winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   'orbital-flip': {
     id: 'orbital-flip',
@@ -34,6 +38,8 @@ const GAME_RULES = {
     description: 'Expanded 6x6 orbital grid: place a piece each turn and flip neighboring enemy tiles to control space.',
     moveMode: 'flip',
     winCondition: 'majority',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   'corner-clash': {
     id: 'corner-clash',
@@ -46,6 +52,64 @@ const GAME_RULES = {
     description: 'Capture the corners. Every move also flips orthogonally adjacent enemy tiles.',
     moveMode: 'corner-flip',
     winCondition: 'corners',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  '2048': {
+    id: '2048',
+    name: '2048',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Slide and merge tiles to reach 2048. Single-player puzzle run.',
+    moveMode: 'solo-2048',
+    winCondition: 'target-2048',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  sudoku: {
+    id: 'sudoku',
+    name: 'Sudoku',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Fill the 9x9 grid so each row, column, and 3x3 box contains numbers 1-9.',
+    moveMode: 'solo-sudoku',
+    winCondition: 'sudoku-complete',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  minesweeper: {
+    id: 'minesweeper',
+    name: 'Minesweeper',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Clear all safe cells and flag mines without detonating the board.',
+    moveMode: 'solo-minesweeper',
+    winCondition: 'minesweeper-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'memory-match': {
+    id: 'memory-match',
+    name: 'Memory-Match',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Flip cards, find pairs, and clear the grid in the fewest moves.',
+    moveMode: 'solo-memory',
+    winCondition: 'memory-complete',
+    supportsOnline: false,
+    supportsCpu: true,
   },
 };
 
@@ -110,6 +174,15 @@ function checkWinner(gameType, board) {
   const rules = getGameRules(gameType);
   if (!rules) {
     throw new Error(`Unsupported game type: ${gameType}`);
+  }
+
+  if (
+    rules.winCondition === 'target-2048' ||
+    rules.winCondition === 'sudoku-complete' ||
+    rules.winCondition === 'minesweeper-clear' ||
+    rules.winCondition === 'memory-complete'
+  ) {
+    return null;
   }
 
   if (rules.winCondition === 'majority') {
@@ -225,6 +298,15 @@ function getAvailableMoves(gameType, board) {
   }
 
   if (
+    rules.moveMode === 'solo-2048' ||
+    rules.moveMode === 'solo-sudoku' ||
+    rules.moveMode === 'solo-minesweeper' ||
+    rules.moveMode === 'solo-memory'
+  ) {
+    return [];
+  }
+
+  if (
     rules.moveMode === 'cell' ||
     rules.moveMode === 'flip' ||
     rules.moveMode === 'corner-flip'
@@ -254,6 +336,15 @@ function applyMove(gameType, board, move, symbol) {
   const rules = getGameRules(gameType);
   if (!rules) {
     throw new Error(`Unsupported game type: ${gameType}`);
+  }
+
+  if (
+    rules.moveMode === 'solo-2048' ||
+    rules.moveMode === 'solo-sudoku' ||
+    rules.moveMode === 'solo-minesweeper' ||
+    rules.moveMode === 'solo-memory'
+  ) {
+    return [...board];
   }
 
   if (!isValidMove(gameType, board, move)) {

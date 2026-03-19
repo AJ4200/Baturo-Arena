@@ -49,6 +49,74 @@ type LocalBackupPayload = {
   cpuDifficulty: CpuDifficulty;
 };
 
+const clampChannel = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));
+
+const normalizeHexColor = (hexColor: string): string => {
+  const cleaned = String(hexColor || '').trim().replace('#', '');
+  if (cleaned.length === 3) {
+    return cleaned
+      .split('')
+      .map((char) => `${char}${char}`)
+      .join('')
+      .toLowerCase();
+  }
+
+  if (cleaned.length === 6) {
+    return cleaned.toLowerCase();
+  }
+
+  return 'ffffff';
+};
+
+const hexToRgb = (hexColor: string): [number, number, number] => {
+  const normalized = normalizeHexColor(hexColor);
+  const red = Number.parseInt(normalized.slice(0, 2), 16);
+  const green = Number.parseInt(normalized.slice(2, 4), 16);
+  const blue = Number.parseInt(normalized.slice(4, 6), 16);
+  return [red, green, blue];
+};
+
+const blendRgb = (
+  rgb: [number, number, number],
+  target: [number, number, number],
+  amount: number
+): [number, number, number] => {
+  return [
+    clampChannel(rgb[0] + (target[0] - rgb[0]) * amount),
+    clampChannel(rgb[1] + (target[1] - rgb[1]) * amount),
+    clampChannel(rgb[2] + (target[2] - rgb[2]) * amount),
+  ];
+};
+
+const rgbString = ([red, green, blue]: [number, number, number]): string =>
+  `${red}, ${green}, ${blue}`;
+
+const createMatchThemeStyle = (backgroundHex: string): React.CSSProperties => {
+  const baseRgb = hexToRgb(backgroundHex);
+  const darkRgb = blendRgb(baseRgb, [0, 0, 0], 0.56);
+  const deepRgb = blendRgb(baseRgb, [0, 0, 0], 0.34);
+  const lightRgb = blendRgb(baseRgb, [255, 255, 255], 0.72);
+  const softLightRgb = blendRgb(baseRgb, [255, 255, 255], 0.48);
+  const style: React.CSSProperties = {
+    backgroundColor: backgroundHex,
+  };
+  const cssVars = style as React.CSSProperties & Record<string, string>;
+  cssVars['--match-base-rgb'] = rgbString(baseRgb);
+  cssVars['--match-dark-rgb'] = rgbString(darkRgb);
+  cssVars['--match-deep-rgb'] = rgbString(deepRgb);
+  cssVars['--match-light-rgb'] = rgbString(lightRgb);
+  cssVars['--match-soft-light-rgb'] = rgbString(softLightRgb);
+  cssVars['--match-tint-soft'] = `rgba(${rgbString(baseRgb)}, 0.2)`;
+  cssVars['--match-tint-medium'] = `rgba(${rgbString(baseRgb)}, 0.38)`;
+  cssVars['--match-tint-strong'] = `rgba(${rgbString(baseRgb)}, 0.56)`;
+  cssVars['--match-surface'] = `rgba(${rgbString(lightRgb)}, 0.9)`;
+  cssVars['--match-surface-soft'] = `rgba(${rgbString(softLightRgb)}, 0.82)`;
+  cssVars['--match-outline'] = `rgba(${rgbString(darkRgb)}, 0.55)`;
+  cssVars['--match-text'] = `rgb(${rgbString(blendRgb(darkRgb, [0, 0, 0], 0.18))})`;
+
+  return style;
+};
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameMode, setGameMode] = useState<GameMode>('online');
@@ -361,6 +429,17 @@ export default function Home() {
     ]);
   };
 
+  const findGameDefinition = useCallback(
+    (gameType: GameType): GameDefinition => {
+      return (
+        availableGames.find((game) => game.id === gameType) ||
+        FALLBACK_GAMES.find((game) => game.id === gameType) ||
+        FALLBACK_GAMES[0]
+      );
+    },
+    [availableGames]
+  );
+
   const ensurePlayer = async () => {
     const savedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
     const payload = await callApi<PlayerProfile>('/api/players/register', {
@@ -387,6 +466,12 @@ export default function Home() {
   };
 
   const createRoom = async (isPublic: boolean) => {
+    const selectedDefinition = findGameDefinition(selectedGame);
+    if (!selectedDefinition.supportsOnline) {
+      setMessage(`${selectedDefinition.name} is single-player only`);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const registeredPlayer = await ensurePlayer();
@@ -450,6 +535,12 @@ export default function Home() {
   };
 
   const startCpuMatch = async () => {
+    const selectedDefinition = findGameDefinition(selectedGame);
+    if (!selectedDefinition.supportsCpu) {
+      setMessage(`${selectedDefinition.name} is not available in CPU mode`);
+      return;
+    }
+
     try {
       setIsLoading(true);
       await ensurePlayer();
@@ -558,6 +649,7 @@ export default function Home() {
   }, [audioElement, isMusicMuted, musicVolume]);
 
   const isInMatch = screen === 'game' && Boolean(player);
+  const matchThemeStyle = isInMatch ? createMatchThemeStyle(matchBackgroundColor) : undefined;
 
   const renderTopBar = () => (
     <header className="title-topbar">
@@ -768,7 +860,7 @@ export default function Home() {
   return (
     <main
       className={classnames(isInMatch ? 'match-screen-root' : 'title-screen-root', !enableAnimations && 'motion-off')}
-      style={isInMatch ? { backgroundColor: matchBackgroundColor } : undefined}
+      style={matchThemeStyle}
     >
       {!isInMatch ? renderTopBar() : null}
       {renderScreen()}

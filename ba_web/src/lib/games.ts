@@ -12,6 +12,8 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 3,
     moveMode: 'cell',
     winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   {
     id: 'connect-all-four',
@@ -24,6 +26,8 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 4,
     moveMode: 'column',
     winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   {
     id: 'orbital-flip',
@@ -36,6 +40,8 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'flip',
     winCondition: 'majority',
+    supportsOnline: true,
+    supportsCpu: true,
   },
   {
     id: 'corner-clash',
@@ -48,6 +54,64 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'corner-flip',
     winCondition: 'corners',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: '2048',
+    name: '2048',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Slide and merge tiles to reach 2048. Single-player puzzle run.',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-2048',
+    winCondition: 'target-2048',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'sudoku',
+    name: 'Sudoku',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Fill the 9x9 grid so each row, column, and 3x3 box contains numbers 1-9.',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    moveMode: 'solo-sudoku',
+    winCondition: 'sudoku-complete',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'minesweeper',
+    name: 'Minesweeper',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Clear all safe cells and flag mines without detonating the board.',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    moveMode: 'solo-minesweeper',
+    winCondition: 'minesweeper-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'memory-match',
+    name: 'Memory-Match',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Flip cards, find pairs, and clear the grid in the fewest moves.',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-memory',
+    winCondition: 'memory-complete',
+    supportsOnline: false,
+    supportsCpu: true,
   },
 ];
 
@@ -79,6 +143,15 @@ const getCellIndex = (row: number, column: number, columns: number) => row * col
 export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games = FALLBACK_GAMES): number[] => {
   const game = getGameDefinition(gameType, games);
 
+  if (
+    game.moveMode === 'solo-2048' ||
+    game.moveMode === 'solo-sudoku' ||
+    game.moveMode === 'solo-minesweeper' ||
+    game.moveMode === 'solo-memory'
+  ) {
+    return [];
+  }
+
   if (game.moveMode === 'cell' || game.moveMode === 'flip' || game.moveMode === 'corner-flip') {
     return board.reduce<number[]>((moves, cell, index) => {
       if (cell === null) {
@@ -106,6 +179,15 @@ export const applyMove = (
   games = FALLBACK_GAMES
 ): BoardCell[] => {
   const game = getGameDefinition(gameType, games);
+  if (
+    game.moveMode === 'solo-2048' ||
+    game.moveMode === 'solo-sudoku' ||
+    game.moveMode === 'solo-minesweeper' ||
+    game.moveMode === 'solo-memory'
+  ) {
+    return [...board];
+  }
+
   if (!getAvailableMoves(gameType, board, games).includes(move)) {
     return [...board];
   }
@@ -199,6 +281,15 @@ export const evaluateBoard = (
   games = FALLBACK_GAMES
 ): 'X' | 'O' | 'draw' | null => {
   const game = getGameDefinition(gameType, games);
+  if (
+    game.winCondition === 'target-2048' ||
+    game.winCondition === 'sudoku-complete' ||
+    game.winCondition === 'minesweeper-clear' ||
+    game.winCondition === 'memory-complete'
+  ) {
+    return null;
+  }
+
   if (game.winCondition === 'majority') {
     const xCount = board.filter((cell) => cell === 'X').length;
     const oCount = board.filter((cell) => cell === 'O').length;

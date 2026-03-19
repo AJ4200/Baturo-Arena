@@ -58,6 +58,12 @@ export function LobbyScreen({
   onPlayCpu,
 }: LobbyScreenProps) {
   const [copiedRoomCode, setCopiedRoomCode] = useState<string | null>(null);
+  const selectedDefinition = useMemo(
+    () => games.find((gameItem) => gameItem.id === selectedGame) || games[0],
+    [games, selectedGame]
+  );
+  const supportsOnline = selectedDefinition?.supportsOnline ?? true;
+  const supportsCpu = selectedDefinition?.supportsCpu ?? true;
 
   const filteredRooms = useMemo(
     () => publicRooms.filter((roomItem) => roomItem.gameType === selectedGame),
@@ -96,8 +102,8 @@ export function LobbyScreen({
               </option>
             ))}
           </select>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onPlayCpu}>
-            <AiOutlineRobot /> Play {formatGameName(selectedGame, games)} vs CPU
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={!supportsCpu} onClick={onPlayCpu}>
+            {supportsOnline ? <AiOutlineRobot /> : <AiOutlinePlayCircle />} Play {formatGameName(selectedGame, games)} {supportsOnline ? 'vs CPU' : 'Solo'}
           </button>
         </div>
 
@@ -114,28 +120,42 @@ export function LobbyScreen({
         </div>
 
         <div className="lobby-row">
-          <input className="lobby-input" value={roomName} onChange={(event) => onRoomNameChange(event.target.value)} placeholder={`${formatGameName(selectedGame, games)} room name`} />
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onCreatePublic}>
+          <input
+            className="lobby-input"
+            value={roomName}
+            disabled={!supportsOnline}
+            onChange={(event) => onRoomNameChange(event.target.value)}
+            placeholder={supportsOnline ? `${formatGameName(selectedGame, games)} room name` : 'Online rooms are disabled for this game'}
+          />
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onCreatePublic}>
             Create Public
           </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onCreatePrivate}>
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onCreatePrivate}>
             Create Private
           </button>
         </div>
 
         <div className="lobby-row">
-          <input className="lobby-input" value={joinCode} onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())} placeholder="private room code" />
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onJoinByCode}>
+          <input
+            className="lobby-input"
+            value={joinCode}
+            disabled={!supportsOnline}
+            onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())}
+            placeholder={supportsOnline ? 'private room code' : 'Join by code is disabled for this game'}
+          />
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onJoinByCode}>
             Join by Code
           </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onRefreshRooms}>
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={!supportsOnline} onClick={onRefreshRooms}>
             Refresh List
           </button>
         </div>
 
         <div className="public-rooms">
           <h2>Public Rooms | {formatGameName(selectedGame, games)}</h2>
-          {filteredRooms.length === 0 ? (
+          {!supportsOnline ? (
+            <p>{formatGameName(selectedGame, games)} is single-player only. Start a solo run above.</p>
+          ) : filteredRooms.length === 0 ? (
             <p>No public rooms yet for this game.</p>
           ) : (
             filteredRooms.map((roomItem) => (

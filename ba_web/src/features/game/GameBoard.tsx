@@ -15,6 +15,15 @@ type GameBoardProps = {
 export function GameBoard({ gameType, board, gameDefinitions, disabled = false, onMove }: GameBoardProps) {
   const game = getGameDefinition(gameType, gameDefinitions);
 
+  if (
+    game.moveMode === 'solo-2048' ||
+    game.moveMode === 'solo-sudoku' ||
+    game.moveMode === 'solo-minesweeper' ||
+    game.moveMode === 'solo-memory'
+  ) {
+    return null;
+  }
+
   const renderCell = (cell: BoardCell, cellIndex: number, moveIndex: number) => {
     const content = cell === 'X' ? <X /> : cell === 'O' ? <O /> : null;
     return (

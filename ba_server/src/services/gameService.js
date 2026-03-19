@@ -167,6 +167,9 @@ async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
   if (!selectedGame) {
     throw new HttpError(400, 'Unsupported game type');
   }
+  if (!selectedGame.supportsOnline) {
+    throw new HttpError(400, `${selectedGame.name} is single-player only`);
+  }
 
   let code = null;
   for (let attempt = 0; attempt < 20; attempt += 1) {
@@ -213,6 +216,9 @@ async function joinExistingRoom({ playerId, code }) {
   const gameDefinition = getGameById(room.game_type || 'tic-tac-two');
   if (!gameDefinition) {
     throw new HttpError(500, 'Room game type is invalid');
+  }
+  if (!gameDefinition.supportsOnline) {
+    throw new HttpError(409, `${gameDefinition.name} rooms are not joinable online`);
   }
 
   const existingMembership = await findRoomPlayer(room.id, playerId);

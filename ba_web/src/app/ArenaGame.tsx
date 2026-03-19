@@ -2,7 +2,11 @@
 
 import React from 'react';
 import { CpuArenaGame } from '@/features/game/CpuArenaGame';
+import { SoloMemoryMatchGame } from '@/features/game/SoloMemoryMatchGame';
+import { SoloMinesweeperGame } from '@/features/game/SoloMinesweeperGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
+import { Solo2048Game } from '@/features/game/Solo2048Game';
+import { SoloSudokuGame } from '@/features/game/SoloSudokuGame';
 import type {
   CpuDifficulty,
   GameDefinition,
@@ -41,6 +45,58 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   onLeave,
   cpuDifficulty,
 }) => {
+  if (gameType === '2048') {
+    return (
+      <Solo2048Game
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'sudoku') {
+    return (
+      <SoloSudokuGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'minesweeper') {
+    return (
+      <SoloMinesweeperGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'memory-match') {
+    return (
+      <SoloMemoryMatchGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
   if (mode === 'cpu') {
     return (
       <CpuArenaGame

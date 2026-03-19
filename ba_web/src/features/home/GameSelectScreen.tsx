@@ -15,6 +15,10 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'connect-all-four': '4 IN A ROW',
   'orbital-flip': 'ORBIT',
   'corner-clash': 'CORNERS',
+  '2048': 'MERGE',
+  'sudoku': '9 x 9',
+  'minesweeper': 'MINES',
+  'memory-match': 'PAIRS',
 };
 
 export function GameSelectScreen({

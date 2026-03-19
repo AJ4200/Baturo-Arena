@@ -2,7 +2,15 @@ export type Screen = 'home' | 'game-select' | 'lobby' | 'leaderboard' | 'history
 
 export type GameMode = 'online' | 'cpu';
 
-export type GameType = 'tic-tac-two' | 'connect-all-four' | 'orbital-flip' | 'corner-clash';
+export type GameType =
+  | 'tic-tac-two'
+  | 'connect-all-four'
+  | 'orbital-flip'
+  | 'corner-clash'
+  | '2048'
+  | 'sudoku'
+  | 'minesweeper'
+  | 'memory-match';
 
 export type GameDefinition = {
   id: GameType;
@@ -13,8 +21,25 @@ export type GameDefinition = {
   rows: number;
   columns: number;
   connect: number;
-  moveMode: 'cell' | 'column' | 'flip' | 'corner-flip';
-  winCondition?: 'connect' | 'majority' | 'corners';
+  moveMode:
+    | 'cell'
+    | 'column'
+    | 'flip'
+    | 'corner-flip'
+    | 'solo-2048'
+    | 'solo-sudoku'
+    | 'solo-minesweeper'
+    | 'solo-memory';
+  winCondition?:
+    | 'connect'
+    | 'majority'
+    | 'corners'
+    | 'target-2048'
+    | 'sudoku-complete'
+    | 'minesweeper-clear'
+    | 'memory-complete';
+  supportsOnline: boolean;
+  supportsCpu: boolean;
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';
