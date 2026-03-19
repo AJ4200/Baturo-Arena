@@ -371,13 +371,13 @@ export function Solo2048Game({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleReset}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={handleReset}>
                   <AiOutlineReload /> New Run
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                <button className={classnames('room-float-action-btn', 'room-float-action-btn-danger')} type="button" onClick={onLeave}>
                   Leave
                 </button>
               </div>

@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IconContext } from 'react-icons';
 import {
   AiOutlineReload,
   AiOutlineSound,
@@ -38,12 +37,6 @@ type OnlineArenaGameProps = {
   onProfileUpdate: (player: PlayerProfile) => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
-};
-
-const buttonVariants = {
-  initial: { boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.1)' },
-  hover: { scale: 1.1, boxShadow: '0px 0px 15px rgba(0, 0, 0, 0.2)' },
-  pressed: { scale: 0.9, boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.2)' },
 };
 
 export function OnlineArenaGame({
@@ -272,7 +265,7 @@ export function OnlineArenaGame({
                     <AiOutlineDrag /> drag
                   </span>
                   <span className="room-float-title">
-                    {room ? `${room.name} (${room.code}) • ${gameLabel}` : 'Loading room'}
+                    {room ? `${room.name} (${room.code}) | ${gameLabel}` : 'Loading room'}
                   </span>
                   <button
                     className="room-float-toggle-btn"
@@ -309,24 +302,34 @@ export function OnlineArenaGame({
                 </div>
 
                 <div className="room-float-actions">
-                  <motion.button className="reset" onClick={() => void handleRematch()} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    <IconContext.Provider value={{ size: '1.5em', style: { marginRight: '5px' } }}>
-                      <AiOutlineReload />
-                    </IconContext.Provider>
-                    rematch
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={() => void handleRematch()}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineReload /> Rematch
                   </motion.button>
 
-                  <motion.button className="mute" onClick={onToggleMusic} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    <IconContext.Provider value={{ size: '1.5em', style: { marginRight: '5px' } }}>
-                      <div className="flex ">
-                        <AiOutlineSound /> {isMusicMuted ? <p>off</p> : ''}
-                      </div>
-                    </IconContext.Provider>
-                    mute
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={onToggleMusic}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                   </motion.button>
 
-                  <motion.button className="reset room-leave-round" onClick={() => void handleLeave()} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    leave
+                  <motion.button
+                    className="room-float-action-btn room-float-action-btn-danger"
+                    type="button"
+                    onClick={() => void handleLeave()}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Leave
                   </motion.button>
                 </div>
               </>
@@ -336,13 +339,15 @@ export function OnlineArenaGame({
 
         {message ? <div className="status text-red-500">{message}</div> : null}
 
-        <GameBoard
-          gameType={room?.gameType || 'tic-tac-two'}
-          board={room?.board || []}
-          gameDefinitions={gameDefinitions}
-          disabled={!canPlayTurn}
-          onMove={(move) => void handleMove(move)}
-        />
+        <div className="board-stage-card">
+          <GameBoard
+            gameType={room?.gameType || 'tic-tac-two'}
+            board={room?.board || []}
+            gameDefinitions={gameDefinitions}
+            disabled={!canPlayTurn}
+            onMove={(move) => void handleMove(move)}
+          />
+        </div>
       </div>
 
       <PlayerX

@@ -446,24 +446,24 @@ export function SoloSudokuGame({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleNewPuzzle}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={handleNewPuzzle}>
                   <AiOutlineReload /> New Puzzle
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={handleClearCell}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={handleClearCell}>
                   <AiOutlineCloseCircle /> Clear Cell
                 </button>
                 <button
-                  className={classnames('lobby-btn', 'custome-shadow')}
+                  className={classnames('room-float-action-btn')}
                   type="button"
                   disabled={state.hasGivenUp || state.isComplete}
                   onClick={handleGiveUp}
                 >
                   <AiOutlineFlag /> Give Up
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                <button className={classnames('room-float-action-btn', 'room-float-action-btn-danger')} type="button" onClick={onLeave}>
                   Leave
                 </button>
               </div>

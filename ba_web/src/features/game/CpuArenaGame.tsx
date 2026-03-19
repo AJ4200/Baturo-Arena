@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IconContext } from 'react-icons';
 import {
   AiOutlineReload,
   AiOutlineSound,
@@ -35,12 +34,6 @@ type CpuArenaGameProps = {
 };
 
 type Symbol = 'X' | 'O';
-
-const buttonVariants = {
-  initial: { boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.1)' },
-  hover: { scale: 1.1, boxShadow: '0px 0px 15px rgba(0, 0, 0, 0.2)' },
-  pressed: { scale: 0.9, boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.2)' },
-};
 
 export function CpuArenaGame({
   player,
@@ -204,24 +197,34 @@ export function CpuArenaGame({
                 </div>
 
                 <div className="room-float-actions">
-                  <motion.button className="reset" onClick={handleRematch} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    <IconContext.Provider value={{ size: '1.5em', style: { marginRight: '5px' } }}>
-                      <AiOutlineReload />
-                    </IconContext.Provider>
-                    rematch
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={handleRematch}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineReload /> Rematch
                   </motion.button>
 
-                  <motion.button className="mute" onClick={onToggleMusic} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    <IconContext.Provider value={{ size: '1.5em', style: { marginRight: '5px' } }}>
-                      <div className="flex ">
-                        <AiOutlineSound /> {isMusicMuted ? <p>off</p> : ''}
-                      </div>
-                    </IconContext.Provider>
-                    mute
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={onToggleMusic}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                   </motion.button>
 
-                  <motion.button className="reset room-leave-round" onClick={onLeave} variants={buttonVariants} initial="initial" whileHover="hover" whileTap="pressed" type="button">
-                    leave
+                  <motion.button
+                    className="room-float-action-btn room-float-action-btn-danger"
+                    type="button"
+                    onClick={onLeave}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Leave
                   </motion.button>
                 </div>
               </>
@@ -229,7 +232,9 @@ export function CpuArenaGame({
           </div>
         </motion.div>
 
-        <GameBoard gameType={gameType} board={board} gameDefinitions={gameDefinitions} disabled={!canPlay} onMove={handleMove} />
+        <div className="board-stage-card">
+          <GameBoard gameType={gameType} board={board} gameDefinitions={gameDefinitions} disabled={!canPlay} onMove={handleMove} />
+        </div>
       </div>
 
       <PlayerX

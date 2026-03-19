@@ -361,11 +361,11 @@ export function SoloMinesweeperGame({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={resetBoard}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={resetBoard}>
                   <AiOutlineReload /> New Board
                 </button>
                 <button
-                  className={classnames('lobby-btn', 'custome-shadow')}
+                  className={classnames('room-float-action-btn')}
                   type="button"
                   onClick={() =>
                     setState((currentState) => ({
@@ -376,10 +376,10 @@ export function SoloMinesweeperGame({
                 >
                   <AiOutlineFlag /> {state.flagMode ? 'Flag Mode On' : 'Reveal Mode On'}
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onToggleMusic}>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
-                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onLeave}>
+                <button className={classnames('room-float-action-btn', 'room-float-action-btn-danger')} type="button" onClick={onLeave}>
                   Leave
                 </button>
               </div>
