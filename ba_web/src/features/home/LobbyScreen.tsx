@@ -1,4 +1,4 @@
-import classnames from "classnames";
+import classnames from 'classnames';
 import {
   AiOutlineArrowLeft,
   AiOutlineCheckCircle,
@@ -7,18 +7,22 @@ import {
   AiOutlinePlayCircle,
   AiOutlineRobot,
   AiOutlineTeam,
-} from "react-icons/ai";
-import { useState } from "react";
-import type { PublicRoom } from "@/types/game";
+} from 'react-icons/ai';
+import { useMemo, useState } from 'react';
+import { formatGameName } from '@/lib/games';
+import type { GameDefinition, GameType, PublicRoom } from '@/types/game';
 
 type LobbyScreenProps = {
   playerName: string;
   roomName: string;
   joinCode: string;
+  selectedGame: GameType;
+  games: GameDefinition[];
   publicRooms: PublicRoom[];
   message: string;
   isLoading: boolean;
   onBack: () => void;
+  onGameChange: (value: GameType) => void;
   onPlayerNameChange: (value: string) => void;
   onRoomNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
@@ -35,10 +39,13 @@ export function LobbyScreen({
   playerName,
   roomName,
   joinCode,
+  selectedGame,
+  games,
   publicRooms,
   message,
   isLoading,
   onBack,
+  onGameChange,
   onPlayerNameChange,
   onRoomNameChange,
   onJoinCodeChange,
@@ -51,6 +58,11 @@ export function LobbyScreen({
   onPlayCpu,
 }: LobbyScreenProps) {
   const [copiedRoomCode, setCopiedRoomCode] = useState<string | null>(null);
+
+  const filteredRooms = useMemo(
+    () => publicRooms.filter((roomItem) => roomItem.gameType === selectedGame),
+    [publicRooms, selectedGame]
+  );
 
   const handleCopyRoomCode = async (code: string) => {
     try {
@@ -77,105 +89,76 @@ export function LobbyScreen({
           <button className="lobby-back" type="button" onClick={onBack}>
             <AiOutlineArrowLeft /> Back
           </button>
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onPlayCpu}>
-            <AiOutlineRobot /> Play vs CPU
+          <select className="settings-select" value={selectedGame} onChange={(event) => onGameChange(event.target.value as GameType)}>
+            {games.map((game) => (
+              <option key={game.id} value={game.id}>
+                {game.name}
+              </option>
+            ))}
+          </select>
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onPlayCpu}>
+            <AiOutlineRobot /> Play {formatGameName(selectedGame, games)} vs CPU
           </button>
         </div>
 
+        <div className="lobby-game-banner">
+          <strong>{formatGameName(selectedGame, games)}</strong>
+          <span>{games.find((game) => game.id === selectedGame)?.description}</span>
+        </div>
+
         <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={playerName}
-            onChange={(event) => onPlayerNameChange(event.target.value)}
-            placeholder="your name"
-          />
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onSaveName}>
+          <input className="lobby-input" value={playerName} onChange={(event) => onPlayerNameChange(event.target.value)} placeholder="your name" />
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onSaveName}>
             Save Name
           </button>
         </div>
 
         <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={roomName}
-            onChange={(event) => onRoomNameChange(event.target.value)}
-            placeholder="room name"
-          />
-          <button
-            className={classnames("lobby-btn", "custome-shadow")}
-            type="button"
-            disabled={isLoading}
-            onClick={onCreatePublic}
-          >
+          <input className="lobby-input" value={roomName} onChange={(event) => onRoomNameChange(event.target.value)} placeholder={`${formatGameName(selectedGame, games)} room name`} />
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onCreatePublic}>
             Create Public
           </button>
-          <button
-            className={classnames("lobby-btn", "custome-shadow")}
-            type="button"
-            disabled={isLoading}
-            onClick={onCreatePrivate}
-          >
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onCreatePrivate}>
             Create Private
           </button>
         </div>
 
         <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={joinCode}
-            onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())}
-            placeholder="private room code"
-          />
-          <button
-            className={classnames("lobby-btn", "custome-shadow")}
-            type="button"
-            disabled={isLoading}
-            onClick={onJoinByCode}
-          >
+          <input className="lobby-input" value={joinCode} onChange={(event) => onJoinCodeChange(event.target.value.toUpperCase())} placeholder="private room code" />
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={onJoinByCode}>
             Join by Code
           </button>
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onRefreshRooms}>
+          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onRefreshRooms}>
             Refresh List
           </button>
         </div>
 
         <div className="public-rooms">
-          <h2>Public Rooms</h2>
-          {publicRooms.length === 0 ? (
-            <p>No public rooms yet.</p>
+          <h2>Public Rooms • {formatGameName(selectedGame, games)}</h2>
+          {filteredRooms.length === 0 ? (
+            <p>No public rooms yet for this game.</p>
           ) : (
-            publicRooms.map((roomItem) => (
+            filteredRooms.map((roomItem) => (
               <div key={roomItem.code} className="public-room-item">
                 <div>
                   <p className="public-room-title">{roomItem.name}</p>
                   <p className="public-room-meta">
-                    {roomItem.status === "waiting" ? (
-                      <AiOutlineClockCircle />
-                    ) : roomItem.status === "playing" ? (
-                      <AiOutlinePlayCircle />
-                    ) : (
-                      <AiOutlineCheckCircle />
-                    )}{" "}
-                    {roomItem.status} | {roomItem.gameType} |{" "}
+                    {roomItem.status === 'waiting' ? <AiOutlineClockCircle /> : roomItem.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
+                    {roomItem.status} | {formatGameName(roomItem.gameType, games)} |{' '}
                     <span className="public-room-code-badge">{roomItem.code}</span>
                     <button
                       className="room-code-copy-btn"
                       type="button"
                       onClick={() => void handleCopyRoomCode(roomItem.code)}
                       aria-label={`Copy room code ${roomItem.code}`}
-                      title={copiedRoomCode === roomItem.code ? "Copied" : "Copy room code"}
+                      title={copiedRoomCode === roomItem.code ? 'Copied' : 'Copy room code'}
                     >
                       <AiOutlineCopy />
                     </button>
                     | <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
                   </p>
                 </div>
-                <button
-                  className={classnames("lobby-btn", "custome-shadow")}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={() => onJoinRoom(roomItem.code)}
-                >
+                <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading} onClick={() => onJoinRoom(roomItem.code)}>
                   Join
                 </button>
               </div>

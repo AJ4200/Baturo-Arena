@@ -1,14 +1,20 @@
-import classnames from "classnames";
-import { AiOutlineArrowLeft } from "react-icons/ai";
-import type { MatchHistoryEntry } from "@/types/game";
+import classnames from 'classnames';
+import { AiOutlineArrowLeft } from 'react-icons/ai';
+import { formatGameName } from '@/lib/games';
+import type { GameDefinition, GameType, MatchHistoryEntry } from '@/types/game';
 
 type HistoryScreenProps = {
   history: MatchHistoryEntry[];
+  selectedGame: GameType | 'all';
+  games: GameDefinition[];
   onBack: () => void;
   onClear: () => void;
+  onSelectGame: (value: GameType | 'all') => void;
 };
 
-export function HistoryScreen({ history, onBack, onClear }: HistoryScreenProps) {
+export function HistoryScreen({ history, selectedGame, games, onBack, onClear, onSelectGame }: HistoryScreenProps) {
+  const filteredHistory = selectedGame === 'all' ? history : history.filter((entry) => entry.gameType === selectedGame);
+
   return (
     <section className="title-screen-content">
       <h1>
@@ -21,33 +27,34 @@ export function HistoryScreen({ history, onBack, onClear }: HistoryScreenProps) 
           <button className="lobby-back" type="button" onClick={onBack}>
             <AiOutlineArrowLeft /> Back
           </button>
+          <select className="settings-select" value={selectedGame} onChange={(event) => onSelectGame(event.target.value as GameType | 'all')}>
+            <option value="all">All Games</option>
+            {games.map((game) => (
+              <option key={game.id} value={game.id}>
+                {game.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="settings-item settings-item-save">
-          <p>Recent Matches</p>
+          <p>{selectedGame === 'all' ? 'Recent Matches' : `Recent ${formatGameName(selectedGame, games)} Matches`}</p>
           <div className="settings-save-actions">
-            <button
-              className={classnames("lobby-btn", "custome-shadow")}
-              type="button"
-              disabled={history.length === 0}
-              onClick={onClear}
-            >
+            <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={history.length === 0} onClick={onClear}>
               Clear History
             </button>
           </div>
         </div>
 
-        {history.length === 0 ? (
-          <p className="settings-save-meta">No completed matches recorded yet</p>
+        {filteredHistory.length === 0 ? (
+          <p className="settings-save-meta">No completed matches recorded yet for this category</p>
         ) : (
           <ul className="settings-history-list">
-            {history.slice(0, 20).map((entry) => (
+            {filteredHistory.slice(0, 20).map((entry) => (
               <li key={entry.id} className="settings-history-item">
-                <span className={classnames("settings-history-outcome", `outcome-${entry.outcome}`)}>
-                  {entry.outcome.toUpperCase()}
-                </span>
+                <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
                 <span className="settings-history-opponent">
-                  {entry.gameType} | {entry.mode === "cpu" ? "CPU" : "ONLINE"} vs {entry.opponent}
+                  {formatGameName(entry.gameType, games)} | {entry.mode === 'cpu' ? 'CPU' : 'ONLINE'} vs {entry.opponent}
                 </span>
                 <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
               </li>

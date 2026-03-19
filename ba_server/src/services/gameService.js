@@ -1,10 +1,12 @@
-const HttpError = require("../errors/HttpError");
+const HttpError = require('../errors/HttpError');
 const {
   upsertPlayer,
   getPlayerById,
   incrementPlayerStats,
+  incrementPlayerGameStats,
   listPlayersByScore,
-} = require("../repositories/playerRepository");
+  listPlayersByGameScore,
+} = require('../repositories/playerRepository');
 const {
   createRoom,
   getRoomByCode,
@@ -17,10 +19,10 @@ const {
   updateRoomState,
   resetRoom,
   countRoomPlayers,
-} = require("../repositories/roomRepository");
-const { createRoomCode } = require("../utils/roomCode");
-const { checkWinner } = require("../utils/game");
-const { listGames, getGameById } = require("./gamesCatalog");
+} = require('../repositories/roomRepository');
+const { createRoomCode } = require('../utils/roomCode');
+const { checkWinner, applyMove, isValidMove } = require('../utils/game');
+const { listGames, getGameById } = require('./gamesCatalog');
 
 function serializePlayer(player) {
   if (!player) {
@@ -36,30 +38,44 @@ function serializePlayer(player) {
   };
 }
 
+function serializeLeaderboardPlayer(player) {
+  return {
+    ...serializePlayer(player),
+    score: Number(player.score),
+  };
+}
+
 async function ensureRoom(code) {
   const room = await getRoomByCode(code);
   if (!room) {
-    throw new HttpError(404, "Room not found");
+    throw new HttpError(404, 'Room not found');
   }
   return room;
 }
 
-async function applyMatchResult(roomId, winner) {
+async function applyMatchResult(roomId, gameType, winner) {
   const players = await listRoomPlayers(roomId);
 
-  if (winner === "draw") {
+  if (winner === 'draw') {
     await Promise.all(
-      players.map((player) => incrementPlayerStats(player.player_id, { draws: 1 }))
+      players.map(async (player) => {
+        await incrementPlayerStats(player.player_id, { draws: 1 });
+        await incrementPlayerGameStats(player.player_id, gameType, { draws: 1 });
+      })
     );
     return;
   }
 
   await Promise.all(
-    players.map((player) => {
+    players.map(async (player) => {
       if (player.symbol === winner) {
-        return incrementPlayerStats(player.player_id, { wins: 1 });
+        await incrementPlayerStats(player.player_id, { wins: 1 });
+        await incrementPlayerGameStats(player.player_id, gameType, { wins: 1 });
+        return;
       }
-      return incrementPlayerStats(player.player_id, { losses: 1 });
+
+      await incrementPlayerStats(player.player_id, { losses: 1 });
+      await incrementPlayerGameStats(player.player_id, gameType, { losses: 1 });
     })
   );
 }
@@ -75,7 +91,7 @@ async function buildRoomResponse(room, playerId) {
     room: {
       code: room.code,
       name: room.name,
-      gameType: room.game_type || "tic-tac-two",
+      gameType: room.game_type || 'tic-tac-two',
       maxPlayers: Number(room.max_players || 4),
       isPublic: room.is_public,
       board: room.board,
@@ -97,14 +113,14 @@ async function buildRoomResponse(room, playerId) {
   };
 }
 
-function getRoomStatusByPlayerCount(playerCount) {
-  return playerCount >= 2 ? "playing" : "waiting";
+function getRoomStatusByPlayerCount(playerCount, minPlayers) {
+  return playerCount >= minPlayers ? 'playing' : 'waiting';
 }
 
 function pickSymbol(players) {
-  const xCount = players.filter((entry) => entry.symbol === "X").length;
-  const oCount = players.filter((entry) => entry.symbol === "O").length;
-  return xCount <= oCount ? "X" : "O";
+  const xCount = players.filter((entry) => entry.symbol === 'X').length;
+  const oCount = players.filter((entry) => entry.symbol === 'O').length;
+  return xCount <= oCount ? 'X' : 'O';
 }
 
 async function registerPlayer({ playerId, name }) {
@@ -115,12 +131,12 @@ async function registerPlayer({ playerId, name }) {
 async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
   const owner = await getPlayerById(playerId);
   if (!owner) {
-    throw new HttpError(400, "Invalid playerId");
+    throw new HttpError(400, 'Invalid playerId');
   }
 
-  const selectedGame = getGameById(gameType || "tic-tac-two");
+  const selectedGame = getGameById(gameType || 'tic-tac-two');
   if (!selectedGame) {
-    throw new HttpError(400, "Unsupported game type");
+    throw new HttpError(400, 'Unsupported game type');
   }
 
   let code = null;
@@ -135,7 +151,7 @@ async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
   }
 
   if (!code) {
-    throw new HttpError(500, "Could not generate room code");
+    throw new HttpError(500, 'Could not generate room code');
   }
 
   const safeName = (roomName && String(roomName).trim()) || `${owner.name}'s Room`;
@@ -148,36 +164,41 @@ async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
     maxPlayers: selectedGame.maxPlayers,
   });
 
-  await addPlayerToRoom(room.id, playerId, "X");
+  await addPlayerToRoom(room.id, playerId, 'X');
   const freshRoom = await getRoomById(room.id);
   return buildRoomResponse(freshRoom, playerId);
 }
 
 async function joinExistingRoom({ playerId, code }) {
-  const roomCode = String(code || "").trim().toUpperCase();
+  const roomCode = String(code || '').trim().toUpperCase();
   if (!roomCode) {
-    throw new HttpError(400, "Room code is required");
+    throw new HttpError(400, 'Room code is required');
   }
 
   const room = await ensureRoom(roomCode);
   const player = await getPlayerById(playerId);
   if (!player) {
-    throw new HttpError(400, "Invalid playerId");
+    throw new HttpError(400, 'Invalid playerId');
+  }
+
+  const gameDefinition = getGameById(room.game_type || 'tic-tac-two');
+  if (!gameDefinition) {
+    throw new HttpError(500, 'Room game type is invalid');
   }
 
   const existingMembership = await findRoomPlayer(room.id, playerId);
   if (!existingMembership) {
     const players = await listRoomPlayers(room.id);
-    const maxPlayers = Number(room.max_players || 4);
+    const maxPlayers = Number(room.max_players || gameDefinition.maxPlayers);
     if (players.length >= maxPlayers) {
-      throw new HttpError(409, "Room is full");
+      throw new HttpError(409, 'Room is full');
     }
 
     const symbol = pickSymbol(players);
     await addPlayerToRoom(room.id, playerId, symbol);
 
     const playerCount = await countRoomPlayers(room.id);
-    await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
+    await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount, gameDefinition.minPlayers));
   }
 
   const refreshedRoom = await getRoomById(room.id);
@@ -185,58 +206,57 @@ async function joinExistingRoom({ playerId, code }) {
 }
 
 async function getRoomState({ code, playerId }) {
-  const roomCode = String(code || "").trim().toUpperCase();
+  const roomCode = String(code || '').trim().toUpperCase();
   const room = await ensureRoom(roomCode);
   return buildRoomResponse(room, playerId || null);
 }
 
 async function makeMove({ code, playerId, index }) {
-  const roomCode = String(code || "").trim().toUpperCase();
+  const roomCode = String(code || '').trim().toUpperCase();
   const room = await ensureRoom(roomCode);
   const membership = await findRoomPlayer(room.id, playerId);
 
   if (!membership) {
-    throw new HttpError(403, "Player is not in this room");
+    throw new HttpError(403, 'Player is not in this room');
   }
 
   const parsedIndex = Number(index);
-  if (!Number.isInteger(parsedIndex) || parsedIndex < 0 || parsedIndex > 8) {
-    throw new HttpError(400, "Invalid move index");
+  if (!Number.isInteger(parsedIndex)) {
+    throw new HttpError(400, 'Invalid move index');
   }
 
-  if (room.status !== "playing") {
-    throw new HttpError(409, "Game is not in playing state");
+  if (room.status !== 'playing') {
+    throw new HttpError(409, 'Game is not in playing state');
   }
 
   if (membership.symbol !== room.turn) {
-    throw new HttpError(409, "Not your turn");
+    throw new HttpError(409, 'Not your turn');
   }
 
-  if (room.board[parsedIndex] !== null) {
-    throw new HttpError(409, "Cell already occupied");
+  if (!isValidMove(room.game_type, room.board, parsedIndex)) {
+    throw new HttpError(409, 'Move is not available');
   }
 
-  const board = [...room.board];
-  board[parsedIndex] = membership.symbol;
-  const winner = checkWinner(board);
+  const board = applyMove(room.game_type, room.board, parsedIndex, membership.symbol);
+  const winner = checkWinner(room.game_type, board);
 
   if (winner) {
     await updateRoomState(room.id, {
       board,
       turn: room.turn,
-      status: "finished",
+      status: 'finished',
       winner,
       resultRecorded: true,
     });
 
     if (!room.result_recorded) {
-      await applyMatchResult(room.id, winner);
+      await applyMatchResult(room.id, room.game_type, winner);
     }
   } else {
     await updateRoomState(room.id, {
       board,
-      turn: room.turn === "X" ? "O" : "X",
-      status: "playing",
+      turn: room.turn === 'X' ? 'O' : 'X',
+      status: 'playing',
       winner: null,
       resultRecorded: false,
     });
@@ -247,44 +267,56 @@ async function makeMove({ code, playerId, index }) {
 }
 
 async function rematchRoom({ code, playerId }) {
-  const roomCode = String(code || "").trim().toUpperCase();
+  const roomCode = String(code || '').trim().toUpperCase();
   const room = await ensureRoom(roomCode);
   const membership = await findRoomPlayer(room.id, playerId);
+  const gameDefinition = getGameById(room.game_type || 'tic-tac-two');
 
   if (!membership) {
-    throw new HttpError(403, "Player is not in this room");
+    throw new HttpError(403, 'Player is not in this room');
   }
 
   const playerCount = await countRoomPlayers(room.id);
-  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
+  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount, gameDefinition.minPlayers));
 
   const refreshedRoom = await getRoomById(room.id);
   return buildRoomResponse(refreshedRoom, playerId);
 }
 
 async function leaveRoom({ code, playerId }) {
-  const roomCode = String(code || "").trim().toUpperCase();
+  const roomCode = String(code || '').trim().toUpperCase();
   const room = await ensureRoom(roomCode);
   const membership = await findRoomPlayer(room.id, playerId);
+  const gameDefinition = getGameById(room.game_type || 'tic-tac-two');
 
   if (!membership) {
-    throw new HttpError(404, "Player is not in this room");
+    throw new HttpError(404, 'Player is not in this room');
   }
 
   await removePlayerFromRoom(room.id, playerId);
   const playerCount = await countRoomPlayers(room.id);
-  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount));
+  await resetRoom(room.id, getRoomStatusByPlayerCount(playerCount, gameDefinition.minPlayers));
 
   const refreshedRoom = await getRoomById(room.id);
   return buildRoomResponse(refreshedRoom, null);
 }
 
 async function getLeaderboard() {
-  const players = await listPlayersByScore();
-  return players.map((player) => ({
-    ...serializePlayer(player),
-    score: Number(player.score),
-  }));
+  const [overall, gameBreakdown] = await Promise.all([
+    listPlayersByScore(),
+    Promise.all(
+      listGames().map(async (game) => ({
+        gameType: game.id,
+        name: game.name,
+        players: (await listPlayersByGameScore(game.id)).map(serializeLeaderboardPlayer),
+      }))
+    ),
+  ]);
+
+  return {
+    overall: overall.map(serializeLeaderboardPlayer),
+    byGame: gameBreakdown,
+  };
 }
 
 module.exports = {
