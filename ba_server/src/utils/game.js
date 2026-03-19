@@ -26,12 +26,12 @@ const GAME_RULES = {
   'orbital-flip': {
     id: 'orbital-flip',
     name: 'Orbital-Flip',
-    rows: 4,
-    columns: 4,
+    rows: 6,
+    columns: 6,
     connect: 0,
     minPlayers: 2,
     maxPlayers: 2,
-    description: 'Start from a live center core, place a piece each turn, and flip every neighboring enemy tile to control the board.',
+    description: 'Expanded 6x6 orbital grid: place a piece each turn and flip neighboring enemy tiles to control space.',
     moveMode: 'flip',
     winCondition: 'majority',
   },
@@ -66,10 +66,14 @@ function createEmptyBoard(gameType) {
   const board = Array(rules.rows * rules.columns).fill(null);
 
   if (rules.id === 'orbital-flip') {
-    const midLeft = getCellIndex(1, 1, rules.columns);
-    const midRight = getCellIndex(1, 2, rules.columns);
-    const lowLeft = getCellIndex(2, 1, rules.columns);
-    const lowRight = getCellIndex(2, 2, rules.columns);
+    const topRow = Math.floor(rules.rows / 2) - 1;
+    const bottomRow = Math.floor(rules.rows / 2);
+    const leftColumn = Math.floor(rules.columns / 2) - 1;
+    const rightColumn = Math.floor(rules.columns / 2);
+    const midLeft = getCellIndex(topRow, leftColumn, rules.columns);
+    const midRight = getCellIndex(topRow, rightColumn, rules.columns);
+    const lowLeft = getCellIndex(bottomRow, leftColumn, rules.columns);
+    const lowRight = getCellIndex(bottomRow, rightColumn, rules.columns);
     board[midLeft] = 'X';
     board[midRight] = 'O';
     board[lowLeft] = 'O';

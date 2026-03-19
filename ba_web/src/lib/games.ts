@@ -30,9 +30,9 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     name: 'Orbital-Flip',
     minPlayers: 2,
     maxPlayers: 2,
-    description: 'Start from a live center core, place a piece each turn, and flip every neighboring enemy tile to control the board.',
-    rows: 4,
-    columns: 4,
+    description: 'Expanded 6x6 orbital grid: place a piece each turn and flip neighboring enemy tiles to control space.',
+    rows: 6,
+    columns: 6,
     connect: 0,
     moveMode: 'flip',
     winCondition: 'majority',
@@ -60,10 +60,15 @@ export const createEmptyBoard = (gameType: GameType, games = FALLBACK_GAMES): Bo
   const board = Array(game.rows * game.columns).fill(null);
 
   if (game.id === 'orbital-flip') {
-    board[5] = 'X';
-    board[6] = 'O';
-    board[9] = 'O';
-    board[10] = 'X';
+    const topRow = Math.floor(game.rows / 2) - 1;
+    const bottomRow = Math.floor(game.rows / 2);
+    const leftColumn = Math.floor(game.columns / 2) - 1;
+    const rightColumn = Math.floor(game.columns / 2);
+
+    board[getCellIndex(topRow, leftColumn, game.columns)] = 'X';
+    board[getCellIndex(topRow, rightColumn, game.columns)] = 'O';
+    board[getCellIndex(bottomRow, leftColumn, game.columns)] = 'O';
+    board[getCellIndex(bottomRow, rightColumn, game.columns)] = 'X';
   }
 
   return board;

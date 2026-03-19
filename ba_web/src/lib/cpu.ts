@@ -39,10 +39,17 @@ const scoreCellMove = (gameType: GameType, move: number): number => {
 };
 
 const scoreOrbitalFlipMove = (board: Board, move: number): number => {
+  const game = getGameDefinition('orbital-flip');
   const nextBoard = applyMove('orbital-flip', board, move, 'O');
   const gainedTiles = nextBoard.filter((cell) => cell === 'O').length - board.filter((cell) => cell === 'O').length;
-  const cornerBonus = [0, 3, 12, 15].includes(move) ? 3 : 0;
-  const edgeBonus = [1, 2, 4, 7, 8, 11, 13, 14].includes(move) ? 1 : 0;
+  const row = Math.floor(move / game.columns);
+  const column = move % game.columns;
+  const isCorner =
+    (row === 0 || row === game.rows - 1) &&
+    (column === 0 || column === game.columns - 1);
+  const isEdge = row === 0 || row === game.rows - 1 || column === 0 || column === game.columns - 1;
+  const cornerBonus = isCorner ? 3 : 0;
+  const edgeBonus = !isCorner && isEdge ? 1 : 0;
   return gainedTiles * 4 + cornerBonus + edgeBonus;
 };
 
