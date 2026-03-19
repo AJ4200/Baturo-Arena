@@ -46,6 +46,32 @@ const scoreOrbitalFlipMove = (board: Board, move: number): number => {
   return gainedTiles * 4 + cornerBonus + edgeBonus;
 };
 
+const scoreCornerClashMove = (board: Board, move: number): number => {
+  const game = getGameDefinition('corner-clash');
+  const nextBoard = applyMove('corner-clash', board, move, 'O');
+  const corners = [
+    0,
+    game.columns - 1,
+    (game.rows - 1) * game.columns,
+    game.rows * game.columns - 1,
+  ];
+  const currentCorners = corners.filter((index) => board[index] === 'O').length;
+  const nextCorners = corners.filter((index) => nextBoard[index] === 'O').length;
+  const tileSwing =
+    nextBoard.filter((cell) => cell === 'O').length -
+    board.filter((cell) => cell === 'O').length;
+  const row = Math.floor(move / game.columns);
+  const column = move % game.columns;
+  const nearestCornerDistance = Math.min(
+    row + column,
+    row + (game.columns - 1 - column),
+    game.rows - 1 - row + column,
+    game.rows - 1 - row + (game.columns - 1 - column)
+  );
+
+  return (nextCorners - currentCorners) * 10 + tileSwing * 3 - nearestCornerDistance;
+};
+
 const minimaxTicTacTwo = (board: Board, isCpuTurn: boolean): number => {
   const winner = evaluateBoard('tic-tac-two', board);
   if (winner === 'O') {
@@ -108,6 +134,10 @@ const hardMove = (gameType: GameType, board: Board): number | null => {
     return [...moves].sort((left, right) => scoreOrbitalFlipMove(board, right) - scoreOrbitalFlipMove(board, left))[0] ?? null;
   }
 
+  if (gameType === 'corner-clash') {
+    return [...moves].sort((left, right) => scoreCornerClashMove(board, right) - scoreCornerClashMove(board, left))[0] ?? null;
+  }
+
   return [...moves].sort((left, right) => scoreCellMove(gameType, right) - scoreCellMove(gameType, left))[0] ?? null;
 };
 
@@ -134,6 +164,10 @@ export const getCpuMove = (
     const game = getGameDefinition(gameType);
     if (game.moveMode === 'flip') {
       return [...getAvailableMoves(gameType, board)].sort((left, right) => scoreOrbitalFlipMove(board, right) - scoreOrbitalFlipMove(board, left))[0] ?? null;
+    }
+
+    if (game.moveMode === 'corner-flip') {
+      return [...getAvailableMoves(gameType, board)].sort((left, right) => scoreCornerClashMove(board, right) - scoreCornerClashMove(board, left))[0] ?? null;
     }
 
     if (game.moveMode === 'cell') {

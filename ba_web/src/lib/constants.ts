@@ -1,4 +1,5 @@
 export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_BATURO_API_BASE_URL ||
   process.env.NEXT_PUBLIC_BARUTO_API_BASE_URL ||
   process.env.NEXT_PUBLIC_TTT_API_BASE_URL ||
   'http://localhost:4000';

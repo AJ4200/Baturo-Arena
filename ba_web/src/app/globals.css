@@ -1066,3 +1066,187 @@ transform: skewX(-5deg);
     font-size: 2rem;
   }
 }
+
+.choose-game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.choose-game-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  border: 3px solid #000;
+  border-radius: 14px;
+  padding: 0.7rem;
+  background: rgba(17, 13, 26, 0.7);
+  color: #fff;
+  text-align: left;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.choose-game-card:hover {
+  transform: translateY(-2px);
+}
+
+.choose-game-card-active {
+  background: rgba(35, 213, 171, 0.52);
+}
+
+.choose-game-thumb {
+  width: 100%;
+  height: 108px;
+  border: 3px solid #000;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+}
+
+.choose-game-thumb-tic-tac-two {
+  background: linear-gradient(135deg, #f55, #55f);
+}
+
+.choose-game-thumb-connect-all-four {
+  background: radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.35) 0 12px, transparent 13px),
+    radial-gradient(circle at 38% 24%, rgba(255, 255, 255, 0.35) 0 12px, transparent 13px),
+    radial-gradient(circle at 58% 24%, rgba(255, 255, 255, 0.35) 0 12px, transparent 13px),
+    linear-gradient(145deg, #1a2b63, #2f61ff);
+}
+
+.choose-game-thumb-orbital-flip {
+  background: radial-gradient(circle at 35% 38%, rgba(150, 131, 255, 0.75), rgba(22, 17, 45, 0.88)),
+    conic-gradient(from 120deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
+}
+
+.choose-game-thumb-corner-clash {
+  background:
+    linear-gradient(135deg, rgba(255, 236, 152, 0.62), transparent 42%),
+    linear-gradient(315deg, rgba(255, 236, 152, 0.62), transparent 42%),
+    linear-gradient(45deg, rgba(255, 236, 152, 0.62), transparent 42%),
+    linear-gradient(225deg, rgba(255, 236, 152, 0.62), transparent 42%),
+    linear-gradient(160deg, #2e934f, #1f4d35);
+}
+
+.choose-game-card strong {
+  font-size: 1.2rem;
+}
+
+.choose-game-card span,
+.choose-game-card small {
+  text-shadow: none;
+}
+
+.board-grid {
+  --cell-size: 130px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 18px;
+  padding: 0.6rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.board-tic-tac-two {
+  --cell-size: 130px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.1));
+}
+
+.board-connect-four {
+  --cell-size: 76px;
+  background: linear-gradient(140deg, rgba(48, 78, 202, 0.58), rgba(18, 20, 43, 0.86));
+}
+
+.board-orbital-flip {
+  --cell-size: 100px;
+  background: linear-gradient(155deg, rgba(141, 99, 255, 0.56), rgba(22, 17, 44, 0.9));
+}
+
+.board-corner-clash {
+  --cell-size: 82px;
+  background: linear-gradient(160deg, rgba(52, 158, 86, 0.62), rgba(21, 57, 38, 0.9));
+}
+
+.board-row,
+.board-row-connect-four {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.square {
+  float: none;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  margin: 0;
+  line-height: 1;
+  border-width: 6px;
+  border-color: rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.square-connect-four,
+.square-orbital-flip,
+.square-corner-clash {
+  border-radius: 16px;
+}
+
+.square-connect-four {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.square-orbital-flip {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.square-corner-clash {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 240, 176, 0.86);
+}
+
+.marker {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  font-size: calc(var(--cell-size) * 0.45);
+}
+
+@media (max-width: 960px) {
+  .board-tic-tac-two {
+    --cell-size: 108px;
+  }
+
+  .board-connect-four {
+    --cell-size: 62px;
+  }
+
+  .board-orbital-flip {
+    --cell-size: 84px;
+  }
+
+  .board-corner-clash {
+    --cell-size: 66px;
+  }
+}
+
+@media (max-width: 620px) {
+  .board-tic-tac-two {
+    --cell-size: 82px;
+  }
+
+  .board-connect-four {
+    --cell-size: 44px;
+  }
+
+  .board-orbital-flip {
+    --cell-size: 66px;
+  }
+
+  .board-corner-clash {
+    --cell-size: 50px;
+  }
+}

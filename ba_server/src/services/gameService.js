@@ -128,6 +128,35 @@ async function registerPlayer({ playerId, name }) {
   return serializePlayer(player);
 }
 
+async function recordPlayerMatchResult({ playerId, gameType, outcome }) {
+  const player = await getPlayerById(playerId);
+  if (!player) {
+    throw new HttpError(400, 'Invalid playerId');
+  }
+
+  const selectedGame = getGameById(gameType || 'tic-tac-two');
+  if (!selectedGame) {
+    throw new HttpError(400, 'Unsupported game type');
+  }
+
+  if (outcome !== 'win' && outcome !== 'loss' && outcome !== 'draw') {
+    throw new HttpError(400, 'Invalid outcome');
+  }
+
+  const delta =
+    outcome === 'win'
+      ? { wins: 1, losses: 0, draws: 0 }
+      : outcome === 'loss'
+        ? { wins: 0, losses: 1, draws: 0 }
+        : { wins: 0, losses: 0, draws: 1 };
+
+  await incrementPlayerStats(playerId, delta);
+  await incrementPlayerGameStats(playerId, selectedGame.id, delta);
+
+  const updatedPlayer = await getPlayerById(playerId);
+  return serializePlayer(updatedPlayer);
+}
+
 async function createNewRoom({ playerId, roomName, isPublic, gameType }) {
   const owner = await getPlayerById(playerId);
   if (!owner) {
@@ -321,6 +350,7 @@ async function getLeaderboard() {
 
 module.exports = {
   registerPlayer,
+  recordPlayerMatchResult,
   getLeaderboard,
   createNewRoom,
   joinExistingRoom,

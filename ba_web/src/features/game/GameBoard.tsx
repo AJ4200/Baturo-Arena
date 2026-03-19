@@ -20,7 +20,12 @@ export function GameBoard({ gameType, board, gameDefinitions, disabled = false, 
     return (
       <button
         key={cellIndex}
-        className={classnames('square', gameType === 'connect-all-four' && 'square-connect-four', gameType === 'orbital-flip' && 'square-orbital-flip')}
+        className={classnames(
+          'square',
+          gameType === 'connect-all-four' && 'square-connect-four',
+          gameType === 'orbital-flip' && 'square-orbital-flip',
+          gameType === 'corner-clash' && 'square-corner-clash'
+        )}
         type="button"
         disabled={disabled}
         onClick={() => onMove(moveIndex)}
@@ -30,9 +35,17 @@ export function GameBoard({ gameType, board, gameDefinitions, disabled = false, 
     );
   };
 
-  if (game.moveMode === 'cell' || game.moveMode === 'flip') {
+  if (game.moveMode === 'cell' || game.moveMode === 'flip' || game.moveMode === 'corner-flip') {
     return (
-      <div className={classnames('board', 'board-grid', `board-${game.id}`, gameType === 'orbital-flip' && 'board-orbital-flip')}>
+      <div
+        className={classnames(
+          'board',
+          'board-grid',
+          `board-${game.id}`,
+          gameType === 'orbital-flip' && 'board-orbital-flip',
+          gameType === 'corner-clash' && 'board-corner-clash'
+        )}
+      >
         {Array.from({ length: game.rows }).map((_, row) => (
           <div key={row} className="board-row">
             {Array.from({ length: game.columns }).map((__, column) => {

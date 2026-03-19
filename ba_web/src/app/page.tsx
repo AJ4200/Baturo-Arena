@@ -7,6 +7,7 @@ import { IconContext } from 'react-icons';
 import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
+import { GameSelectScreen } from '@/features/home/GameSelectScreen';
 import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
@@ -288,22 +289,51 @@ export default function Home() {
     setMessage('Loaded local save data');
   }, [normalizeGameType, showSaveIndicator]);
 
-  const recordMatchResult = useCallback((result: MatchResultEvent) => {
-    const entry: MatchHistoryEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      finishedAt: new Date().toISOString(),
-      mode: result.mode,
-      gameType: result.gameType,
-      outcome: result.outcome,
-      opponent: result.opponent,
-    };
+  const recordMatchResult = useCallback(
+    (result: MatchResultEvent) => {
+      const entry: MatchHistoryEntry = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        finishedAt: new Date().toISOString(),
+        mode: result.mode,
+        gameType: result.gameType,
+        outcome: result.outcome,
+        opponent: result.opponent,
+      };
 
-    setMatchHistory((currentValue) => {
-      const nextValue = [entry, ...currentValue].slice(0, 20);
-      window.localStorage.setItem(STORAGE_KEYS.matchHistory, JSON.stringify(nextValue));
-      return nextValue;
-    });
-  }, []);
+      setMatchHistory((currentValue) => {
+        const nextValue = [entry, ...currentValue].slice(0, 20);
+        window.localStorage.setItem(STORAGE_KEYS.matchHistory, JSON.stringify(nextValue));
+        return nextValue;
+      });
+
+      if (result.mode !== 'cpu' || !player) {
+        return;
+      }
+
+      callApi<PlayerProfile>(
+        '/api/players/result',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            playerId: player.playerId,
+            gameType: result.gameType,
+            outcome: result.outcome,
+          }),
+        },
+        false
+      )
+        .then((updatedPlayer) => {
+          setPlayer(updatedPlayer);
+          refreshLeaderboard().catch(() => {
+            // Ignore lightweight leaderboard refresh errors.
+          });
+        })
+        .catch(() => {
+          setMessage('Could not sync CPU score to leaderboard');
+        });
+    },
+    [callApi, player]
+  );
 
   const clearMatchHistory = useCallback(() => {
     setMatchHistory([]);
@@ -563,10 +593,7 @@ export default function Home() {
       return (
         <MainMenu
           enableAnimations={enableAnimations}
-          games={availableGames}
-          selectedGame={selectedGame}
-          onSelectGame={setSelectedGame}
-          onPlay={() => setScreen('lobby')}
+          onPlay={() => setScreen('game-select')}
           onLeaderboard={() => {
             refreshLeaderboard().catch(() => {
               setMessage('Could not load leaderboard');
@@ -575,6 +602,18 @@ export default function Home() {
           }}
           onHistory={() => setScreen('history')}
           onSettings={() => setScreen('settings')}
+        />
+      );
+    }
+
+    if (screen === 'game-select') {
+      return (
+        <GameSelectScreen
+          games={availableGames}
+          selectedGame={selectedGame}
+          onSelectGame={setSelectedGame}
+          onBack={() => setScreen('home')}
+          onContinue={() => setScreen('lobby')}
         />
       );
     }

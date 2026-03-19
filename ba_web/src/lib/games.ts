@@ -37,6 +37,18 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     moveMode: 'flip',
     winCondition: 'majority',
   },
+  {
+    id: 'corner-clash',
+    name: 'Corner-Clash',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Capture the corners. Every move also flips orthogonally adjacent enemy tiles.',
+    rows: 5,
+    columns: 5,
+    connect: 0,
+    moveMode: 'corner-flip',
+    winCondition: 'corners',
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -62,7 +74,7 @@ const getCellIndex = (row: number, column: number, columns: number) => row * col
 export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games = FALLBACK_GAMES): number[] => {
   const game = getGameDefinition(gameType, games);
 
-  if (game.moveMode === 'cell' || game.moveMode === 'flip') {
+  if (game.moveMode === 'cell' || game.moveMode === 'flip' || game.moveMode === 'corner-flip') {
     return board.reduce<number[]>((moves, cell, index) => {
       if (cell === null) {
         moves.push(index);
@@ -132,6 +144,39 @@ export const applyMove = (
     return nextBoard;
   }
 
+  if (game.moveMode === 'corner-flip') {
+    nextBoard[move] = symbol;
+    const row = Math.floor(move / game.columns);
+    const column = move % game.columns;
+    const deltas = [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
+    ];
+
+    for (const [rowStep, columnStep] of deltas) {
+      const nextRow = row + rowStep;
+      const nextColumn = column + columnStep;
+
+      if (
+        nextRow < 0 ||
+        nextRow >= game.rows ||
+        nextColumn < 0 ||
+        nextColumn >= game.columns
+      ) {
+        continue;
+      }
+
+      const nextIndex = getCellIndex(nextRow, nextColumn, game.columns);
+      if (nextBoard[nextIndex] && nextBoard[nextIndex] !== symbol) {
+        nextBoard[nextIndex] = symbol;
+      }
+    }
+
+    return nextBoard;
+  }
+
   for (let row = game.rows - 1; row >= 0; row -= 1) {
     const index = getCellIndex(row, move, game.columns);
     if (nextBoard[index] === null) {
@@ -162,6 +207,36 @@ export const evaluateBoard = (
     }
 
     if (board.every((cell) => cell !== null)) {
+      if (xCount === oCount) {
+        return 'draw';
+      }
+      return xCount > oCount ? 'X' : 'O';
+    }
+
+    return null;
+  }
+
+  if (game.winCondition === 'corners') {
+    const corners = [
+      getCellIndex(0, 0, game.columns),
+      getCellIndex(0, game.columns - 1, game.columns),
+      getCellIndex(game.rows - 1, 0, game.columns),
+      getCellIndex(game.rows - 1, game.columns - 1, game.columns),
+    ];
+    const xCorners = corners.filter((index) => board[index] === 'X').length;
+    const oCorners = corners.filter((index) => board[index] === 'O').length;
+
+    if (xCorners >= 3) {
+      return 'X';
+    }
+
+    if (oCorners >= 3) {
+      return 'O';
+    }
+
+    if (board.every((cell) => cell !== null)) {
+      const xCount = board.filter((cell) => cell === 'X').length;
+      const oCount = board.filter((cell) => cell === 'O').length;
       if (xCount === oCount) {
         return 'draw';
       }

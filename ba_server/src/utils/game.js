@@ -35,6 +35,18 @@ const GAME_RULES = {
     moveMode: 'flip',
     winCondition: 'majority',
   },
+  'corner-clash': {
+    id: 'corner-clash',
+    name: 'Corner-Clash',
+    rows: 5,
+    columns: 5,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Capture the corners. Every move also flips orthogonally adjacent enemy tiles.',
+    moveMode: 'corner-flip',
+    winCondition: 'corners',
+  },
 };
 
 function getGameRules(gameType) {
@@ -118,6 +130,36 @@ function checkWinner(gameType, board) {
     return null;
   }
 
+  if (rules.winCondition === 'corners') {
+    const corners = [
+      getCellIndex(0, 0, rules.columns),
+      getCellIndex(0, rules.columns - 1, rules.columns),
+      getCellIndex(rules.rows - 1, 0, rules.columns),
+      getCellIndex(rules.rows - 1, rules.columns - 1, rules.columns),
+    ];
+    const xCorners = corners.filter((index) => board[index] === 'X').length;
+    const oCorners = corners.filter((index) => board[index] === 'O').length;
+
+    if (xCorners >= 3) {
+      return 'X';
+    }
+
+    if (oCorners >= 3) {
+      return 'O';
+    }
+
+    if (isBoardFull(board)) {
+      const xCount = board.filter((cell) => cell === 'X').length;
+      const oCount = board.filter((cell) => cell === 'O').length;
+      if (xCount === oCount) {
+        return 'draw';
+      }
+      return xCount > oCount ? 'X' : 'O';
+    }
+
+    return null;
+  }
+
   const directions = [
     [0, 1],
     [1, 0],
@@ -178,7 +220,11 @@ function getAvailableMoves(gameType, board) {
     throw new Error(`Unsupported game type: ${gameType}`);
   }
 
-  if (rules.moveMode === 'cell' || rules.moveMode === 'flip') {
+  if (
+    rules.moveMode === 'cell' ||
+    rules.moveMode === 'flip' ||
+    rules.moveMode === 'corner-flip'
+  ) {
     return board.reduce((moves, cell, index) => {
       if (cell === null) {
         moves.push(index);
@@ -243,6 +289,38 @@ function applyMove(gameType, board, move, symbol) {
         if (nextBoard[nextIndex] && nextBoard[nextIndex] !== symbol) {
           nextBoard[nextIndex] = symbol;
         }
+      }
+    }
+
+    return nextBoard;
+  }
+
+  if (rules.moveMode === 'corner-flip') {
+    nextBoard[move] = symbol;
+    const row = Math.floor(move / rules.columns);
+    const column = move % rules.columns;
+    const deltas = [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
+    ];
+
+    for (const [rowStep, columnStep] of deltas) {
+      const nextRow = row + rowStep;
+      const nextColumn = column + columnStep;
+      if (
+        nextRow < 0 ||
+        nextRow >= rules.rows ||
+        nextColumn < 0 ||
+        nextColumn >= rules.columns
+      ) {
+        continue;
+      }
+
+      const nextIndex = getCellIndex(nextRow, nextColumn, rules.columns);
+      if (nextBoard[nextIndex] && nextBoard[nextIndex] !== symbol) {
+        nextBoard[nextIndex] = symbol;
       }
     }
 

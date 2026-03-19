@@ -11,6 +11,7 @@ function toGameDefinition(rules) {
     columns: rules.columns,
     connect: rules.connect,
     moveMode: rules.moveMode,
+    winCondition: rules.winCondition,
   };
 }
 

@@ -1,8 +1,8 @@
-export type Screen = 'home' | 'lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
+export type Screen = 'home' | 'game-select' | 'lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
 export type GameMode = 'online' | 'cpu';
 
-export type GameType = 'tic-tac-two' | 'connect-all-four' | 'orbital-flip';
+export type GameType = 'tic-tac-two' | 'connect-all-four' | 'orbital-flip' | 'corner-clash';
 
 export type GameDefinition = {
   id: GameType;
@@ -13,8 +13,8 @@ export type GameDefinition = {
   rows: number;
   columns: number;
   connect: number;
-  moveMode: 'cell' | 'column' | 'flip';
-  winCondition?: 'connect' | 'majority';
+  moveMode: 'cell' | 'column' | 'flip' | 'corner-flip';
+  winCondition?: 'connect' | 'majority' | 'corners';
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';

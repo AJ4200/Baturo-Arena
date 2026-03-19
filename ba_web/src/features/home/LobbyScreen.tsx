@@ -79,7 +79,7 @@ export function LobbyScreen({
   return (
     <section className="title-screen-content">
       <h1>
-        <span>Baruto</span>
+        <span>Baturo</span>
         <span>-</span>
         <span>Arena</span>
       </h1>
@@ -134,7 +134,7 @@ export function LobbyScreen({
         </div>
 
         <div className="public-rooms">
-          <h2>Public Rooms • {formatGameName(selectedGame, games)}</h2>
+          <h2>Public Rooms | {formatGameName(selectedGame, games)}</h2>
           {filteredRooms.length === 0 ? (
             <p>No public rooms yet for this game.</p>
           ) : (

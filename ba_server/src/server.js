@@ -6,7 +6,7 @@ async function startServer() {
   await initDatabase();
   app.listen(port, () => {
     // eslint-disable-next-line no-console
-    console.log(`baruto-arena api listening on http://localhost:${port}`);
+    console.log(`baturo-arena api listening on http://localhost:${port}`);
   });
 }
 
