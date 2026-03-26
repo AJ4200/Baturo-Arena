@@ -41,6 +41,7 @@ export function GameSelectScreen({
 }: GameSelectScreenProps) {
   const selectedIndex = games.length === 0 ? -1 : Math.max(0, games.findIndex((game) => game.id === selectedGame));
   const selectedOrder = selectedIndex >= 0 ? selectedIndex + 1 : 0;
+  const selectedGameName = selectedIndex >= 0 ? games[selectedIndex]?.name ?? 'No game selected' : 'No game selected';
   const totalGames = games.length;
 
   const moveSelection = useCallback(
@@ -97,9 +98,22 @@ export function GameSelectScreen({
             <AiOutlineArrowLeft /> Back
           </button>
           <div className="choose-game-toolbar-right">
-            <span className="choose-game-position" aria-live="polite">
-              {selectedOrder} of {totalGames}
-            </span>
+            <div className="choose-game-meta" aria-live="polite">
+              <span className="choose-game-position">
+                {selectedOrder} of {totalGames}
+              </span>
+              <span className="choose-game-name">{selectedGameName}</span>
+            </div>
+            <button
+              className="choose-game-step-btn choose-game-play-now-btn"
+              type="button"
+              disabled={games.length === 0}
+              onClick={onContinue}
+              aria-label="Play selected game"
+              title="Play selected game"
+            >
+              <AiOutlineCheckCircle /> Play
+            </button>
             <button
               className="choose-game-step-btn"
               type="button"

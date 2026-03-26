@@ -2221,7 +2221,14 @@ h1 span:last-child {
   gap: 0.36rem;
 }
 
-.choose-game-position {
+.choose-game-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+}
+
+.choose-game-position,
+.choose-game-name {
   border: 2px solid #000;
   border-radius: 999px;
   padding: 0.25rem 0.56rem;
@@ -2230,6 +2237,13 @@ h1 span:last-child {
   font-size: 0.82rem;
   letter-spacing: 0.03em;
   text-shadow: none;
+}
+
+.choose-game-name {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .choose-game-step-btn {
@@ -2254,6 +2268,21 @@ h1 span:last-child {
 .choose-game-step-btn:disabled {
   opacity: 0.55;
   transform: none;
+}
+
+.choose-game-play-now-btn {
+  background: rgba(10, 44, 28, 0.9);
+  color: #fff;
+  text-shadow: var(--signature-shadow);
+}
+
+.choose-game-play-now-btn:hover {
+  background: rgba(18, 68, 43, 0.95);
+}
+
+.choose-game-play-now-btn:disabled {
+  background: rgba(14, 14, 14, 0.55);
+  color: rgba(255, 255, 255, 0.76);
 }
 
 .choose-game-hint {
@@ -3306,7 +3335,7 @@ h1 span:last-child {
     justify-content: flex-end;
   }
 
-  .choose-game-position {
+  .choose-game-meta {
     margin-right: auto;
   }
 
