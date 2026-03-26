@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Loli Cover Art</title>
+  <desc id="desc">Easter egg cover styled like the tic-tac-two game thumbnail.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff5555"/>
+      <stop offset="100%" stop-color="#5555ff"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#161616" stop-opacity="0.78"/>
+      <stop offset="100%" stop-color="#0b0b0b" stop-opacity="0.62"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="28" fill="url(#bg)"/>
+  <circle cx="170" cy="204" r="104" fill="#ffffff" fill-opacity="0.18"/>
+  <circle cx="170" cy="204" r="80" fill="#ffffff" fill-opacity="0.9"/>
+  <text x="170" y="232" fill="#d13a3a" text-anchor="middle" font-family="Verdana, sans-serif" font-size="86" font-weight="700">X</text>
+  <circle cx="338" cy="304" r="104" fill="#ffffff" fill-opacity="0.18"/>
+  <circle cx="338" cy="304" r="80" fill="#ffffff" fill-opacity="0.9"/>
+  <text x="338" y="332" fill="#4a4ad6" text-anchor="middle" font-family="Verdana, sans-serif" font-size="86" font-weight="700">O</text>
+  <rect x="70" y="388" width="372" height="74" rx="18" fill="url(#plate)" stroke="rgba(255,255,255,0.55)" stroke-width="3"/>
+  <text x="256" y="436" fill="#ffffff" text-anchor="middle" font-family="Verdana, sans-serif" font-size="40" font-weight="700" letter-spacing="3">X / O</text>
+  <text x="256" y="72" fill="rgba(255,255,255,0.82)" text-anchor="middle" font-family="Verdana, sans-serif" font-size="22" letter-spacing="4">LOLI</text>
+</svg>

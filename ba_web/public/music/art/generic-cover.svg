@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Generic Album Cover</title>
+  <desc id="desc">Fallback artwork for songs without dedicated cover art.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1f2f53"/>
+      <stop offset="100%" stop-color="#1c8b69"/>
+    </linearGradient>
+    <linearGradient id="disc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fdfdfd"/>
+      <stop offset="100%" stop-color="#d3e4ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="28" fill="url(#bg)"/>
+  <circle cx="256" cy="246" r="132" fill="url(#disc)" opacity="0.92"/>
+  <circle cx="256" cy="246" r="44" fill="#19364e" opacity="0.9"/>
+  <circle cx="256" cy="246" r="15" fill="#f2f8fd"/>
+  <rect x="96" y="406" width="320" height="16" rx="8" fill="#f3fbff" opacity="0.75"/>
+  <text x="256" y="470" fill="#f4fbff" text-anchor="middle" font-family="Verdana, sans-serif" font-size="34" letter-spacing="2">BATURO ARENA</text>
+</svg>

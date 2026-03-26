@@ -12,6 +12,7 @@ import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
+import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
 import { useApiClient } from '@/hooks/useApiClient';
 import { STORAGE_KEYS } from '@/lib/constants';
@@ -117,6 +118,50 @@ const createMatchThemeStyle = (backgroundHex: string): React.CSSProperties => {
   return style;
 };
 
+const APP_MUSIC_TRACKS: MusicTrack[] = [
+  {
+    id: 'arabina',
+    title: 'Arabina',
+    artist: 'Jade Epoh',
+    src: '/music/Arabina.mp3',
+    artSrc: '/music/art/Arabina.jpg',
+  },
+  {
+    id: 'by',
+    title: 'By',
+    artist: 'Jade Epoh',
+    src: '/music/By.mp3',
+    artSrc: '/music/art/By.jpg',
+  },
+  {
+    id: 'jello',
+    title: 'Jello',
+    artist: 'Jade Epoh',
+    src: '/music/Jello.mp3',
+  },
+  {
+    id: 'loli',
+    title: 'Loli',
+    artist: 'Jade Epoh',
+    src: '/music/Loli.mp3',
+    artSrc: '/music/art/loli-cover.svg',
+  },
+  {
+    id: 'nostaligic-actsii-remastered',
+    title: 'Nostaligic ActsII Remastered',
+    artist: 'Jade Epoh',
+    src: '/music/Nostaligic%20ActsII_Remastered.mp3',
+    artSrc: '/music/art/Nostalgic%20Acts.jpg',
+  },
+  {
+    id: 'untitled-08',
+    title: 'Untitled 08',
+    artist: 'Jade Epoh',
+    src: '/music/untitled_08.mp3',
+    artSrc: '/music/art/Untitled_08.jpg',
+  },
+];
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameMode, setGameMode] = useState<GameMode>('online');
@@ -139,7 +184,6 @@ export default function Home() {
   const [enableAnimations, setEnableAnimations] = useState(true);
   const [cpuDifficulty, setCpuDifficulty] = useState<CpuDifficulty>('medium');
   const [matchBackgroundColor, setMatchBackgroundColor] = useState('#ffffff');
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [hasLocalSave, setHasLocalSave] = useState(false);
   const [lastLocalSavedAt, setLastLocalSavedAt] = useState<string | null>(null);
   const [saveIndicator, setSaveIndicator] = useState('');
@@ -640,14 +684,6 @@ export default function Home() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!audioElement) {
-      return;
-    }
-    audioElement.muted = isMusicMuted;
-    audioElement.volume = musicVolume / 100;
-  }, [audioElement, isMusicMuted, musicVolume]);
-
   const applyCpuDifficulty = useCallback((difficulty: CpuDifficulty) => {
     setCpuDifficulty(difficulty);
     window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, difficulty);
@@ -904,7 +940,20 @@ export default function Home() {
           </button>
         </div>
       ) : null}
-      <audio autoPlay={true} loop={true} muted={isMusicMuted} ref={setAudioElement} src="Loli.mp3" />
+      <MusicDock
+        tracks={APP_MUSIC_TRACKS}
+        isMuted={isMusicMuted}
+        volume={musicVolume}
+        onToggleMute={() => {
+          const nextValue = !isMusicMuted;
+          setIsMusicMuted(nextValue);
+          window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
+        }}
+        onVolumeChange={(volume) => {
+          setMusicVolume(volume);
+          window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+        }}
+      />
       {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}
     </main>
   );
