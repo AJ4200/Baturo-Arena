@@ -12,6 +12,7 @@
     "@types/node": "^22.14.1",
     "@types/react": "^19.1.1",
     "@types/react-dom": "^19.1.2",
+    "@vercel/analytics": "^2.0.1",
     "autoprefixer": "^10.4.21",
     "classnames": "^2.5.1",
     "framer-motion": "^12.6.0",
