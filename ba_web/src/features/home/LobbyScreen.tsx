@@ -4,19 +4,22 @@ import {
   AiOutlineCheckCircle,
   AiOutlineClockCircle,
   AiOutlineCopy,
+  AiOutlineKey,
   AiOutlinePlayCircle,
+  AiOutlineReload,
   AiOutlineRobot,
   AiOutlineTeam,
 } from 'react-icons/ai';
 import { useMemo, useState } from 'react';
 import { formatGameName } from '@/lib/games';
-import type { GameDefinition, GameType, PublicRoom } from '@/types/game';
+import type { CpuDifficulty, GameDefinition, GameType, PublicRoom } from '@/types/game';
 
 type LobbyScreenProps = {
   playerName: string;
   roomName: string;
   joinCode: string;
   selectedGame: GameType;
+  cpuDifficulty: CpuDifficulty;
   games: GameDefinition[];
   publicRooms: PublicRoom[];
   message: string;
@@ -24,6 +27,7 @@ type LobbyScreenProps = {
   onClearMessage: () => void;
   onBack: () => void;
   onGameChange: (value: GameType) => void;
+  onCpuDifficultyChange: (difficulty: CpuDifficulty) => void;
   onPlayerNameChange: (value: string) => void;
   onRoomNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
@@ -41,6 +45,7 @@ export function LobbyScreen({
   roomName,
   joinCode,
   selectedGame,
+  cpuDifficulty,
   games,
   publicRooms,
   message,
@@ -48,6 +53,7 @@ export function LobbyScreen({
   onClearMessage,
   onBack,
   onGameChange,
+  onCpuDifficultyChange,
   onPlayerNameChange,
   onRoomNameChange,
   onJoinCodeChange,
@@ -62,12 +68,27 @@ export function LobbyScreen({
   const [copiedRoomCode, setCopiedRoomCode] = useState<string | null>(null);
   const [roomQuery, setRoomQuery] = useState('');
   const [roomStatusFilter, setRoomStatusFilter] = useState<'all' | 'waiting' | 'playing' | 'open'>('all');
+  const [createRoomMode, setCreateRoomMode] = useState<'public' | 'private'>('public');
   const selectedDefinition = useMemo(
     () => games.find((gameItem) => gameItem.id === selectedGame) || games[0],
     [games, selectedGame]
   );
   const supportsOnline = selectedDefinition?.supportsOnline ?? true;
   const supportsCpu = selectedDefinition?.supportsCpu ?? true;
+  const selectedGameName = formatGameName(selectedGame, games);
+  const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
+  const profilePreviewName = (playerName || '').trim() || 'Player';
+  const profilePreviewAvatarUrl = `https://robohash.org/${encodeURIComponent(profilePreviewName)}?size=160x160`;
+  const roomNameSuggestions = useMemo(() => {
+    const safePlayerName = (playerName || 'Player').trim() || 'Player';
+    return Array.from(
+      new Set([
+        `${safePlayerName}'s Room`,
+        `${selectedGameName} Arena`,
+        `${selectedGameName} Showdown`,
+      ])
+    );
+  }, [playerName, selectedGameName]);
 
   const gameRooms = useMemo(
     () => publicRooms.filter((roomItem) => roomItem.gameType === selectedGame),
@@ -138,6 +159,17 @@ export function LobbyScreen({
     }
   };
 
+  const handleCreateRoom = () => {
+    if (!supportsOnline || isLoading) {
+      return;
+    }
+    if (createRoomMode === 'public') {
+      onCreatePublic();
+      return;
+    }
+    onCreatePrivate();
+  };
+
   return (
     <section className="title-screen-content">
       <h1>
@@ -147,97 +179,256 @@ export function LobbyScreen({
       </h1>
 
       <div className="lobby-card mt-8">
-        <div className="lobby-row">
+        <div className="lobby-control-bar">
           <button className="lobby-back" type="button" onClick={onBack}>
             <AiOutlineArrowLeft /> Back
           </button>
-          <select className="settings-select" value={selectedGame} onChange={(event) => onGameChange(event.target.value as GameType)}>
-            {games.map((game) => (
-              <option key={game.id} value={game.id}>
-                {game.name}
-              </option>
-            ))}
-          </select>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={!supportsCpu} onClick={onPlayCpu}>
-            {supportsOnline ? <AiOutlineRobot /> : <AiOutlinePlayCircle />} Play {formatGameName(selectedGame, games)} {supportsOnline ? 'vs CPU' : 'Solo'}
-          </button>
+
+          <div className="lobby-control-main">
+            <div className="lobby-control-stack">
+              <label className="lobby-select-stack">
+                <span className="lobby-select-caption">Selected Game</span>
+                <select
+                  className="settings-select lobby-select-control"
+                  value={selectedGame}
+                  onChange={(event) => onGameChange(event.target.value as GameType)}
+                >
+                  {games.map((game) => (
+                    <option key={game.id} value={game.id}>
+                      {game.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="lobby-difficulty-stack">
+                <span className="lobby-select-caption">CPU Difficulty</span>
+                <div className="lobby-difficulty-tabs" aria-label="CPU difficulty">
+                  {(['easy', 'medium', 'hard'] as CpuDifficulty[]).map((difficultyOption) => (
+                    <button
+                      key={difficultyOption}
+                      className={classnames(
+                        'lobby-difficulty-tab',
+                        cpuDifficulty === difficultyOption && 'lobby-difficulty-tab-active'
+                      )}
+                      type="button"
+                      disabled={!supportsCpu}
+                      aria-pressed={cpuDifficulty === difficultyOption}
+                      onClick={() => onCpuDifficultyChange(difficultyOption)}
+                    >
+                      {difficultyOption}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
+              type="button"
+              disabled={!supportsCpu}
+              onClick={onPlayCpu}
+            >
+              <span className="lobby-cpu-cta-main">
+                {supportsOnline ? <AiOutlineRobot /> : <AiOutlinePlayCircle />} Play {selectedGameName}{' '}
+                {supportsOnline ? 'vs CPU' : 'Solo'}
+              </span>
+              <small>{supportsCpu ? 'Quick practice run' : 'CPU mode unavailable for this game'}</small>
+            </button>
+          </div>
         </div>
 
         <div className="lobby-game-banner">
-          <strong>{formatGameName(selectedGame, games)}</strong>
-          <span>{games.find((game) => game.id === selectedGame)?.description}</span>
+          <div className="lobby-game-banner-head">
+            <strong>{selectedGameName}</strong>
+            <div className="lobby-game-flags">
+              <span className="lobby-flag">
+                <AiOutlineTeam /> {selectedDefinition?.minPlayers ?? 1}-{selectedDefinition?.maxPlayers ?? 1} Players
+              </span>
+              <span className={classnames('lobby-flag', supportsOnline ? 'lobby-flag-on' : 'lobby-flag-off')}>
+                Online {supportsOnline ? 'On' : 'Off'}
+              </span>
+              <span className={classnames('lobby-flag', supportsCpu ? 'lobby-flag-on' : 'lobby-flag-off')}>
+                CPU {supportsCpu ? 'On' : 'Off'}
+              </span>
+            </div>
+          </div>
+          <span>{selectedGameDescription}</span>
+          <p className="lobby-key-hint">Tip: press Enter in the fields below for quicker actions.</p>
         </div>
 
-        <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={playerName}
-            onChange={(event) => onPlayerNameChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                onSaveName();
+        <div className="lobby-content-grid">
+          <section className="lobby-panel">
+            <div className="lobby-panel-head lobby-panel-head-static">
+              <div>
+                <p className="lobby-panel-title">Profile</p>
+                <p className="lobby-panel-subtitle">Set how your name appears in rooms and leaderboards.</p>
+              </div>
+            </div>
+            <div className="lobby-profile-preview">
+              <div className="lobby-profile-avatar-shell">
+                <img
+                  src={profilePreviewAvatarUrl}
+                  alt={`${profilePreviewName} avatar preview`}
+                  className="lobby-profile-avatar"
+                />
+              </div>
+              <div className="lobby-profile-meta">
+                <strong>{profilePreviewName}</strong>
+                <span>Live avatar preview</span>
+              </div>
+            </div>
+            <div className="lobby-row">
+              <input
+                className="lobby-input"
+                value={playerName}
+                onChange={(event) => onPlayerNameChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    onSaveName();
+                  }
+                }}
+                placeholder="your name"
+              />
+              <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onSaveName}>
+                Save Name
+              </button>
+            </div>
+          </section>
+
+          <section className="lobby-panel lobby-panel-create">
+            <div className="lobby-panel-head lobby-panel-head-static">
+              <div>
+                <p className="lobby-panel-title">Create Online Room</p>
+                <p className="lobby-panel-subtitle">
+                  Spin up a public room for quick joins or private room for invite-only matches.
+                </p>
+              </div>
+            </div>
+            <div className="create-room-visibility">
+              <button
+                className={classnames(
+                  'create-room-mode-btn',
+                  createRoomMode === 'public' && 'create-room-mode-btn-active'
+                )}
+                type="button"
+                disabled={!supportsOnline}
+                onClick={() => setCreateRoomMode('public')}
+              >
+                Public Room
+              </button>
+              <button
+                className={classnames(
+                  'create-room-mode-btn',
+                  createRoomMode === 'private' && 'create-room-mode-btn-active'
+                )}
+                type="button"
+                disabled={!supportsOnline}
+                onClick={() => setCreateRoomMode('private')}
+              >
+                Private Room
+              </button>
+            </div>
+            <p className="create-room-mode-hint">
+              {createRoomMode === 'public'
+                ? 'Public rooms show in discovery and can be joined quickly.'
+                : 'Private rooms stay hidden and require your room code.'}
+            </p>
+            <div className="lobby-row">
+              <input
+                className="lobby-input"
+                value={roomName}
+                disabled={!supportsOnline}
+                onChange={(event) => onRoomNameChange(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    handleCreateRoom();
+                  }
+                }}
+                placeholder={supportsOnline ? `${selectedGameName} room name` : 'Online rooms are disabled for this game'}
+              />
+              <button
+                className={classnames('lobby-btn', 'custome-shadow', 'lobby-btn-create-primary')}
+                type="button"
+                disabled={isLoading || !supportsOnline}
+                onClick={handleCreateRoom}
+              >
+                {createRoomMode === 'public' ? 'Create Public Room' : 'Create Private Room'}
+              </button>
+            </div>
+            <div className="create-room-suggestions">
+              {roomNameSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  className={classnames(
+                    'create-room-suggestion-btn',
+                    roomName === suggestion && 'create-room-suggestion-btn-active'
+                  )}
+                  type="button"
+                  disabled={!supportsOnline}
+                  onClick={() => onRoomNameChange(suggestion)}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+            <p className="create-room-name-meta">
+              {roomName.trim().length > 0
+                ? `${roomName.trim().length} characters`
+                : 'Leave blank to use default room naming.'}
+            </p>
+          </section>
+        </div>
+
+        <section className="lobby-panel lobby-panel-join">
+          <div className="lobby-panel-head">
+            <div>
+              <p className="lobby-panel-title">Join Private Room</p>
+              <p className="lobby-panel-subtitle">Have a code? Paste it and jump straight into the match.</p>
+            </div>
+            <span className="join-room-chip">
+              <AiOutlineKey /> 8-Char Code
+            </span>
+          </div>
+          <div className="lobby-row lobby-row-join">
+            <input
+              className="lobby-input"
+              value={joinCode}
+              disabled={!supportsOnline}
+              onChange={(event) =>
+                onJoinCodeChange(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
               }
-            }}
-            placeholder="your name"
-          />
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onSaveName}>
-            Save Name
-          </button>
-        </div>
-
-        <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={roomName}
-            disabled={!supportsOnline}
-            onChange={(event) => onRoomNameChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                if (!isLoading && supportsOnline) {
-                  onCreatePublic();
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  if (!isLoading && supportsOnline) {
+                    onJoinByCode();
+                  }
                 }
-              }
-            }}
-            placeholder={supportsOnline ? `${formatGameName(selectedGame, games)} room name` : 'Online rooms are disabled for this game'}
-          />
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onCreatePublic}>
-            Create Public
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onCreatePrivate}>
-            Create Private
-          </button>
-        </div>
+              }}
+              placeholder={supportsOnline ? 'private room code' : 'Join by code is disabled for this game'}
+            />
+            <button
+              className={classnames('lobby-btn', 'custome-shadow', 'join-room-btn-primary')}
+              type="button"
+              disabled={isLoading || !supportsOnline}
+              onClick={onJoinByCode}
+            >
+              Join by Code
+            </button>
+          </div>
+          <p className="join-room-hint">Tip: code accepts letters and numbers only, and auto-formats as you type.</p>
+        </section>
 
-        <div className="lobby-row">
-          <input
-            className="lobby-input"
-            value={joinCode}
-            disabled={!supportsOnline}
-            onChange={(event) =>
-              onJoinCodeChange(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
-            }
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                if (!isLoading && supportsOnline) {
-                  onJoinByCode();
-                }
-              }
-            }}
-            placeholder={supportsOnline ? 'private room code' : 'Join by code is disabled for this game'}
-          />
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={isLoading || !supportsOnline} onClick={onJoinByCode}>
-            Join by Code
-          </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={!supportsOnline} onClick={onRefreshRooms}>
-            Refresh List
-          </button>
-        </div>
-
-        <div className="public-rooms">
-          <h2>Public Rooms | {formatGameName(selectedGame, games)}</h2>
+        <div className="public-rooms lobby-panel">
+          <div className="lobby-panel-head lobby-panel-head-static public-room-head">
+            <div>
+              <p className="lobby-panel-title">Public Rooms | {selectedGameName}</p>
+              <p className="lobby-panel-subtitle">Discover active rooms and use filters to find your next match.</p>
+            </div>
+          </div>
           {supportsOnline ? (
             <>
               <div className="public-room-summary">
@@ -266,22 +457,53 @@ export function LobbyScreen({
                   <option value="playing">Playing</option>
                   <option value="open">Open Slots</option>
                 </select>
+                <button
+                  className={classnames('lobby-btn', 'custome-shadow', 'public-room-refresh-btn')}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={onRefreshRooms}
+                >
+                  <AiOutlineReload /> Refresh List
+                </button>
               </div>
             </>
           ) : null}
           {!supportsOnline ? (
-            <p>{formatGameName(selectedGame, games)} is single-player only. Start a solo run above.</p>
+            <p className="public-room-empty">{formatGameName(selectedGame, games)} is single-player only. Start a solo run above.</p>
           ) : filteredRooms.length === 0 ? (
-            <p>No public rooms match this filter yet.</p>
+            <p className="public-room-empty">No public rooms match this filter yet.</p>
           ) : (
             filteredRooms.map((roomItem) => (
               <div key={roomItem.code} className="public-room-item">
-                <div>
-                  <p className="public-room-title">{roomItem.name}</p>
-                  <p className="public-room-meta">
-                    {roomItem.status === 'waiting' ? <AiOutlineClockCircle /> : roomItem.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
-                    {roomItem.status} | {formatGameName(roomItem.gameType, games)} |{' '}
-                    <span className="public-room-code-badge">{roomItem.code}</span>
+                <div className="public-room-main">
+                  <div className="public-room-top">
+                    <p className="public-room-title">{roomItem.name}</p>
+                    <span
+                      className={classnames(
+                        'public-room-status-pill',
+                        roomItem.status === 'waiting' && 'public-room-status-pill-waiting',
+                        roomItem.status === 'playing' && 'public-room-status-pill-playing',
+                        roomItem.status === 'finished' && 'public-room-status-pill-finished'
+                      )}
+                    >
+                      {roomItem.status === 'waiting' ? (
+                        <AiOutlineClockCircle />
+                      ) : roomItem.status === 'playing' ? (
+                        <AiOutlinePlayCircle />
+                      ) : (
+                        <AiOutlineCheckCircle />
+                      )}{' '}
+                      {roomItem.status}
+                    </span>
+                  </div>
+                  <div className="public-room-meta">
+                    <span className="public-room-meta-pill">
+                      <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
+                    </span>
+                    <span className="public-room-meta-pill">{formatGameName(roomItem.gameType, games)}</span>
+                    <span className="public-room-meta-pill public-room-code-pill">
+                      Code <span className="public-room-code-badge">{roomItem.code}</span>
+                    </span>
                     <button
                       className="room-code-copy-btn"
                       type="button"
@@ -292,11 +514,15 @@ export function LobbyScreen({
                       <AiOutlineCopy />
                     </button>
                     {copiedRoomCode === roomItem.code ? <span className="room-code-copy-feedback">Copied</span> : null}
-                    | <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
-                  </p>
+                  </div>
                 </div>
                 <button
-                  className={classnames('lobby-btn', 'custome-shadow')}
+                  className={classnames(
+                    'lobby-btn',
+                    'custome-shadow',
+                    'public-room-join-btn',
+                    roomItem.playersCount >= roomItem.maxPlayers && 'public-room-join-btn-full'
+                  )}
                   type="button"
                   disabled={isLoading || roomItem.playersCount >= roomItem.maxPlayers}
                   onClick={() => onJoinRoom(roomItem.code)}

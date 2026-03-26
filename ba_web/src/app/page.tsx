@@ -648,6 +648,11 @@ export default function Home() {
     audioElement.volume = musicVolume / 100;
   }, [audioElement, isMusicMuted, musicVolume]);
 
+  const applyCpuDifficulty = useCallback((difficulty: CpuDifficulty) => {
+    setCpuDifficulty(difficulty);
+    window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, difficulty);
+  }, []);
+
   const isInMatch = screen === 'game' && Boolean(player);
   const matchThemeStyle = isInMatch ? createMatchThemeStyle(matchBackgroundColor) : undefined;
 
@@ -717,6 +722,7 @@ export default function Home() {
           roomName={roomName}
           joinCode={joinCode}
           selectedGame={selectedGame}
+          cpuDifficulty={cpuDifficulty}
           games={availableGames}
           publicRooms={publicRooms}
           message={message}
@@ -724,6 +730,7 @@ export default function Home() {
           onClearMessage={() => setMessage('')}
           onBack={() => setScreen('home')}
           onGameChange={setSelectedGame}
+          onCpuDifficultyChange={applyCpuDifficulty}
           onPlayerNameChange={setPlayerName}
           onRoomNameChange={setRoomName}
           onJoinCodeChange={setJoinCode}
@@ -805,10 +812,7 @@ export default function Home() {
             setEnableAnimations(nextValue);
             window.localStorage.setItem(STORAGE_KEYS.enableAnimations, String(nextValue));
           }}
-          onCpuDifficultyChange={(difficulty) => {
-            setCpuDifficulty(difficulty);
-            window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, difficulty);
-          }}
+          onCpuDifficultyChange={applyCpuDifficulty}
           onSaveNow={() => {
             saveLocalBackup('manual');
           }}
@@ -819,11 +823,10 @@ export default function Home() {
             setIsMusicMuted(false);
             setMusicVolume(70);
             setEnableAnimations(true);
-            setCpuDifficulty('medium');
+            applyCpuDifficulty('medium');
             window.localStorage.setItem(STORAGE_KEYS.musicMuted, 'false');
             window.localStorage.setItem(STORAGE_KEYS.musicVolume, '70');
             window.localStorage.setItem(STORAGE_KEYS.enableAnimations, 'true');
-            window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, 'medium');
             showSaveIndicator('Preferences reset');
           }}
         />
