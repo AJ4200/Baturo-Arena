@@ -8,10 +8,11 @@ import {
   AiOutlineClockCircle,
   AiOutlinePlayCircle,
   AiOutlineCheckCircle,
+  AiOutlineArrowDown,
+  AiOutlineArrowUp,
   AiOutlineUser,
   AiOutlineCrown,
   AiOutlineDrag,
-  AiOutlineInfoCircle,
   AiOutlineTeam,
 } from 'react-icons/ai';
 import PlayerO from '@/components/game/player/PlayerO';
@@ -256,7 +257,7 @@ export function OnlineArenaGame({
                 aria-label="Expand room info"
                 title="Expand room info"
               >
-                <AiOutlineInfoCircle />
+                <AiOutlineArrowUp />
               </button>
             ) : (
               <>
@@ -274,7 +275,7 @@ export function OnlineArenaGame({
                     aria-label="Collapse room info"
                     title="Collapse room info"
                   >
-                    <AiOutlineInfoCircle />
+                    <AiOutlineArrowDown />
                   </button>
                 </div>
 

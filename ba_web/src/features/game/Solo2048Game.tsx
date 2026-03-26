@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
   AiOutlineDrag,
-  AiOutlineInfoCircle,
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
   AiOutlineArrowUp,
@@ -323,7 +322,7 @@ export function Solo2048Game({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineInfoCircle />
+              <AiOutlineArrowUp />
             </button>
           ) : (
             <>
@@ -339,7 +338,7 @@ export function Solo2048Game({
                   aria-label="Collapse game info"
                   title="Collapse game info"
                 >
-                  <AiOutlineInfoCircle />
+                  <AiOutlineArrowDown />
                 </button>
               </div>
 

@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
+  AiOutlineArrowDown,
+  AiOutlineArrowUp,
   AiOutlineDrag,
   AiOutlineFlag,
   AiOutlineInfoCircle,
@@ -317,7 +319,7 @@ export function SoloMinesweeperGame({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineInfoCircle />
+              <AiOutlineArrowUp />
             </button>
           ) : (
             <>
@@ -333,7 +335,7 @@ export function SoloMinesweeperGame({
                   aria-label="Collapse game info"
                   title="Collapse game info"
                 >
-                  <AiOutlineInfoCircle />
+                  <AiOutlineArrowDown />
                 </button>
               </div>
 

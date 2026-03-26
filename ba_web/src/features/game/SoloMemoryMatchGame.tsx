@@ -4,9 +4,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
+  AiOutlineArrowDown,
+  AiOutlineArrowUp,
   AiOutlineDrag,
   AiOutlineFlag,
-  AiOutlineInfoCircle,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
@@ -296,7 +297,7 @@ export function SoloMemoryMatchGame({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineInfoCircle />
+              <AiOutlineArrowUp />
             </button>
           ) : (
             <>
@@ -312,7 +313,7 @@ export function SoloMemoryMatchGame({
                   aria-label="Collapse game info"
                   title="Collapse game info"
                 >
-                  <AiOutlineInfoCircle />
+                  <AiOutlineArrowDown />
                 </button>
               </div>
 

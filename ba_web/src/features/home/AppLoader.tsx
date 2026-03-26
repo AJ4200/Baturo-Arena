@@ -14,7 +14,7 @@ export function AppLoader({ active, subtle = false }: AppLoaderProps) {
     <div className={subtle ? "app-loader-corner" : "app-loader-overlay"}>
       <div className={subtle ? "app-loader-card app-loader-card-subtle" : "app-loader-card"}>
         <AiOutlineLoading3Quarters className="loader-spin" />
-        <span>{subtle ? "Syncing..." : "Syncing Match Data..."}</span>
+        <span>Syncing</span>
       </div>
     </div>
   );

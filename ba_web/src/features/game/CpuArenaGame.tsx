@@ -8,10 +8,11 @@ import {
   AiOutlineClockCircle,
   AiOutlinePlayCircle,
   AiOutlineCheckCircle,
+  AiOutlineArrowDown,
+  AiOutlineArrowUp,
   AiOutlineUser,
   AiOutlineCrown,
   AiOutlineDrag,
-  AiOutlineInfoCircle,
   AiOutlineRobot,
   AiOutlineTeam,
 } from 'react-icons/ai';
@@ -164,7 +165,7 @@ export function CpuArenaGame({
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
             {isRoomCardCollapsed ? (
               <button className="room-float-collapsed-center" type="button" onClick={() => setIsRoomCardCollapsed(false)} aria-label="Expand room info" title="Expand room info">
-                <AiOutlineInfoCircle />
+                <AiOutlineArrowUp />
               </button>
             ) : (
               <>
@@ -174,7 +175,7 @@ export function CpuArenaGame({
                   </span>
                   <span className="room-float-title">{gameLabel} CPU Match ({difficulty})</span>
                   <button className="room-float-toggle-btn" type="button" onClick={() => setIsRoomCardCollapsed(true)} aria-label="Collapse room info" title="Collapse room info">
-                    <AiOutlineInfoCircle />
+                    <AiOutlineArrowDown />
                   </button>
                 </div>
 

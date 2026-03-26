@@ -28,8 +28,6 @@ export function GameSelectScreen({
   onBack,
   onContinue,
 }: GameSelectScreenProps) {
-  const selectedDefinition = games.find((game) => game.id === selectedGame) || games[0];
-
   return (
     <section className="title-screen-content">
       <h1>
@@ -43,29 +41,40 @@ export function GameSelectScreen({
           <button className="lobby-back" type="button" onClick={onBack}>
             <AiOutlineArrowLeft /> Back
           </button>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onContinue}>
-            <AiOutlineCheckCircle /> Continue with {selectedDefinition?.name}
-          </button>
         </div>
 
         <div className="choose-game-grid">
-          {games.map((game) => (
-            <button
-              key={game.id}
-              className={classnames('choose-game-card', selectedGame === game.id && 'choose-game-card-active')}
-              type="button"
-              onClick={() => onSelectGame(game.id)}
-            >
-              <div className={classnames('choose-game-thumb', `choose-game-thumb-${game.id}`)}>
-                <span>{THUMBNAIL_LABELS[game.id]}</span>
+          {games.map((game) => {
+            const isSelected = selectedGame === game.id;
+
+            return (
+              <div
+                key={game.id}
+                className={classnames('choose-game-card', isSelected && 'choose-game-card-active')}
+              >
+                <button
+                  className="choose-game-card-select"
+                  type="button"
+                  onClick={() => onSelectGame(game.id)}
+                >
+                  <div className={classnames('choose-game-thumb', `choose-game-thumb-${game.id}`)}>
+                    <span>{THUMBNAIL_LABELS[game.id]}</span>
+                  </div>
+                  <strong>{game.name}</strong>
+                  <span>{game.description}</span>
+                  <small>
+                    <AiOutlineTeam /> {game.minPlayers}-{game.maxPlayers} players
+                  </small>
+                </button>
+
+                {isSelected ? (
+                  <button className="choose-game-play-btn" type="button" onClick={onContinue}>
+                    <AiOutlineCheckCircle /> Play Game
+                  </button>
+                ) : null}
               </div>
-              <strong>{game.name}</strong>
-              <span>{game.description}</span>
-              <small>
-                <AiOutlineTeam /> {game.minPlayers}-{game.maxPlayers} players
-              </small>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

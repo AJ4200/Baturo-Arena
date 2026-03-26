@@ -5,9 +5,10 @@ import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
   AiOutlineCloseCircle,
+  AiOutlineArrowDown,
+  AiOutlineArrowUp,
   AiOutlineDrag,
   AiOutlineFlag,
-  AiOutlineInfoCircle,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
@@ -400,7 +401,7 @@ export function SoloSudokuGame({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineInfoCircle />
+              <AiOutlineArrowUp />
             </button>
           ) : (
             <>
@@ -416,7 +417,7 @@ export function SoloSudokuGame({
                   aria-label="Collapse game info"
                   title="Collapse game info"
                 >
-                  <AiOutlineInfoCircle />
+                  <AiOutlineArrowDown />
                 </button>
               </div>
 

@@ -22,22 +22,28 @@ const PlayerX: React.FC<PlayerXProps> = ({
   result = "neutral",
 }) => (
   <div className={classnames("fixed left-10 flex-col", "player plx", `player-result-${result}`)}>
-    <div>
-      <img
-        src={picture}
-        alt={`${alias}'s Picture`}
-        className="player-picture"
-      />{" "}
-      <div className="bg-black p-1 w-full">
-        <span className="text-green-700">W: {wins}</span> - {" "}
-        <span className="text-red-700">L: {losses}</span> - {" "}
-        <span >D: {draws}</span> 
+    <div className="player-top">
+      <img src={picture} alt={`${alias}'s Picture`} className="player-picture" />
+      <div className="player-identity">
+        <p className="player-piece-label">Player X</p>
+        <p className="player-alias">{alias}</p>
+        <p className="player-mood">{mood}</p>
       </div>
     </div>
-    <div className="mt-2 shadow-lg">
-      <p>
-        X : {alias} : {mood}
-      </p>
+
+    <div className="player-stats">
+      <div className="player-stat player-stat-win">
+        <span>Wins</span>
+        <strong>{wins}</strong>
+      </div>
+      <div className="player-stat player-stat-loss">
+        <span>Losses</span>
+        <strong>{losses}</strong>
+      </div>
+      <div className="player-stat player-stat-draw">
+        <span>Draws</span>
+        <strong>{draws}</strong>
+      </div>
     </div>
   </div>
 );
