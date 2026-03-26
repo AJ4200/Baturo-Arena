@@ -625,7 +625,7 @@ export default function Home() {
   useEffect(() => {
     const intervalId = window.setInterval(() => {
       saveLocalBackup('auto');
-    }, 5 * 60 * 1000);
+    }, 1 * 60 * 1000);
 
     return () => {
       window.clearInterval(intervalId);
