@@ -16,6 +16,7 @@ type SettingsScreenProps = {
   onCpuDifficultyChange: (difficulty: CpuDifficulty) => void;
   onSaveNow: () => void;
   onLoadSave: () => void;
+  onResetPreferences: () => void;
 };
 
 export function SettingsScreen({
@@ -32,6 +33,7 @@ export function SettingsScreen({
   onCpuDifficultyChange,
   onSaveNow,
   onLoadSave,
+  onResetPreferences,
 }: SettingsScreenProps) {
   return (
     <section className="title-screen-content">
@@ -105,6 +107,13 @@ export function SettingsScreen({
               Load Save
             </button>
           </div>
+        </div>
+
+        <div className="settings-item">
+          <p>Preferences</p>
+          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onResetPreferences}>
+            Reset to Default
+          </button>
         </div>
         <p className="settings-save-meta">
           {lastSavedAtLabel ? `Last local save: ${lastSavedAtLabel}` : "No local save found yet"}

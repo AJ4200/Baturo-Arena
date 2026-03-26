@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import { formatGameName } from '@/lib/games';
@@ -13,7 +14,29 @@ type HistoryScreenProps = {
 };
 
 export function HistoryScreen({ history, selectedGame, games, onBack, onClear, onSelectGame }: HistoryScreenProps) {
-  const filteredHistory = selectedGame === 'all' ? history : history.filter((entry) => entry.gameType === selectedGame);
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const filteredHistory = useMemo(
+    () => (selectedGame === 'all' ? history : history.filter((entry) => entry.gameType === selectedGame)),
+    [history, selectedGame]
+  );
+  const sortedHistory = useMemo(() => {
+    const copy = [...filteredHistory];
+    copy.sort((leftEntry, rightEntry) => {
+      const leftTime = new Date(leftEntry.finishedAt).getTime();
+      const rightTime = new Date(rightEntry.finishedAt).getTime();
+      return sortOrder === 'newest' ? rightTime - leftTime : leftTime - rightTime;
+    });
+    return copy;
+  }, [filteredHistory, sortOrder]);
+
+  const summary = useMemo(() => {
+    const wins = filteredHistory.filter((entry) => entry.outcome === 'win').length;
+    const losses = filteredHistory.filter((entry) => entry.outcome === 'loss').length;
+    const draws = filteredHistory.filter((entry) => entry.outcome === 'draw').length;
+    const total = filteredHistory.length;
+    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+    return { wins, losses, draws, total, winRate };
+  }, [filteredHistory]);
 
   return (
     <section className="title-screen-content">
@@ -35,6 +58,10 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
               </option>
             ))}
           </select>
+          <select className="settings-select" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as 'newest' | 'oldest')}>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
         </div>
 
         <div className="settings-item settings-item-save">
@@ -46,11 +73,19 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
           </div>
         </div>
 
-        {filteredHistory.length === 0 ? (
+        <div className="history-summary">
+          <span className="history-chip">Matches {summary.total}</span>
+          <span className="history-chip history-chip-win">Wins {summary.wins}</span>
+          <span className="history-chip history-chip-loss">Losses {summary.losses}</span>
+          <span className="history-chip history-chip-draw">Draws {summary.draws}</span>
+          <span className="history-chip">Win Rate {summary.winRate}%</span>
+        </div>
+
+        {sortedHistory.length === 0 ? (
           <p className="settings-save-meta">No completed matches recorded yet for this category</p>
         ) : (
           <ul className="settings-history-list">
-            {filteredHistory.slice(0, 20).map((entry) => (
+            {sortedHistory.slice(0, 20).map((entry) => (
               <li key={entry.id} className="settings-history-item">
                 <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
                 <span className="settings-history-opponent">

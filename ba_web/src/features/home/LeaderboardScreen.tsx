@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import { formatGameName } from '@/lib/games';
@@ -20,7 +21,18 @@ export function LeaderboardScreen({
   onRefresh,
   onSelectCategory,
 }: LeaderboardScreenProps) {
+  const [playerQuery, setPlayerQuery] = useState('');
   const activeCategory = leaderboard.find((entry) => entry.gameType === selectedCategory) || leaderboard[0];
+  const filteredPlayers = useMemo(() => {
+    if (!activeCategory) {
+      return [];
+    }
+    const normalizedQuery = playerQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return activeCategory.players;
+    }
+    return activeCategory.players.filter((entry) => entry.name.toLowerCase().includes(normalizedQuery));
+  }, [activeCategory, playerQuery]);
 
   return (
     <section className="title-screen-content">
@@ -56,12 +68,32 @@ export function LeaderboardScreen({
           </span>
         </div>
 
+        <div className="leaderboard-tools">
+          <input
+            className="lobby-input leaderboard-search"
+            value={playerQuery}
+            onChange={(event) => setPlayerQuery(event.target.value)}
+            placeholder="Search player name"
+          />
+          <span className="leaderboard-count">
+            Showing {filteredPlayers.length}/{activeCategory?.players.length || 0}
+          </span>
+        </div>
+
         <div className="leaderboard-list">
-          {!activeCategory || activeCategory.players.length === 0 ? (
+          {!activeCategory || filteredPlayers.length === 0 ? (
             <p>No players found yet.</p>
           ) : (
-            activeCategory.players.map((entry, index) => (
-              <div key={`${activeCategory.gameType}-${entry.playerId}`} className="leaderboard-item">
+            filteredPlayers.map((entry, index) => (
+              <div
+                key={`${activeCategory.gameType}-${entry.playerId}`}
+                className={classnames(
+                  'leaderboard-item',
+                  index === 0 && 'leaderboard-item-rank-1',
+                  index === 1 && 'leaderboard-item-rank-2',
+                  index === 2 && 'leaderboard-item-rank-3'
+                )}
+              >
                 <div className="leaderboard-rank">#{index + 1}</div>
                 <img src={`https://robohash.org/${entry.name}`} alt={`${entry.name} avatar`} className="leaderboard-avatar" />
                 <div className="leaderboard-meta">

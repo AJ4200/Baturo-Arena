@@ -721,6 +721,7 @@ export default function Home() {
           publicRooms={publicRooms}
           message={message}
           isLoading={isLoading}
+          onClearMessage={() => setMessage('')}
           onBack={() => setScreen('home')}
           onGameChange={setSelectedGame}
           onPlayerNameChange={setPlayerName}
@@ -813,6 +814,17 @@ export default function Home() {
           }}
           onLoadSave={() => {
             loadLocalBackup();
+          }}
+          onResetPreferences={() => {
+            setIsMusicMuted(false);
+            setMusicVolume(70);
+            setEnableAnimations(true);
+            setCpuDifficulty('medium');
+            window.localStorage.setItem(STORAGE_KEYS.musicMuted, 'false');
+            window.localStorage.setItem(STORAGE_KEYS.musicVolume, '70');
+            window.localStorage.setItem(STORAGE_KEYS.enableAnimations, 'true');
+            window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, 'medium');
+            showSaveIndicator('Preferences reset');
           }}
         />
       );
