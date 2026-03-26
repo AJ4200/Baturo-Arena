@@ -7,6 +7,7 @@ export type GameType =
   | 'connect-all-four'
   | 'orbital-flip'
   | 'corner-clash'
+  | 'checkers'
   | '2048'
   | 'sudoku'
   | 'minesweeper'
@@ -26,6 +27,7 @@ export type GameDefinition = {
     | 'column'
     | 'flip'
     | 'corner-flip'
+    | 'checkers'
     | 'solo-2048'
     | 'solo-sudoku'
     | 'solo-minesweeper'
@@ -34,6 +36,7 @@ export type GameDefinition = {
     | 'connect'
     | 'majority'
     | 'corners'
+    | 'elimination'
     | 'target-2048'
     | 'sudoku-complete'
     | 'minesweeper-clear'
@@ -104,7 +107,11 @@ export type RoomPlayer = {
   draws: number;
 };
 
-export type BoardCell = 'X' | 'O' | null;
+export type CheckersPiece = 'XC' | 'XK' | 'OC' | 'OK';
+
+export type BoardCell = 'X' | 'O' | CheckersPiece | null;
+
+export type GameMove = number | { from: number; to: number };
 
 export type RoomState = {
   code: string;

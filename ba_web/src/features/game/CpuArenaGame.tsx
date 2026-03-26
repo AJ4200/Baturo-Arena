@@ -21,7 +21,7 @@ import PlayerX from '@/components/game/player/PlayerX';
 import { GameBoard } from '@/features/game/GameBoard';
 import { evaluateBoard, getCpuMove } from '@/lib/cpu';
 import { applyMove, createEmptyBoard, formatGameName } from '@/lib/games';
-import type { BoardCell, CpuDifficulty, GameDefinition, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
+import type { BoardCell, CpuDifficulty, GameDefinition, GameMove, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
 
 type CpuArenaGameProps = {
   player: PlayerProfile;
@@ -35,6 +35,25 @@ type CpuArenaGameProps = {
 };
 
 type Symbol = 'X' | 'O';
+
+const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } => {
+  if (currentGameType === 'tic-tac-two') {
+    return { x: 'Player X', o: 'Player O' };
+  }
+  if (currentGameType === 'connect-all-four') {
+    return { x: 'Red Team', o: 'Blue Team' };
+  }
+  if (currentGameType === 'orbital-flip') {
+    return { x: 'Nova Team', o: 'Pulse Team' };
+  }
+  if (currentGameType === 'corner-clash') {
+    return { x: 'Flare Team', o: 'Tide Team' };
+  }
+  if (currentGameType === 'checkers') {
+    return { x: 'Red Checkers', o: 'Blue Checkers' };
+  }
+  return { x: 'Player 1', o: 'Player 2' };
+};
 
 export function CpuArenaGame({
   player,
@@ -52,6 +71,7 @@ export function CpuArenaGame({
   const [isRoomCardCollapsed, setIsRoomCardCollapsed] = useState(false);
   const lastReportedWinnerRef = useRef<Symbol | 'draw' | null>(null);
   const gameLabel = formatGameName(gameType, gameDefinitions);
+  const playerLabels = useMemo(() => getPlayerLabels(gameType), [gameType]);
 
   useEffect(() => {
     setBoard(createEmptyBoard(gameType, gameDefinitions));
@@ -84,23 +104,23 @@ export function CpuArenaGame({
   const oResult = winner === 'O' ? 'winner' : winner === 'X' ? 'loser' : 'neutral';
 
   const applyBoardState = (nextBoard: BoardCell[], nextTurn: Symbol) => {
-    const result = evaluateBoard(gameType, nextBoard);
+    const result = evaluateBoard(gameType, nextBoard, gameDefinitions);
     setBoard(nextBoard);
     setTurn(nextTurn);
     setWinner(result);
   };
 
-  const handleMove = (move: number) => {
+  const handleMove = (move: GameMove) => {
     if (!canPlay) {
       return;
     }
 
-    const appliedBoard = applyMove(gameType, board, move, 'X');
+    const appliedBoard = applyMove(gameType, board, move, 'X', gameDefinitions);
     if (appliedBoard.every((cell, index) => cell === board[index])) {
       return;
     }
 
-    const result = evaluateBoard(gameType, appliedBoard);
+    const result = evaluateBoard(gameType, appliedBoard, gameDefinitions);
     if (result) {
       setBoard(appliedBoard);
       setWinner(result);
@@ -143,6 +163,10 @@ export function CpuArenaGame({
     const timeoutId = window.setTimeout(() => {
       const move = getCpuMove(gameType, board, difficulty);
       if (move === null) {
+        const stalledResult = evaluateBoard(gameType, board, gameDefinitions);
+        if (stalledResult) {
+          setWinner(stalledResult);
+        }
         return;
       }
 
@@ -190,10 +214,10 @@ export function CpuArenaGame({
                     <AiOutlineTeam /> Players
                   </p>
                   <p className="room-joined-line">
-                    <AiOutlinePlayCircle /> {player.name} (X)
+                    <AiOutlinePlayCircle /> {player.name} ({playerLabels.x})
                   </p>
                   <p className="room-joined-line">
-                    <AiOutlineRobot /> CPU ({difficulty}) (O)
+                    <AiOutlineRobot /> CPU ({difficulty}) ({playerLabels.o})
                   </p>
                 </div>
 
@@ -234,11 +258,19 @@ export function CpuArenaGame({
         </motion.div>
 
         <div className="board-stage-card">
-          <GameBoard gameType={gameType} board={board} gameDefinitions={gameDefinitions} disabled={!canPlay} onMove={handleMove} />
+          <GameBoard
+            gameType={gameType}
+            board={board}
+            gameDefinitions={gameDefinitions}
+            disabled={!canPlay}
+            interactiveSymbol="X"
+            onMove={handleMove}
+          />
         </div>
       </div>
 
       <PlayerX
+        pieceLabel={playerLabels.x}
         alias={player.name}
         picture={`https://robohash.org/${player.name}`}
         wins={player.wins}
@@ -258,6 +290,7 @@ export function CpuArenaGame({
         }
       />
       <PlayerO
+        pieceLabel={playerLabels.o}
         alias={`CPU (${difficulty})`}
         picture={`https://robohash.org/cpu-${gameType}-${difficulty}`}
         wins={0}

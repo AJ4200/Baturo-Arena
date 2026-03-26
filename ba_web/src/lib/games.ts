@@ -1,4 +1,4 @@
-import type { BoardCell, GameDefinition, GameType } from '@/types/game';
+import type { BoardCell, GameDefinition, GameMove, GameType } from '@/types/game';
 
 export const FALLBACK_GAMES: GameDefinition[] = [
   {
@@ -54,6 +54,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'corner-flip',
     winCondition: 'corners',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: 'checkers',
+    name: 'Checkers',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Classic 8x8 checkers with captures and king promotion.',
+    rows: 8,
+    columns: 8,
+    connect: 0,
+    moveMode: 'checkers',
+    winCondition: 'elimination',
     supportsOnline: true,
     supportsCpu: true,
   },
@@ -135,10 +149,144 @@ export const createEmptyBoard = (gameType: GameType, games = FALLBACK_GAMES): Bo
     board[getCellIndex(bottomRow, rightColumn, game.columns)] = 'X';
   }
 
+  if (game.id === 'checkers') {
+    for (let row = 0; row < game.rows; row += 1) {
+      for (let column = 0; column < game.columns; column += 1) {
+        if ((row + column) % 2 === 0) {
+          continue;
+        }
+
+        const index = getCellIndex(row, column, game.columns);
+        if (row <= 2) {
+          board[index] = 'OC';
+        } else if (row >= game.rows - 3) {
+          board[index] = 'XC';
+        }
+      }
+    }
+  }
+
   return board;
 };
 
 const getCellIndex = (row: number, column: number, columns: number) => row * columns + column;
+
+const isCheckersPiece = (cell: BoardCell): cell is 'XC' | 'XK' | 'OC' | 'OK' =>
+  cell === 'XC' || cell === 'XK' || cell === 'OC' || cell === 'OK';
+
+const getCheckersOwner = (cell: BoardCell): 'X' | 'O' | null => {
+  if (!isCheckersPiece(cell)) {
+    return null;
+  }
+  return cell.startsWith('X') ? 'X' : 'O';
+};
+
+const isCheckersKing = (cell: BoardCell): boolean => cell === 'XK' || cell === 'OK';
+
+const getCheckersPiece = (owner: 'X' | 'O', isKing: boolean): 'XC' | 'XK' | 'OC' | 'OK' => {
+  if (owner === 'X') {
+    return isKing ? 'XK' : 'XC';
+  }
+  return isKing ? 'OK' : 'OC';
+};
+
+type CheckersMove = { from: number; to: number };
+
+export type CheckersCandidateMove = CheckersMove & { captureIndex: number | null };
+
+const getCheckersCandidateMoves = (
+  board: BoardCell[],
+  owner: 'X' | 'O',
+  rows: number,
+  columns: number
+): { captures: CheckersCandidateMove[]; regular: CheckersCandidateMove[] } => {
+  const captures: CheckersCandidateMove[] = [];
+  const regular: CheckersCandidateMove[] = [];
+
+  for (let index = 0; index < board.length; index += 1) {
+    const cell = board[index];
+    if (!isCheckersPiece(cell) || getCheckersOwner(cell) !== owner) {
+      continue;
+    }
+
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const rowSteps = isCheckersKing(cell) ? [-1, 1] : owner === 'X' ? [-1] : [1];
+
+    for (const rowStep of rowSteps) {
+      for (const columnStep of [-1, 1]) {
+        const nextRow = row + rowStep;
+        const nextColumn = column + columnStep;
+        if (
+          nextRow < 0 ||
+          nextRow >= rows ||
+          nextColumn < 0 ||
+          nextColumn >= columns
+        ) {
+          continue;
+        }
+
+        const nextIndex = getCellIndex(nextRow, nextColumn, columns);
+        const nextCell = board[nextIndex];
+
+        if (nextCell === null) {
+          regular.push({ from: index, to: nextIndex, captureIndex: null });
+          continue;
+        }
+
+        const nextOwner = getCheckersOwner(nextCell);
+        if (!nextOwner || nextOwner === owner) {
+          continue;
+        }
+
+        const jumpRow = row + rowStep * 2;
+        const jumpColumn = column + columnStep * 2;
+        if (
+          jumpRow < 0 ||
+          jumpRow >= rows ||
+          jumpColumn < 0 ||
+          jumpColumn >= columns
+        ) {
+          continue;
+        }
+
+        const jumpIndex = getCellIndex(jumpRow, jumpColumn, columns);
+        if (board[jumpIndex] === null) {
+          captures.push({ from: index, to: jumpIndex, captureIndex: nextIndex });
+        }
+      }
+    }
+  }
+
+  return { captures, regular };
+};
+
+const findCheckersMove = (
+  board: BoardCell[],
+  owner: 'X' | 'O',
+  move: CheckersMove,
+  rows: number,
+  columns: number
+): CheckersCandidateMove | null => {
+  const candidates = getCheckersCandidateMoves(board, owner, rows, columns);
+  const source = candidates.captures.length > 0 ? candidates.captures : candidates.regular;
+  return source.find((candidate) => candidate.from === move.from && candidate.to === move.to) || null;
+};
+
+export const getCheckersMoves = (
+  gameType: GameType,
+  board: BoardCell[],
+  symbol: 'X' | 'O',
+  games = FALLBACK_GAMES
+): CheckersCandidateMove[] => {
+  const game = getGameDefinition(gameType, games);
+  if (game.moveMode !== 'checkers') {
+    return [];
+  }
+
+  const candidates = getCheckersCandidateMoves(board, symbol, game.rows, game.columns);
+  return candidates.captures.length > 0 ? candidates.captures : candidates.regular;
+};
 
 export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games = FALLBACK_GAMES): number[] => {
   const game = getGameDefinition(gameType, games);
@@ -149,6 +297,10 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory'
   ) {
+    return [];
+  }
+
+  if (game.moveMode === 'checkers') {
     return [];
   }
 
@@ -174,7 +326,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
 export const applyMove = (
   gameType: GameType,
   board: BoardCell[],
-  move: number,
+  move: GameMove,
   symbol: Exclude<BoardCell, null>,
   games = FALLBACK_GAMES
 ): BoardCell[] => {
@@ -188,7 +340,41 @@ export const applyMove = (
     return [...board];
   }
 
-  if (!getAvailableMoves(gameType, board, games).includes(move)) {
+  if (game.moveMode === 'checkers') {
+    if (typeof move !== 'object' || move === null) {
+      return [...board];
+    }
+    const owner = symbol.startsWith('O') ? 'O' : 'X';
+    const legalMove = findCheckersMove(board, owner, move, game.rows, game.columns);
+    if (!legalMove) {
+      return [...board];
+    }
+
+    const nextBoard = [...board];
+    const movingPiece = nextBoard[legalMove.from];
+    if (!isCheckersPiece(movingPiece) || getCheckersOwner(movingPiece) !== owner) {
+      return [...board];
+    }
+
+    nextBoard[legalMove.from] = null;
+    if (legalMove.captureIndex !== null) {
+      nextBoard[legalMove.captureIndex] = null;
+    }
+
+    const destinationRow = Math.floor(legalMove.to / game.columns);
+    const shouldPromote =
+      !isCheckersKing(movingPiece) &&
+      ((owner === 'X' && destinationRow === 0) ||
+        (owner === 'O' && destinationRow === game.rows - 1));
+
+    nextBoard[legalMove.to] = shouldPromote
+      ? getCheckersPiece(owner, true)
+      : movingPiece;
+
+    return nextBoard;
+  }
+
+  if (typeof move !== 'number' || !getAvailableMoves(gameType, board, games).includes(move)) {
     return [...board];
   }
 
@@ -282,11 +468,44 @@ export const evaluateBoard = (
 ): 'X' | 'O' | 'draw' | null => {
   const game = getGameDefinition(gameType, games);
   if (
+    game.winCondition === 'elimination' ||
     game.winCondition === 'target-2048' ||
     game.winCondition === 'sudoku-complete' ||
     game.winCondition === 'minesweeper-clear' ||
     game.winCondition === 'memory-complete'
   ) {
+    if (game.winCondition !== 'elimination') {
+      return null;
+    }
+
+    const xPieces = board.filter((cell) => getCheckersOwner(cell) === 'X').length;
+    const oPieces = board.filter((cell) => getCheckersOwner(cell) === 'O').length;
+
+    if (xPieces === 0) {
+      return 'O';
+    }
+
+    if (oPieces === 0) {
+      return 'X';
+    }
+
+    const xMoves = getCheckersCandidateMoves(board, 'X', game.rows, game.columns);
+    const oMoves = getCheckersCandidateMoves(board, 'O', game.rows, game.columns);
+    const xHasMoves = xMoves.captures.length + xMoves.regular.length > 0;
+    const oHasMoves = oMoves.captures.length + oMoves.regular.length > 0;
+
+    if (!xHasMoves && !oHasMoves) {
+      return 'draw';
+    }
+
+    if (!xHasMoves) {
+      return 'O';
+    }
+
+    if (!oHasMoves) {
+      return 'X';
+    }
+
     return null;
   }
 
@@ -356,6 +575,7 @@ export const evaluateBoard = (
       if (!symbol) {
         continue;
       }
+      const owner = symbol.startsWith('O') ? 'O' : 'X';
 
       for (const [rowStep, columnStep] of directions) {
         let connected = 1;
@@ -379,7 +599,7 @@ export const evaluateBoard = (
         }
 
         if (connected === game.connect) {
-          return symbol;
+          return owner;
         }
       }
     }

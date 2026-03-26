@@ -55,6 +55,20 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  checkers: {
+    id: 'checkers',
+    name: 'Checkers',
+    rows: 8,
+    columns: 8,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Classic 8x8 checkers with captures and king promotion.',
+    moveMode: 'checkers',
+    winCondition: 'elimination',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
   '2048': {
     id: '2048',
     name: '2048',
@@ -144,6 +158,23 @@ function createEmptyBoard(gameType) {
     board[lowRight] = 'X';
   }
 
+  if (rules.id === 'checkers') {
+    for (let row = 0; row < rules.rows; row += 1) {
+      for (let column = 0; column < rules.columns; column += 1) {
+        if ((row + column) % 2 === 0) {
+          continue;
+        }
+
+        const index = getCellIndex(row, column, rules.columns);
+        if (row <= 2) {
+          board[index] = 'OC';
+        } else if (row >= rules.rows - 3) {
+          board[index] = 'XC';
+        }
+      }
+    }
+  }
+
   return board;
 }
 
@@ -166,6 +197,117 @@ function getCellIndex(row, column, columns) {
   return row * columns + column;
 }
 
+function isCheckersPiece(cell) {
+  return cell === 'XC' || cell === 'XK' || cell === 'OC' || cell === 'OK';
+}
+
+function getCheckersOwner(cell) {
+  if (!isCheckersPiece(cell)) {
+    return null;
+  }
+  return cell.startsWith('X') ? 'X' : 'O';
+}
+
+function isCheckersKing(cell) {
+  return cell === 'XK' || cell === 'OK';
+}
+
+function getCheckersPiece(owner, king) {
+  if (owner === 'X') {
+    return king ? 'XK' : 'XC';
+  }
+  return king ? 'OK' : 'OC';
+}
+
+function getCheckersCandidateMoves(board, owner, rows, columns) {
+  const captures = [];
+  const regular = [];
+
+  for (let index = 0; index < board.length; index += 1) {
+    const cell = board[index];
+    if (!isCheckersPiece(cell) || getCheckersOwner(cell) !== owner) {
+      continue;
+    }
+
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const rowSteps = isCheckersKing(cell) ? [-1, 1] : owner === 'X' ? [-1] : [1];
+
+    for (const rowStep of rowSteps) {
+      for (const columnStep of [-1, 1]) {
+        const nextRow = row + rowStep;
+        const nextColumn = column + columnStep;
+        if (
+          nextRow < 0 ||
+          nextRow >= rows ||
+          nextColumn < 0 ||
+          nextColumn >= columns
+        ) {
+          continue;
+        }
+
+        const nextIndex = getCellIndex(nextRow, nextColumn, columns);
+        const nextCell = board[nextIndex];
+
+        if (nextCell === null) {
+          regular.push({ from: index, to: nextIndex, captureIndex: null });
+          continue;
+        }
+
+        const nextOwner = getCheckersOwner(nextCell);
+        if (!nextOwner || nextOwner === owner) {
+          continue;
+        }
+
+        const jumpRow = row + rowStep * 2;
+        const jumpColumn = column + columnStep * 2;
+        if (
+          jumpRow < 0 ||
+          jumpRow >= rows ||
+          jumpColumn < 0 ||
+          jumpColumn >= columns
+        ) {
+          continue;
+        }
+
+        const jumpIndex = getCellIndex(jumpRow, jumpColumn, columns);
+        if (board[jumpIndex] === null) {
+          captures.push({ from: index, to: jumpIndex, captureIndex: nextIndex });
+        }
+      }
+    }
+  }
+
+  return { captures, regular };
+}
+
+function parseCheckersMove(move) {
+  if (!move || typeof move !== 'object') {
+    return null;
+  }
+
+  const from = Number(move.from);
+  const to = Number(move.to);
+  if (!Number.isInteger(from) || !Number.isInteger(to)) {
+    return null;
+  }
+
+  return { from, to };
+}
+
+function findCheckersMove(board, owner, move, rows, columns) {
+  const parsedMove = parseCheckersMove(move);
+  if (!parsedMove) {
+    return null;
+  }
+
+  const candidates = getCheckersCandidateMoves(board, owner, rows, columns);
+  const source = candidates.captures.length > 0 ? candidates.captures : candidates.regular;
+  return source.find(
+    (candidate) => candidate.from === parsedMove.from && candidate.to === parsedMove.to
+  ) || null;
+}
+
 function isBoardFull(board) {
   return board.every((cell) => cell !== null);
 }
@@ -174,6 +316,38 @@ function checkWinner(gameType, board) {
   const rules = getGameRules(gameType);
   if (!rules) {
     throw new Error(`Unsupported game type: ${gameType}`);
+  }
+
+  if (rules.winCondition === 'elimination') {
+    const xPieces = board.filter((cell) => getCheckersOwner(cell) === 'X').length;
+    const oPieces = board.filter((cell) => getCheckersOwner(cell) === 'O').length;
+
+    if (xPieces === 0) {
+      return 'O';
+    }
+
+    if (oPieces === 0) {
+      return 'X';
+    }
+
+    const xMoves = getCheckersCandidateMoves(board, 'X', rules.rows, rules.columns);
+    const oMoves = getCheckersCandidateMoves(board, 'O', rules.rows, rules.columns);
+    const xHasMoves = xMoves.captures.length + xMoves.regular.length > 0;
+    const oHasMoves = oMoves.captures.length + oMoves.regular.length > 0;
+
+    if (!xHasMoves && !oHasMoves) {
+      return 'draw';
+    }
+
+    if (!xHasMoves) {
+      return 'O';
+    }
+
+    if (!oHasMoves) {
+      return 'X';
+    }
+
+    return null;
   }
 
   if (
@@ -291,7 +465,7 @@ function checkWinner(gameType, board) {
   return null;
 }
 
-function getAvailableMoves(gameType, board) {
+function getAvailableMoves(gameType, board, symbol = 'X') {
   const rules = getGameRules(gameType);
   if (!rules) {
     throw new Error(`Unsupported game type: ${gameType}`);
@@ -304,6 +478,12 @@ function getAvailableMoves(gameType, board) {
     rules.moveMode === 'solo-memory'
   ) {
     return [];
+  }
+
+  if (rules.moveMode === 'checkers') {
+    const owner = symbol === 'O' ? 'O' : 'X';
+    const candidates = getCheckersCandidateMoves(board, owner, rules.rows, rules.columns);
+    return candidates.captures.length > 0 ? candidates.captures : candidates.regular;
   }
 
   if (
@@ -328,7 +508,21 @@ function getAvailableMoves(gameType, board) {
   return moves;
 }
 
-function isValidMove(gameType, board, move) {
+function isValidMove(gameType, board, move, symbol = 'X') {
+  const rules = getGameRules(gameType);
+  if (!rules) {
+    throw new Error(`Unsupported game type: ${gameType}`);
+  }
+
+  if (rules.moveMode === 'checkers') {
+    const owner = symbol === 'O' ? 'O' : 'X';
+    const parsedMove = parseCheckersMove(move);
+    if (!parsedMove) {
+      return false;
+    }
+    return Boolean(findCheckersMove(board, owner, parsedMove, rules.rows, rules.columns));
+  }
+
   return getAvailableMoves(gameType, board).includes(move);
 }
 
@@ -347,11 +541,41 @@ function applyMove(gameType, board, move, symbol) {
     return [...board];
   }
 
+  const nextBoard = [...board];
+
+  if (rules.moveMode === 'checkers') {
+    const owner = symbol === 'O' ? 'O' : 'X';
+    const legalMove = findCheckersMove(board, owner, move, rules.rows, rules.columns);
+    if (!legalMove) {
+      throw new Error('Invalid move');
+    }
+
+    const movingPiece = nextBoard[legalMove.from];
+    if (!isCheckersPiece(movingPiece) || getCheckersOwner(movingPiece) !== owner) {
+      throw new Error('Invalid move');
+    }
+
+    nextBoard[legalMove.from] = null;
+    if (legalMove.captureIndex !== null) {
+      nextBoard[legalMove.captureIndex] = null;
+    }
+
+    const destinationRow = Math.floor(legalMove.to / rules.columns);
+    const shouldPromote =
+      !isCheckersKing(movingPiece) &&
+      ((owner === 'X' && destinationRow === 0) ||
+        (owner === 'O' && destinationRow === rules.rows - 1));
+
+    nextBoard[legalMove.to] = shouldPromote
+      ? getCheckersPiece(owner, true)
+      : movingPiece;
+
+    return nextBoard;
+  }
+
   if (!isValidMove(gameType, board, move)) {
     throw new Error('Invalid move');
   }
-
-  const nextBoard = [...board];
 
   if (rules.moveMode === 'cell') {
     nextBoard[move] = symbol;

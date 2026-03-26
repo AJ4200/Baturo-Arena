@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   AiOutlineReload,
@@ -21,6 +21,7 @@ import { API_BASE_URL } from '@/lib/constants';
 import { formatGameName } from '@/lib/games';
 import { GameBoard } from '@/features/game/GameBoard';
 import type {
+  GameMove,
   GameDefinition,
   MatchResultEvent,
   PlayerProfile,
@@ -38,6 +39,25 @@ type OnlineArenaGameProps = {
   onProfileUpdate: (player: PlayerProfile) => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
+};
+
+const getPlayerLabels = (currentGameType: string | null | undefined): { x: string; o: string } => {
+  if (currentGameType === 'tic-tac-two') {
+    return { x: 'Player X', o: 'Player O' };
+  }
+  if (currentGameType === 'connect-all-four') {
+    return { x: 'Red Team', o: 'Blue Team' };
+  }
+  if (currentGameType === 'orbital-flip') {
+    return { x: 'Nova Team', o: 'Pulse Team' };
+  }
+  if (currentGameType === 'corner-clash') {
+    return { x: 'Flare Team', o: 'Tide Team' };
+  }
+  if (currentGameType === 'checkers') {
+    return { x: 'Red Checkers', o: 'Blue Checkers' };
+  }
+  return { x: 'Player 1', o: 'Player 2' };
 };
 
 export function OnlineArenaGame({
@@ -62,6 +82,19 @@ export function OnlineArenaGame({
   const xPlayer = xPlayers[0] || null;
   const oPlayer = oPlayers[0] || null;
   const gameLabel = room ? formatGameName(room.gameType, gameDefinitions) : 'Loading game';
+  const playerLabels = useMemo(() => getPlayerLabels(room?.gameType), [room?.gameType]);
+  const getSymbolLabel = useCallback(
+    (symbol: 'X' | 'O' | null | undefined) => {
+      if (symbol === 'X') {
+        return playerLabels.x;
+      }
+      if (symbol === 'O') {
+        return playerLabels.o;
+      }
+      return 'Player';
+    },
+    [playerLabels.o, playerLabels.x]
+  );
 
   const status = useMemo(() => {
     if (!room) {
@@ -74,9 +107,9 @@ export function OnlineArenaGame({
 
     if (room.status === 'playing') {
       if (yourSymbol && room.turn === yourSymbol) {
-        return `${gameLabel} | Room ${room.code} | Your turn (${yourSymbol})`;
+        return `${gameLabel} | Room ${room.code} | Your turn (${getSymbolLabel(yourSymbol)})`;
       }
-      return `${gameLabel} | Room ${room.code} | ${room.turn} to move`;
+      return `${gameLabel} | Room ${room.code} | ${getSymbolLabel(room.turn)} to move`;
     }
 
     if (room.winner === 'draw') {
@@ -90,7 +123,7 @@ export function OnlineArenaGame({
     }
 
     return `${gameLabel} | Room ${room.code} | Match finished`;
-  }, [gameLabel, room, yourSymbol]);
+  }, [gameLabel, getSymbolLabel, room, yourSymbol]);
 
   const canPlayTurn = Boolean(room && yourSymbol && room.status === 'playing' && room.turn === yourSymbol);
   const xResult = room?.winner === 'X' ? 'winner' : room?.winner === 'O' ? 'loser' : 'neutral';
@@ -129,20 +162,21 @@ export function OnlineArenaGame({
     applyPayload(payload);
   };
 
-  const handleMove = async (move: number) => {
+  const handleMove = async (move: GameMove) => {
     if (!room || !canPlayTurn) {
       return;
     }
 
     try {
+      const movePayload =
+        typeof move === 'number'
+          ? { playerId: player.playerId, index: move }
+          : { playerId: player.playerId, move };
       const payload = await callApi<RoomStatePayload>(
         `/api/rooms/${encodeURIComponent(room.code)}/move`,
         {
           method: 'POST',
-          body: JSON.stringify({
-            playerId: player.playerId,
-            index: move,
-          }),
+          body: JSON.stringify(movePayload),
         }
       );
       applyPayload(payload);
@@ -292,7 +326,8 @@ export function OnlineArenaGame({
                   {room?.players && room.players.length > 0 ? (
                     room.players.map((joinedPlayer) => (
                       <p key={joinedPlayer.playerId} className="room-joined-line">
-                        {joinedPlayer.symbol === 'X' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />} {joinedPlayer.name} ({joinedPlayer.symbol})
+                        {joinedPlayer.symbol === 'X' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
+                        {joinedPlayer.name} ({getSymbolLabel(joinedPlayer.symbol)})
                       </p>
                     ))
                   ) : (
@@ -346,12 +381,14 @@ export function OnlineArenaGame({
             board={room?.board || []}
             gameDefinitions={gameDefinitions}
             disabled={!canPlayTurn}
+            interactiveSymbol={yourSymbol}
             onMove={(move) => void handleMove(move)}
           />
         </div>
       </div>
 
       <PlayerX
+        pieceLabel={playerLabels.x}
         alias={xPlayers.map((entry) => entry.name).join(' & ') || 'Waiting...'}
         picture={`https://robohash.org/${xPlayer?.name || 'X'}`}
         wins={xPlayer?.wins || 0}
@@ -375,6 +412,7 @@ export function OnlineArenaGame({
         }
       />
       <PlayerO
+        pieceLabel={playerLabels.o}
         alias={oPlayers.map((entry) => entry.name).join(' & ') || 'Waiting...'}
         picture={`https://robohash.org/${oPlayer?.name || 'O'}`}
         wins={oPlayer?.wins || 0}

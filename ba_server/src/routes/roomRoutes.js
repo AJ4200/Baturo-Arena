@@ -63,6 +63,7 @@ router.post(
       code: req.params.code,
       playerId: req.body.playerId,
       index: req.body.index,
+      move: req.body.move,
     });
     res.json(payload);
   })

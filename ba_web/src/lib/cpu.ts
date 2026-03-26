@@ -1,5 +1,6 @@
-import { applyMove, evaluateBoard, getAvailableMoves, getGameDefinition } from '@/lib/games';
-import type { BoardCell, CpuDifficulty, GameType } from '@/types/game';
+import { applyMove, evaluateBoard, getAvailableMoves, getCheckersMoves, getGameDefinition } from '@/lib/games';
+import type { CheckersCandidateMove } from '@/lib/games';
+import type { BoardCell, CpuDifficulty, GameMove, GameType } from '@/types/game';
 
 type Symbol = 'X' | 'O';
 
@@ -148,12 +149,103 @@ const hardMove = (gameType: GameType, board: Board): number | null => {
   return [...moves].sort((left, right) => scoreCellMove(gameType, right) - scoreCellMove(gameType, left))[0] ?? null;
 };
 
+const scoreCheckersBoard = (board: Board): number => {
+  return board.reduce((score, cell) => {
+    if (cell === 'OC') {
+      return score + 3;
+    }
+    if (cell === 'OK') {
+      return score + 5;
+    }
+    if (cell === 'XC') {
+      return score - 3;
+    }
+    if (cell === 'XK') {
+      return score - 5;
+    }
+    return score;
+  }, 0);
+};
+
+const getCheckersMoveScore = (board: Board, move: CheckersCandidateMove): number => {
+  const beforeScore = scoreCheckersBoard(board);
+  const nextBoard = applyMove('checkers', board, { from: move.from, to: move.to }, 'O');
+  const afterScore = scoreCheckersBoard(nextBoard);
+  const game = getGameDefinition('checkers');
+  const sourcePiece = board[move.from];
+  const destinationRow = Math.floor(move.to / game.columns);
+  const promotionBonus = sourcePiece === 'OC' && destinationRow === game.rows - 1 ? 3 : 0;
+  const captureBonus = move.captureIndex !== null ? 5 : 0;
+  const opponentMobilityPenalty = getCheckersMoves('checkers', nextBoard, 'X').length * 0.18;
+  return afterScore - beforeScore + promotionBonus + captureBonus - opponentMobilityPenalty;
+};
+
+const getCheckersCpuMove = (board: Board, difficulty: CpuDifficulty): GameMove | null => {
+  const moves = getCheckersMoves('checkers', board, 'O');
+  if (moves.length === 0) {
+    return null;
+  }
+
+  if (difficulty === 'easy') {
+    const randomIndex = Math.floor(Math.random() * moves.length);
+    const move = moves[randomIndex];
+    return { from: move.from, to: move.to };
+  }
+
+  if (difficulty === 'medium') {
+    const bestMove = [...moves].sort((left, right) => getCheckersMoveScore(board, right) - getCheckersMoveScore(board, left))[0];
+    return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
+  }
+
+  let bestMove: CheckersCandidateMove | null = null;
+  let bestWorstReplyScore = -Infinity;
+
+  for (const move of moves) {
+    const nextBoard = applyMove('checkers', board, { from: move.from, to: move.to }, 'O');
+    const immediateResult = evaluateBoard('checkers', nextBoard);
+    if (immediateResult === 'O') {
+      return { from: move.from, to: move.to };
+    }
+
+    const opponentMoves = getCheckersMoves('checkers', nextBoard, 'X');
+    if (opponentMoves.length === 0) {
+      bestMove = move;
+      bestWorstReplyScore = 999;
+      continue;
+    }
+
+    let worstReplyScore = Infinity;
+    for (const reply of opponentMoves) {
+      const replyBoard = applyMove('checkers', nextBoard, { from: reply.from, to: reply.to }, 'X');
+      const replyResult = evaluateBoard('checkers', replyBoard);
+      if (replyResult === 'X') {
+        worstReplyScore = -1000;
+        break;
+      }
+      const replyScore = replyResult === 'O' ? 1000 : scoreCheckersBoard(replyBoard);
+      worstReplyScore = Math.min(worstReplyScore, replyScore);
+    }
+
+    const weightedScore = worstReplyScore + getCheckersMoveScore(board, move) * 0.35;
+    if (weightedScore > bestWorstReplyScore) {
+      bestWorstReplyScore = weightedScore;
+      bestMove = move;
+    }
+  }
+
+  return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
+};
+
 export const getCpuMove = (
   gameType: GameType,
   board: Board,
   difficulty: CpuDifficulty
-): number | null => {
+): GameMove | null => {
   const game = getGameDefinition(gameType);
+  if (game.moveMode === 'checkers') {
+    return getCheckersCpuMove(board, difficulty);
+  }
+
   if (
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||

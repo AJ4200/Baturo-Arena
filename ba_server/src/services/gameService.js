@@ -246,7 +246,7 @@ async function getRoomState({ code, playerId }) {
   return buildRoomResponse(room, playerId || null);
 }
 
-async function makeMove({ code, playerId, index }) {
+async function makeMove({ code, playerId, index, move }) {
   const roomCode = String(code || '').trim().toUpperCase();
   const room = await ensureRoom(roomCode);
   const membership = await findRoomPlayer(room.id, playerId);
@@ -255,8 +255,19 @@ async function makeMove({ code, playerId, index }) {
     throw new HttpError(403, 'Player is not in this room');
   }
 
-  const parsedIndex = Number(index);
-  if (!Number.isInteger(parsedIndex)) {
+  const isCheckers = room.game_type === 'checkers';
+  const parsedMove = isCheckers
+    ? {
+        from: Number(move?.from),
+        to: Number(move?.to),
+      }
+    : Number(index);
+
+  if (isCheckers) {
+    if (!Number.isInteger(parsedMove.from) || !Number.isInteger(parsedMove.to)) {
+      throw new HttpError(400, 'Invalid checkers move');
+    }
+  } else if (!Number.isInteger(parsedMove)) {
     throw new HttpError(400, 'Invalid move index');
   }
 
@@ -268,11 +279,11 @@ async function makeMove({ code, playerId, index }) {
     throw new HttpError(409, 'Not your turn');
   }
 
-  if (!isValidMove(room.game_type, room.board, parsedIndex)) {
+  if (!isValidMove(room.game_type, room.board, parsedMove, membership.symbol)) {
     throw new HttpError(409, 'Move is not available');
   }
 
-  const board = applyMove(room.game_type, room.board, parsedIndex, membership.symbol);
+  const board = applyMove(room.game_type, room.board, parsedMove, membership.symbol);
   const winner = checkWinner(room.game_type, board);
 
   if (winner) {

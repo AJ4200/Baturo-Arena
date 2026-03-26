@@ -5,6 +5,7 @@ import React from "react";
 interface PlayerOProps {
   alias: string;
   picture: string;
+  pieceLabel?: string;
   wins: number;
   losses: number;
   draws: number;
@@ -15,6 +16,7 @@ interface PlayerOProps {
 const PlayerO: React.FC<PlayerOProps> = ({
   alias,
   picture,
+  pieceLabel = "Player O",
   wins,
   losses,
   draws,
@@ -25,7 +27,7 @@ const PlayerO: React.FC<PlayerOProps> = ({
     <div className="player-top">
       <img src={picture} alt={`${alias}'s Picture`} className="player-picture" />
       <div className="player-identity">
-        <p className="player-piece-label">Player O</p>
+        <p className="player-piece-label">{pieceLabel}</p>
         <p className="player-alias">{alias}</p>
         <p className="player-mood">{mood}</p>
       </div>
