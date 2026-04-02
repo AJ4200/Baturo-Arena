@@ -38,6 +38,7 @@ type MusicDockProps = {
   tracks: MusicTrack[];
   isMuted: boolean;
   volume: number;
+  showLauncher?: boolean;
   onToggleMute: () => void;
   onVolumeChange: (volume: number) => void;
 };
@@ -55,7 +56,7 @@ const formatClock = (seconds: number): string => {
   return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`;
 };
 
-export function MusicDock({ tracks, isMuted, volume, onToggleMute, onVolumeChange }: MusicDockProps) {
+export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onToggleMute, onVolumeChange }: MusicDockProps) {
   const hasTracks = tracks.length > 0;
   const [isOpen, setIsOpen] = useState(false);
   const [isTrackListOpen, setIsTrackListOpen] = useState(false);
@@ -66,6 +67,8 @@ export function MusicDock({ tracks, isMuted, volume, onToggleMute, onVolumeChang
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
+  const [nowPlayingToast, setNowPlayingToast] = useState<MusicTrack | null>(null);
+  const lastToastTrackIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const volumeKnobRef = useRef<HTMLDivElement | null>(null);
   const safeVolume = Math.min(100, Math.max(0, Math.round(volume)));
@@ -146,6 +149,29 @@ export function MusicDock({ tracks, isMuted, volume, onToggleMute, onVolumeChang
     audio.load();
     tryPlay();
   }, [activeTrack?.src, tryPlay]);
+
+  useEffect(() => {
+    if (!activeTrack) {
+      setNowPlayingToast(null);
+      lastToastTrackIdRef.current = null;
+      return;
+    }
+
+    if (lastToastTrackIdRef.current === null) {
+      lastToastTrackIdRef.current = activeTrack.id;
+      return;
+    }
+
+    if (lastToastTrackIdRef.current === activeTrack.id) {
+      return;
+    }
+
+    lastToastTrackIdRef.current = activeTrack.id;
+    setNowPlayingToast(activeTrack);
+
+    const timeoutId = window.setTimeout(() => setNowPlayingToast(null), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [activeTrack]);
 
   const pickRandomTrackIndex = useCallback(
     (excludeIndex: number): number => {
@@ -328,7 +354,7 @@ export function MusicDock({ tracks, isMuted, volume, onToggleMute, onVolumeChang
 
   return (
     <div className={classnames('music-dock', isOpen && 'music-dock-open')}>
-      {!isOpen ? (
+      {!isOpen && showLauncher ? (
         <button
           className="music-dock-toggle"
           type="button"
@@ -537,6 +563,17 @@ export function MusicDock({ tracks, isMuted, volume, onToggleMute, onVolumeChang
         onTimeUpdate={(event) => setCurrentTime(event.currentTarget.currentTime)}
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
       />
+
+      {nowPlayingToast ? (
+        <div className="music-now-playing-toast" role="status" aria-live="polite">
+          <img src={nowPlayingToast.artSrc || GENERIC_ART_SRC} alt={`${nowPlayingToast.title} art`} />
+          <div>
+            <strong>Now Playing</strong>
+            <span>{nowPlayingToast.title}</span>
+            <small>{nowPlayingToast.artist}</small>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

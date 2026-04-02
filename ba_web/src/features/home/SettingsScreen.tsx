@@ -93,7 +93,7 @@ export function SettingsScreen({
         </div>
 
         <div className="settings-item settings-item-save">
-          <p>Cloud Reset Backup</p>
+          <p>Local Backup</p>
           <div className="settings-save-actions">
             <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onSaveNow}>
               Save Now

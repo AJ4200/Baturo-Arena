@@ -15,4 +15,5 @@ export const STORAGE_KEYS = {
   localBackup: 'baruto_local_backup_v2',
   matchHistory: 'baruto_match_history_v2',
   hideSaveTip: 'baruto_hide_save_tip',
+  googleAccount: 'baruto_google_account_v1',
 };
