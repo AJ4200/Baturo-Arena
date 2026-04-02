@@ -13,6 +13,7 @@ import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
+import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
 import { useApiClient } from '@/hooks/useApiClient';
 import { STORAGE_KEYS } from '@/lib/constants';
@@ -49,6 +50,24 @@ type LocalBackupPayload = {
   enableAnimations: boolean;
   cpuDifficulty: CpuDifficulty;
 };
+
+type GoogleCredentialResponse = {
+  credential?: string;
+};
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (config: { client_id: string; callback: (response: GoogleCredentialResponse) => void }) => void;
+          prompt: () => void;
+          cancel: () => void;
+        };
+      };
+    };
+  }
+}
 
 const clampChannel = (value: number): number => Math.max(0, Math.min(255, Math.round(value)));
 
@@ -190,6 +209,8 @@ export default function Home() {
   const [showSaveTip, setShowSaveTip] = useState(false);
   const [dontShowSaveTipAgain, setDontShowSaveTipAgain] = useState(false);
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
+  const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
+  const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
 
   const { activeRequests, runWithLoader, callApi } = useApiClient();
@@ -221,6 +242,91 @@ export default function Home() {
       saveIndicatorTimeoutRef.current = null;
     }, 1800);
   }, []);
+
+  const decodeJwtPayload = (credential: string): GoogleAccount | null => {
+    const jwtParts = credential.split('.');
+    if (jwtParts.length < 2) {
+      return null;
+    }
+
+    try {
+      const payload = JSON.parse(atob(jwtParts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      if (!payload || typeof payload.sub !== 'string' || typeof payload.name !== 'string') {
+        return null;
+      }
+
+      return {
+        sub: payload.sub,
+        name: payload.name,
+        email: typeof payload.email === 'string' ? payload.email : undefined,
+        picture: typeof payload.picture === 'string' ? payload.picture : undefined,
+      };
+    } catch (_error) {
+      return null;
+    }
+  };
+
+  const saveGoogleAccount = useCallback((account: GoogleAccount | null) => {
+    setGoogleAccount(account);
+    if (!account) {
+      window.localStorage.removeItem(STORAGE_KEYS.googleAccount);
+      return;
+    }
+    window.localStorage.setItem(STORAGE_KEYS.googleAccount, JSON.stringify(account));
+  }, []);
+
+  const startGoogleSignIn = useCallback(() => {
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!googleClientId) {
+      setMessage('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID in frontend env');
+      return;
+    }
+
+    if (!window.google?.accounts?.id) {
+      setMessage('Google Sign-In script is not ready yet. Try again in a second.');
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: (response: GoogleCredentialResponse) => {
+        if (!response.credential) {
+          setMessage('Google sign-in did not return credentials');
+          return;
+        }
+
+        const parsedAccount = decodeJwtPayload(response.credential);
+        if (!parsedAccount) {
+          setMessage('Could not read Google account details');
+          return;
+        }
+
+        saveGoogleAccount(parsedAccount);
+        setPlayerName(parsedAccount.name);
+        window.localStorage.setItem(STORAGE_KEYS.playerName, parsedAccount.name);
+        setMessage('Google account connected');
+      },
+    });
+
+    window.google.accounts.id.prompt();
+  }, [saveGoogleAccount]);
+
+  const signOutGoogle = useCallback(() => {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.cancel();
+    }
+    saveGoogleAccount(null);
+    setMessage('Signed out from Google account');
+  }, [saveGoogleAccount]);
+
+  const requireGoogleAccountForOnline = useCallback((): GoogleAccount | null => {
+    if (googleAccount) {
+      return googleAccount;
+    }
+    setMessage('Sign in with Google to access online multiplayer. CPU and solo play do not need an account.');
+    setIsProfileDockOpen(true);
+    return null;
+  }, [googleAccount]);
 
   const parseLocalBackup = (rawValue: string | null): LocalBackupPayload | null => {
     if (!rawValue) {
@@ -484,13 +590,13 @@ export default function Home() {
     [availableGames]
   );
 
-  const ensurePlayer = async () => {
-    const savedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
+  const ensurePlayer = async (identity?: { playerId: string; name: string }) => {
+    const savedPlayerId = identity?.playerId || window.localStorage.getItem(STORAGE_KEYS.playerId);
     const payload = await callApi<PlayerProfile>('/api/players/register', {
       method: 'POST',
       body: JSON.stringify({
         playerId: savedPlayerId,
-        name: playerName || 'Player',
+        name: identity?.name || playerName || 'Player',
       }),
     });
 
@@ -518,7 +624,14 @@ export default function Home() {
 
     try {
       setIsLoading(true);
-      const registeredPlayer = await ensurePlayer();
+      const onlineAccount = requireGoogleAccountForOnline();
+      if (!onlineAccount) {
+        return;
+      }
+      const registeredPlayer = await ensurePlayer({
+        playerId: `google:${onlineAccount.sub}`,
+        name: onlineAccount.name,
+      });
 
       const payload = await callApi<RoomPayload>('/api/rooms', {
         method: 'POST',
@@ -553,7 +666,14 @@ export default function Home() {
 
     try {
       setIsLoading(true);
-      const registeredPlayer = await ensurePlayer();
+      const onlineAccount = requireGoogleAccountForOnline();
+      if (!onlineAccount) {
+        return;
+      }
+      const registeredPlayer = await ensurePlayer({
+        playerId: `google:${onlineAccount.sub}`,
+        name: onlineAccount.name,
+      });
 
       const payload = await callApi<RoomPayload>('/api/rooms/join', {
         method: 'POST',
@@ -604,6 +724,7 @@ export default function Home() {
     const savedAnimations = window.localStorage.getItem(STORAGE_KEYS.enableAnimations);
     const savedDifficulty = window.localStorage.getItem(STORAGE_KEYS.cpuDifficulty);
     const savedPreferredGame = window.localStorage.getItem(STORAGE_KEYS.preferredGame);
+    const savedGoogleAccount = window.localStorage.getItem(STORAGE_KEYS.googleAccount);
 
     if (savedName) {
       setPlayerName(savedName);
@@ -622,6 +743,17 @@ export default function Home() {
     }
     if (savedDifficulty === 'easy' || savedDifficulty === 'medium' || savedDifficulty === 'hard') {
       setCpuDifficulty(savedDifficulty);
+    }
+    if (savedGoogleAccount) {
+      try {
+        const parsedGoogle = JSON.parse(savedGoogleAccount) as GoogleAccount;
+        if (parsedGoogle?.sub && parsedGoogle?.name) {
+          setGoogleAccount(parsedGoogle);
+          setPlayerName(parsedGoogle.name);
+        }
+      } catch (_error) {
+        // ignore malformed saved account
+      }
     }
     if (savedPreferredGame) {
       const normalizedPreferredGame = normalizeGameType(savedPreferredGame);
@@ -651,15 +783,31 @@ export default function Home() {
     const shouldHideSaveTip = window.localStorage.getItem(STORAGE_KEYS.hideSaveTip);
     setShowSaveTip(shouldHideSaveTip !== 'true');
 
-    ensurePlayer().catch(() => {
-      // Registration can be retried from UI.
-    });
     refreshPublicRooms().catch(() => {
       // Ignore initial lobby load failures.
     });
     refreshLeaderboard().catch(() => {
       // Ignore initial leaderboard load failures.
     });
+  }, []);
+
+  useEffect(() => {
+    if (document.querySelector('script[data-google-identity]')) {
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleIdentity = 'true';
+    document.body.appendChild(script);
+
+    return () => {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -920,7 +1068,7 @@ export default function Home() {
       {showSaveTip ? (
         <div className="save-tip-card">
           <p>
-            Arena stats can reset after redeploy. Go to Settings any time to load your local save backup for your current Baturo Arena lineup.
+            Backups are local-only right now. Use Settings to save or load this device backup for your Baturo Arena lineup.
           </p>
           <label className="save-tip-check">
             <input type="checkbox" checked={dontShowSaveTipAgain} onChange={(event) => setDontShowSaveTipAgain(event.target.checked)} />
@@ -940,20 +1088,30 @@ export default function Home() {
           </button>
         </div>
       ) : null}
-      <MusicDock
-        tracks={APP_MUSIC_TRACKS}
-        isMuted={isMusicMuted}
-        volume={musicVolume}
-        onToggleMute={() => {
-          const nextValue = !isMusicMuted;
-          setIsMusicMuted(nextValue);
-          window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
-        }}
-        onVolumeChange={(volume) => {
-          setMusicVolume(volume);
-          window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
-        }}
-      />
+      <div className="dock-launchers">
+        <ProfileDock
+          isOpen={isProfileDockOpen}
+          account={googleAccount}
+          onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
+          onSignIn={startGoogleSignIn}
+          onSignOut={signOutGoogle}
+        />
+        <MusicDock
+          tracks={APP_MUSIC_TRACKS}
+          isMuted={isMusicMuted}
+          volume={musicVolume}
+          showLauncher={!isProfileDockOpen}
+          onToggleMute={() => {
+            const nextValue = !isMusicMuted;
+            setIsMusicMuted(nextValue);
+            window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
+          }}
+          onVolumeChange={(volume) => {
+            setMusicVolume(volume);
+            window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+          }}
+        />
+      </div>
       {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}
     </main>
   );

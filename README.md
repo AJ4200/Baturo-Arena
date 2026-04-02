@@ -78,6 +78,7 @@ Edit files in `/ba_web/src` to update components, features, or styling.
 ## 🛠️ Backend: `ba_server`
 
 - Node.js/Express server with modular architecture
+- PostgreSQL is required for persistence (`POSTGRES_URL`)
 - All REST API logic in `/ba_server/src`:
     - `routes/` – Endpoint definitions
     - `services/` – Business logic
@@ -91,6 +92,12 @@ cd ba_server
 pnpm start
 # runs backend server (port as per config)
 ```
+
+### Environment quick start
+
+1. Copy `.env.example` to `.env`.
+2. Set `POSTGRES_URL` for the API server.
+3. Set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` for Google Sign-In (used for online multiplayer account access).
 
 ---
 

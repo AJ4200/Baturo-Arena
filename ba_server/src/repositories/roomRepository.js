@@ -20,8 +20,9 @@ async function createRoom({ code, name, isPublic, creatorPlayerId, gameType, max
   const insertResult = await run(
     `INSERT INTO rooms (
       code, name, is_public, creator_player_id, game_type, max_players, board, turn, status, winner, result_recorded, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'X', 'waiting', NULL, 0, CURRENT_TIMESTAMP)`,
-    [code, name, isPublic ? 1 : 0, creatorPlayerId, gameType, maxPlayers, emptyBoard]
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'X', 'waiting', NULL, FALSE, CURRENT_TIMESTAMP)
+    RETURNING id`,
+    [code, name, isPublic, creatorPlayerId, gameType, maxPlayers, emptyBoard]
   );
   return getRoomById(insertResult.lastID);
 }
@@ -48,7 +49,7 @@ async function listPublicRooms() {
       COUNT(rp.player_id) AS players_count
     FROM rooms r
     LEFT JOIN room_players rp ON rp.room_id = r.id
-    WHERE r.is_public = 1
+    WHERE r.is_public = TRUE
     GROUP BY r.id
     ORDER BY r.created_at DESC`
   );
@@ -66,8 +67,9 @@ async function listPublicRooms() {
 
 async function addPlayerToRoom(roomId, playerId, symbol) {
   await run(
-    `INSERT OR IGNORE INTO room_players (room_id, player_id, symbol)
-     VALUES (?, ?, ?)`,
+    `INSERT INTO room_players (room_id, player_id, symbol)
+     VALUES (?, ?, ?)
+     ON CONFLICT (room_id, player_id) DO NOTHING`,
     [roomId, playerId, symbol]
   );
 }
@@ -102,7 +104,7 @@ async function updateRoomState(roomId, { board, turn, status, winner, resultReco
     `UPDATE rooms
      SET board = ?, turn = ?, status = ?, winner = ?, result_recorded = ?, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [JSON.stringify(board), turn, status, winner, resultRecorded ? 1 : 0, roomId]
+    [JSON.stringify(board), turn, status, winner, resultRecorded, roomId]
   );
 }
 
@@ -114,7 +116,7 @@ async function resetRoom(roomId, status) {
 
   await run(
     `UPDATE rooms
-     SET board = ?, turn = 'X', status = ?, winner = NULL, result_recorded = 0, updated_at = CURRENT_TIMESTAMP
+     SET board = ?, turn = 'X', status = ?, winner = NULL, result_recorded = FALSE, updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
     [JSON.stringify(createEmptyBoard(room.game_type)), status, roomId]
   );

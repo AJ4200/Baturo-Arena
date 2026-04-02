@@ -1,98 +1,60 @@
-const fs = require("fs");
-const path = require("path");
-const initSqlJs = require("sql.js");
+const { Pool } = require('pg');
+const { postgresUrl } = require('../config/env');
 
-const dbDirectory = path.join(__dirname, "..", "..", "data");
-const dbPath = path.join(dbDirectory, 'baturo-arena.sqlite');
-const legacyDbPath = path.join(dbDirectory, 'ttt.sqlite');
-
-let SQL = null;
-let db = null;
+let pool = null;
 
 function ensureInitialized() {
-  if (!db) {
-    throw new Error("Database not initialized");
+  if (!pool) {
+    throw new Error('Database not initialized');
   }
 }
 
-function persistDatabase() {
-  ensureInitialized();
-  const data = db.export();
-  fs.writeFileSync(dbPath, Buffer.from(data));
-}
-
-function mapResultRow(statement) {
-  const row = {};
-  const values = statement.get();
-  statement.getColumnNames().forEach((column, index) => {
-    row[column] = values[index];
+function replaceQuestionPlaceholders(sql) {
+  let parameterIndex = 0;
+  return sql.replace(/\?/g, () => {
+    parameterIndex += 1;
+    return `$${parameterIndex}`;
   });
-  return row;
 }
 
 async function initializeClient() {
-  if (db) {
+  if (pool) {
     return;
   }
 
-  if (!fs.existsSync(dbDirectory)) {
-    fs.mkdirSync(dbDirectory, { recursive: true });
+  if (!postgresUrl) {
+    throw new Error('POSTGRES_URL is required');
   }
 
-  SQL = await initSqlJs({
-    locateFile: (file) => path.join(__dirname, "..", "..", "node_modules", "sql.js", "dist", file),
+  pool = new Pool({
+    connectionString: postgresUrl,
   });
 
-  const sourceDbPath = fs.existsSync(dbPath) ? dbPath : legacyDbPath;
-
-  if (fs.existsSync(sourceDbPath)) {
-    const fileBuffer = fs.readFileSync(sourceDbPath);
-    db = new SQL.Database(fileBuffer);
-    if (sourceDbPath !== dbPath) {
-      persistDatabase();
-    }
-  } else {
-    db = new SQL.Database();
-    persistDatabase();
-  }
-
-  db.run("PRAGMA foreign_keys = ON");
+  await pool.query('SELECT 1');
 }
 
 async function run(sql, params = []) {
   ensureInitialized();
-  db.run(sql, params);
+  const result = await pool.query(replaceQuestionPlaceholders(sql), params);
+  const firstRow = result.rows[0] || null;
 
-  const idResult = allSync("SELECT last_insert_rowid() AS id LIMIT 1");
-  const lastID = idResult[0] ? Number(idResult[0].id) : null;
-  const changes = Number(db.getRowsModified());
-
-  persistDatabase();
-
-  return { lastID, changes };
-}
-
-function allSync(sql, params = []) {
-  ensureInitialized();
-
-  const statement = db.prepare(sql, params);
-  const rows = [];
-
-  while (statement.step()) {
-    rows.push(mapResultRow(statement));
-  }
-
-  statement.free();
-  return rows;
+  return {
+    lastID: firstRow && Number.isFinite(Number(firstRow.id)) ? Number(firstRow.id) : null,
+    changes: Number(result.rowCount || 0),
+    rows: result.rows,
+  };
 }
 
 async function get(sql, params = []) {
-  const rows = allSync(sql, params);
-  return rows.length > 0 ? rows[0] : null;
+  ensureInitialized();
+  const result = await pool.query(replaceQuestionPlaceholders(sql), params);
+  return result.rows[0] || null;
 }
 
 async function all(sql, params = []) {
-  return allSync(sql, params);
+  ensureInitialized();
+  const result = await pool.query(replaceQuestionPlaceholders(sql), params);
+  return result.rows;
 }
 
 module.exports = {
