@@ -46,11 +46,29 @@ async function listPublicRooms() {
       r.max_players,
       r.status,
       r.is_public,
-      COUNT(rp.player_id) AS players_count
+      creator.name AS creator_name,
+      r.updated_at,
+      COUNT(rp.player_id) AS players_count,
+      COALESCE(
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'playerId', joined_player.id,
+            'name', joined_player.name,
+            'symbol', rp.symbol,
+            'wins', joined_player.wins,
+            'losses', joined_player.losses,
+            'draws', joined_player.draws
+          )
+          ORDER BY rp.joined_at ASC
+        ) FILTER (WHERE rp.player_id IS NOT NULL),
+        '[]'::JSON
+      ) AS players
     FROM rooms r
+    INNER JOIN players creator ON creator.id = r.creator_player_id
     LEFT JOIN room_players rp ON rp.room_id = r.id
+    LEFT JOIN players joined_player ON joined_player.id = rp.player_id
     WHERE r.is_public = TRUE
-    GROUP BY r.id
+    GROUP BY r.id, creator.name
     ORDER BY r.created_at DESC`
   );
 
@@ -62,6 +80,9 @@ async function listPublicRooms() {
     status: row.status,
     isPublic: Boolean(row.is_public),
     playersCount: Number(row.players_count),
+    creatorName: row.creator_name,
+    updatedAt: row.updated_at,
+    players: Array.isArray(row.players) ? row.players : [],
   }));
 }
 

@@ -77,6 +77,16 @@ export type PublicRoom = {
   playersCount: number;
   maxPlayers: number;
   isPublic: boolean;
+  creatorName: string;
+  updatedAt: string;
+  players: Array<{
+    playerId: string;
+    name: string;
+    symbol: 'X' | 'O';
+    wins: number;
+    losses: number;
+    draws: number;
+  }>;
 };
 
 export type LeaderboardPlayer = PlayerProfile & {

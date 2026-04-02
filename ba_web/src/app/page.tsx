@@ -909,6 +909,7 @@ export default function Home() {
           cpuDifficulty={cpuDifficulty}
           games={availableGames}
           publicRooms={publicRooms}
+          playerProfile={player}
           message={message}
           isLoading={isLoading}
           onClearMessage={() => setMessage('')}
