@@ -10,9 +10,9 @@ import {
   AiOutlineRobot,
   AiOutlineTeam,
 } from 'react-icons/ai';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { formatGameName } from '@/lib/games';
-import type { CpuDifficulty, GameDefinition, GameType, PublicRoom } from '@/types/game';
+import type { CpuDifficulty, GameDefinition, GameType, PlayerProfile, PublicRoom } from '@/types/game';
 
 type LobbyScreenProps = {
   playerName: string;
@@ -22,6 +22,7 @@ type LobbyScreenProps = {
   cpuDifficulty: CpuDifficulty;
   games: GameDefinition[];
   publicRooms: PublicRoom[];
+  playerProfile: PlayerProfile | null;
   message: string;
   isLoading: boolean;
   onClearMessage: () => void;
@@ -48,6 +49,7 @@ export function LobbyScreen({
   cpuDifficulty,
   games,
   publicRooms,
+  playerProfile,
   message,
   isLoading,
   onClearMessage,
@@ -146,6 +148,13 @@ export function LobbyScreen({
         return leftRoom.name.localeCompare(rightRoom.name);
       });
   }, [gameRooms, roomQuery, roomStatusFilter]);
+  const formatUpdatedTime = useCallback((isoDate: string) => {
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) {
+      return 'Unknown update';
+    }
+    return parsed.toLocaleString();
+  }, []);
 
   const handleCopyRoomCode = async (code: string) => {
     try {
@@ -273,11 +282,18 @@ export function LobbyScreen({
                   className="lobby-profile-avatar"
                 />
               </div>
-              <div className="lobby-profile-meta">
-                <strong>{profilePreviewName}</strong>
-                <span>Live avatar preview</span>
-              </div>
+            <div className="lobby-profile-meta">
+              <strong>{profilePreviewName}</strong>
+              <span>{playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}</span>
             </div>
+            </div>
+            {playerProfile ? (
+              <div className="public-room-summary">
+                <span className="public-room-pill">Wins {playerProfile.wins}</span>
+                <span className="public-room-pill">Losses {playerProfile.losses}</span>
+                <span className="public-room-pill">Draws {playerProfile.draws}</span>
+              </div>
+            ) : null}
             <div className="lobby-row">
               <input
                 className="lobby-input"
@@ -501,6 +517,8 @@ export function LobbyScreen({
                       <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
                     </span>
                     <span className="public-room-meta-pill">{formatGameName(roomItem.gameType, games)}</span>
+                    <span className="public-room-meta-pill">Host {roomItem.creatorName}</span>
+                    <span className="public-room-meta-pill">Updated {formatUpdatedTime(roomItem.updatedAt)}</span>
                     <span className="public-room-meta-pill public-room-code-pill">
                       Code <span className="public-room-code-badge">{roomItem.code}</span>
                     </span>
@@ -515,6 +533,16 @@ export function LobbyScreen({
                     </button>
                     {copiedRoomCode === roomItem.code ? <span className="room-code-copy-feedback">Copied</span> : null}
                   </div>
+                  {roomItem.players.length > 0 ? (
+                    <div className="public-room-meta">
+                      {roomItem.players.map((joinedPlayer) => (
+                        <span key={`${roomItem.code}-${joinedPlayer.playerId}`} className="public-room-meta-pill">
+                          {joinedPlayer.symbol} · {joinedPlayer.name} ({joinedPlayer.wins}-{joinedPlayer.losses}-
+                          {joinedPlayer.draws})
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
                 <button
                   className={classnames(
