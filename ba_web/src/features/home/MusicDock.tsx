@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { createPortal } from 'react-dom';
 import classnames from 'classnames';
 import {
   AiOutlineClose,
@@ -68,6 +69,7 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
   const [duration, setDuration] = useState(0);
   const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
   const [nowPlayingToast, setNowPlayingToast] = useState<MusicTrack | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const lastToastTrackIdRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const volumeKnobRef = useRef<HTMLDivElement | null>(null);
@@ -89,6 +91,10 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
     '--music-knob-sweep': `${knobSweep}deg`,
   } as CSSProperties;
   const isTrackListPanelOpen = isOpen && isTrackListOpen;
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (!hasTracks) {
@@ -564,16 +570,19 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
         onLoadedMetadata={(event) => setDuration(event.currentTarget.duration || 0)}
       />
 
-      {nowPlayingToast ? (
-        <div className="music-now-playing-toast" role="status" aria-live="polite">
-          <img src={nowPlayingToast.artSrc || GENERIC_ART_SRC} alt={`${nowPlayingToast.title} art`} />
-          <div>
-            <strong>Now Playing</strong>
-            <span>{nowPlayingToast.title}</span>
-            <small>{nowPlayingToast.artist}</small>
-          </div>
-        </div>
-      ) : null}
+      {isClient && nowPlayingToast
+        ? createPortal(
+            <div className="music-now-playing-toast" role="status" aria-live="polite">
+              <img src={nowPlayingToast.artSrc || GENERIC_ART_SRC} alt={`${nowPlayingToast.title} art`} />
+              <div>
+                <strong>Now Playing</strong>
+                <span>{nowPlayingToast.title}</span>
+                <small>{nowPlayingToast.artist}</small>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }
