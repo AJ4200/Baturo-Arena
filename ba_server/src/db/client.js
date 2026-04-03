@@ -1,16 +1,21 @@
 const { Pool } = require('pg');
+const { Pool } = require('pg');
 const {
   postgresUrl,
   dbPoolMax,
+  dbPoolMax,
   dbConnectionTimeoutMs,
+  dbIdleTimeoutMs,
   dbIdleTimeoutMs,
   dbConnectRetries,
   dbConnectRetryDelayMs,
 } = require('../config/env');
 
 let pool = null;
+let pool = null;
 
 function ensureInitialized() {
+  if (!pool) {
   if (!pool) {
     throw new Error('Database not initialized');
   }
@@ -109,6 +114,7 @@ async function executeQuery(sql, params = []) {
 
 async function initializeClient() {
   if (pool) {
+  if (pool) {
     return;
   }
 
@@ -132,9 +138,12 @@ async function initializeClient() {
     try {
       await candidatePool.query('SELECT 1');
       pool = candidatePool;
+      await candidatePool.query('SELECT 1');
+      pool = candidatePool;
       return;
     } catch (error) {
       lastError = error;
+      await candidatePool.end().catch(() => {});
       await candidatePool.end().catch(() => {});
 
       const canRetry = isTransientConnectionError(error) && attempt < maxAttempts;
