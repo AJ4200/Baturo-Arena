@@ -1,15 +1,17 @@
-const { neon } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 const {
   postgresUrl,
+  dbPoolMax,
   dbConnectionTimeoutMs,
+  dbIdleTimeoutMs,
   dbConnectRetries,
   dbConnectRetryDelayMs,
 } = require('../config/env');
 
-let queryClient = null;
+let pool = null;
 
 function ensureInitialized() {
-  if (!queryClient) {
+  if (!pool) {
     throw new Error('Database not initialized');
   }
 }
@@ -22,20 +24,15 @@ function replaceQuestionPlaceholders(sql) {
   });
 }
 
-function createQueryClient() {
-  const requestTimeoutMs =
-    Number.isFinite(dbConnectionTimeoutMs) && dbConnectionTimeoutMs > 0 ? dbConnectionTimeoutMs : 30000;
-  const supportsAbortTimeout =
-    typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function';
-
-  return neon(postgresUrl, {
-    fullResults: true,
-    fetchConnectionCache: true,
-    fetchOptions: supportsAbortTimeout
-      ? {
-          signal: AbortSignal.timeout(requestTimeoutMs),
-        }
-      : undefined,
+function createPool() {
+  return new Pool({
+    connectionString: postgresUrl,
+    max: Number.isFinite(dbPoolMax) && dbPoolMax > 0 ? dbPoolMax : 5,
+    connectionTimeoutMillis:
+      Number.isFinite(dbConnectionTimeoutMs) && dbConnectionTimeoutMs > 0 ? dbConnectionTimeoutMs : 30000,
+    idleTimeoutMillis: Number.isFinite(dbIdleTimeoutMs) && dbIdleTimeoutMs > 0 ? dbIdleTimeoutMs : 30000,
+    keepAlive: true,
+    family: 4,
   });
 }
 
@@ -100,15 +97,7 @@ function isTransientConnectionError(error) {
 
 async function executeQuery(sql, params = []) {
   const queryText = replaceQuestionPlaceholders(sql);
-  const result = await queryClient.query(queryText, params);
-
-  if (Array.isArray(result)) {
-    return {
-      rows: result,
-      rowCount: result.length,
-    };
-  }
-
+  const result = await pool.query(queryText, params);
   const rows = Array.isArray(result?.rows) ? result.rows : [];
   const rowCount = Number.isFinite(Number(result?.rowCount)) ? Number(result.rowCount) : rows.length;
 
@@ -119,7 +108,7 @@ async function executeQuery(sql, params = []) {
 }
 
 async function initializeClient() {
-  if (queryClient) {
+  if (pool) {
     return;
   }
 
@@ -134,14 +123,19 @@ async function initializeClient() {
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const candidateClient = createQueryClient();
+    const candidatePool = createPool();
+    candidatePool.on('error', (error) => {
+      // eslint-disable-next-line no-console
+      console.error('Postgres pool error', error);
+    });
 
     try {
-      await candidateClient.query('SELECT 1');
-      queryClient = candidateClient;
+      await candidatePool.query('SELECT 1');
+      pool = candidatePool;
       return;
     } catch (error) {
       lastError = error;
+      await candidatePool.end().catch(() => {});
 
       const canRetry = isTransientConnectionError(error) && attempt < maxAttempts;
       if (!canRetry) {

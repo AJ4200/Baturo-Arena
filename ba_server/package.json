@@ -12,7 +12,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
     "dotenv": "^17.4.0",
     "express": "^5.1.0",
     "google-auth-library": "^10.6.2",
