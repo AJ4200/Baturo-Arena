@@ -19,6 +19,8 @@ const {
   updateRoomState,
   resetRoom,
   countRoomPlayers,
+  claimRoomResultRecording,
+  setRoomResultRecorded,
 } = require('../repositories/roomRepository');
 const { createRoomCode } = require('../utils/roomCode');
 const { checkWinner, applyMove, isValidMove } = require('../utils/game');
@@ -78,6 +80,24 @@ async function applyMatchResult(roomId, gameType, winner) {
       await incrementPlayerGameStats(player.player_id, gameType, { losses: 1 });
     })
   );
+}
+
+async function ensureMatchResultRecorded(room) {
+  if (!room || room.status !== 'finished' || !room.winner || room.result_recorded) {
+    return;
+  }
+
+  const claimed = await claimRoomResultRecording(room.id);
+  if (!claimed) {
+    return;
+  }
+
+  try {
+    await applyMatchResult(room.id, room.game_type, room.winner);
+  } catch (error) {
+    await setRoomResultRecorded(room.id, false);
+    throw error;
+  }
 }
 
 async function buildRoomResponse(room, playerId) {
@@ -242,7 +262,26 @@ async function joinExistingRoom({ playerId, code }) {
 
 async function getRoomState({ code, playerId }) {
   const roomCode = String(code || '').trim().toUpperCase();
-  const room = await ensureRoom(roomCode);
+  let room = await ensureRoom(roomCode);
+
+  if (room.status === 'finished' && room.winner && !room.result_recorded) {
+    try {
+      await ensureMatchResultRecorded(room);
+      const refreshedRoom = await getRoomById(room.id);
+      if (refreshedRoom) {
+        room = refreshedRoom;
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to record finished room result during room sync', {
+        roomId: room.id,
+        roomCode: room.code,
+        gameType: room.game_type,
+        winner: room.winner,
+      }, error);
+    }
+  }
+
   return buildRoomResponse(room, playerId || null);
 }
 
@@ -292,11 +331,27 @@ async function makeMove({ code, playerId, index, move }) {
       turn: room.turn,
       status: 'finished',
       winner,
-      resultRecorded: true,
+      resultRecorded: room.result_recorded,
     });
 
     if (!room.result_recorded) {
-      await applyMatchResult(room.id, room.game_type, winner);
+      try {
+        await ensureMatchResultRecorded({
+          ...room,
+          board,
+          winner,
+          status: 'finished',
+          result_recorded: false,
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to record finished room result during move', {
+          roomId: room.id,
+          roomCode: room.code,
+          gameType: room.game_type,
+          winner,
+        }, error);
+      }
     }
   } else {
     await updateRoomState(room.id, {

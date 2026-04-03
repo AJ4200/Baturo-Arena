@@ -17,7 +17,9 @@ type SoloDinoGameProps = {
   player: PlayerProfile;
   gameDefinitions: GameDefinition[];
   isMusicMuted: boolean;
+  enableAnimations: boolean;
   onToggleMusic: () => void;
+  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -305,7 +307,9 @@ export function SoloDinoGame({
   player,
   gameDefinitions,
   isMusicMuted,
+  enableAnimations,
   onToggleMusic,
+  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: SoloDinoGameProps) {
@@ -708,6 +712,13 @@ export function SoloDinoGame({
                   onClick={onToggleMusic}
                 >
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button
+                  className={classnames('room-float-action-btn')}
+                  type="button"
+                  onClick={onToggleAnimations}
+                >
+                  Motion {enableAnimations ? 'On' : 'Off'}
                 </button>
                 <button
                   className={classnames(

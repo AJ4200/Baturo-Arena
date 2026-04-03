@@ -1310,12 +1310,18 @@ export default function Home() {
           gameType={activeGameType}
           gameDefinitions={availableGames}
           isMusicMuted={isMusicMuted}
+          enableAnimations={enableAnimations}
           cpuDifficulty={cpuDifficulty}
           runWithLoader={runWithLoader}
           onToggleMusic={() => {
             const nextValue = !isMusicMuted;
             setIsMusicMuted(nextValue);
             window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
+          }}
+          onToggleAnimations={() => {
+            const nextValue = !enableAnimations;
+            setEnableAnimations(nextValue);
+            window.localStorage.setItem(STORAGE_KEYS.enableAnimations, String(nextValue));
           }}
           onProfileUpdate={(updatedPlayer) => {
             setPlayer(updatedPlayer);

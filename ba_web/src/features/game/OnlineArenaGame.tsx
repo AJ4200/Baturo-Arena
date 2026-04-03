@@ -34,7 +34,9 @@ type OnlineArenaGameProps = {
   player: PlayerProfile;
   gameDefinitions: GameDefinition[];
   isMusicMuted: boolean;
+  enableAnimations: boolean;
   onToggleMusic: () => void;
+  onToggleAnimations: () => void;
   runWithLoader: <T>(task: () => Promise<T>, showLoader?: boolean) => Promise<T>;
   onProfileUpdate: (player: PlayerProfile) => void;
   onMatchComplete: (result: MatchResultEvent) => void;
@@ -87,7 +89,9 @@ export function OnlineArenaGame({
   player,
   gameDefinitions,
   isMusicMuted,
+  enableAnimations,
   onToggleMusic,
+  onToggleAnimations,
   runWithLoader,
   onProfileUpdate,
   onMatchComplete,
@@ -200,6 +204,7 @@ export function OnlineArenaGame({
   const syncRoom = async () => {
     const payload = await callApi<RoomStatePayload>(`/api/rooms/${encodeURIComponent(roomCode)}`, undefined, false);
     applyPayload(payload);
+    setMessage((currentMessage) => (currentMessage === 'Internal server error' ? '' : currentMessage));
   };
 
   const handleMove = async (move: GameMove) => {
@@ -393,6 +398,16 @@ export function OnlineArenaGame({
                     whileTap={{ scale: 0.95 }}
                   >
                     <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                  </motion.button>
+
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={onToggleAnimations}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Motion {enableAnimations ? 'On' : 'Off'}
                   </motion.button>
 
                   <motion.button

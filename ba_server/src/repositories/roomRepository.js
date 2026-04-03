@@ -148,6 +148,26 @@ async function countRoomPlayers(roomId) {
   return Number(row ? row.total : 0);
 }
 
+async function claimRoomResultRecording(roomId) {
+  const result = await run(
+    `UPDATE rooms
+     SET result_recorded = TRUE, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND result_recorded = FALSE`,
+    [roomId]
+  );
+
+  return result.changes > 0;
+}
+
+async function setRoomResultRecorded(roomId, resultRecorded) {
+  await run(
+    `UPDATE rooms
+     SET result_recorded = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [resultRecorded, roomId]
+  );
+}
+
 module.exports = {
   createRoom,
   getRoomByCode,
@@ -160,4 +180,6 @@ module.exports = {
   updateRoomState,
   resetRoom,
   countRoomPlayers,
+  claimRoomResultRecording,
+  setRoomResultRecorded,
 };

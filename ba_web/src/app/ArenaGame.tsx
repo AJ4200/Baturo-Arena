@@ -24,7 +24,9 @@ type ArenaGameProps = {
   gameType: GameType;
   gameDefinitions: GameDefinition[];
   isMusicMuted: boolean;
+  enableAnimations: boolean;
   onToggleMusic: () => void;
+  onToggleAnimations: () => void;
   runWithLoader: <T>(task: () => Promise<T>, showLoader?: boolean) => Promise<T>;
   onProfileUpdate: (player: PlayerProfile) => void;
   onMatchComplete: (result: MatchResultEvent) => void;
@@ -39,7 +41,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   gameType,
   gameDefinitions,
   isMusicMuted,
+  enableAnimations,
   onToggleMusic,
+  onToggleAnimations,
   runWithLoader,
   onProfileUpdate,
   onMatchComplete,
@@ -52,7 +56,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />
@@ -65,7 +71,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />
@@ -78,7 +86,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />
@@ -91,7 +101,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />
@@ -104,7 +116,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />
@@ -118,7 +132,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         gameType={gameType}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         difficulty={cpuDifficulty}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
@@ -136,7 +152,9 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
       player={player}
       gameDefinitions={gameDefinitions}
       isMusicMuted={isMusicMuted}
+      enableAnimations={enableAnimations}
       onToggleMusic={onToggleMusic}
+      onToggleAnimations={onToggleAnimations}
       runWithLoader={runWithLoader}
       onProfileUpdate={onProfileUpdate}
       onMatchComplete={onMatchComplete}

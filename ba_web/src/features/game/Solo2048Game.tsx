@@ -29,7 +29,9 @@ type Solo2048GameProps = {
   player: PlayerProfile;
   gameDefinitions: GameDefinition[];
   isMusicMuted: boolean;
+  enableAnimations: boolean;
   onToggleMusic: () => void;
+  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -180,7 +182,9 @@ export function Solo2048Game({
   player,
   gameDefinitions,
   isMusicMuted,
+  enableAnimations,
   onToggleMusic,
+  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: Solo2048GameProps) {
@@ -375,6 +379,9 @@ export function Solo2048Game({
                 </button>
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                </button>
+                <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleAnimations}>
+                  Motion {enableAnimations ? 'On' : 'Off'}
                 </button>
                 <button className={classnames('room-float-action-btn', 'room-float-action-btn-danger')} type="button" onClick={onLeave}>
                   Leave
