@@ -19,15 +19,23 @@ type ProfileDockProps = {
 };
 
 export function ProfileDock({ isOpen, account, onToggleOpen, onSignIn, onSignOut }: ProfileDockProps) {
+  const isConnected = Boolean(account?.sub);
+
   return (
     <div className={classnames('profile-dock', isOpen && 'profile-dock-open')}>
       <button
-        className={classnames('music-dock-toggle', 'music-dock-toggle-profile', isOpen && 'music-dock-toggle-active')}
+        className={classnames(
+          'music-dock-toggle',
+          'music-dock-toggle-profile',
+          isConnected && 'music-dock-toggle-profile-connected',
+          isOpen && 'music-dock-toggle-active'
+        )}
         type="button"
         onClick={onToggleOpen}
         aria-label={isOpen ? 'Hide profile panel' : 'Show profile panel'}
       >
         <AiOutlineUser />
+        {isConnected ? <span className="profile-dock-live-dot" aria-hidden="true" /> : null}
       </button>
 
       <section className="profile-dock-panel" aria-hidden={!isOpen}>

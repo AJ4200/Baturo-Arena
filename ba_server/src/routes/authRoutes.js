@@ -2,6 +2,7 @@ const express = require('express');
 const asyncHandler = require('../utils/asyncHandler');
 const {
   signInWithGoogleCredential,
+  signInWithGoogleAccessToken,
   authenticateSessionToken,
   signOutSession,
 } = require('../services/authService');
@@ -14,6 +15,16 @@ router.post(
   asyncHandler(async (req, res) => {
     const payload = await signInWithGoogleCredential({
       credential: req.body.credential,
+    });
+    res.json(payload);
+  })
+);
+
+router.post(
+  '/google/token',
+  asyncHandler(async (req, res) => {
+    const payload = await signInWithGoogleAccessToken({
+      accessToken: req.body.accessToken,
     });
     res.json(payload);
   })

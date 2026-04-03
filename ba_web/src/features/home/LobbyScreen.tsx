@@ -13,6 +13,7 @@ import {
 import { useCallback, useMemo, useState } from 'react';
 import { formatGameName } from '@/lib/games';
 import type { CpuDifficulty, GameDefinition, GameType, PlayerProfile, PublicRoom } from '@/types/game';
+import type { GoogleAccount } from '@/features/home/ProfileDock';
 
 type LobbyScreenProps = {
   playerName: string;
@@ -23,6 +24,7 @@ type LobbyScreenProps = {
   games: GameDefinition[];
   publicRooms: PublicRoom[];
   playerProfile: PlayerProfile | null;
+  googleAccount: GoogleAccount | null;
   message: string;
   isLoading: boolean;
   onClearMessage: () => void;
@@ -50,6 +52,7 @@ export function LobbyScreen({
   games,
   publicRooms,
   playerProfile,
+  googleAccount,
   message,
   isLoading,
   onClearMessage,
@@ -81,6 +84,7 @@ export function LobbyScreen({
   const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
   const profilePreviewName = (playerName || '').trim() || 'Player';
   const profilePreviewAvatarUrl = `https://robohash.org/${encodeURIComponent(profilePreviewName)}?size=160x160`;
+  const isGoogleConnected = Boolean(googleAccount?.sub);
   const roomNameSuggestions = useMemo(() => {
     const safePlayerName = (playerName || 'Player').trim() || 'Player';
     return Array.from(
@@ -284,7 +288,11 @@ export function LobbyScreen({
               </div>
             <div className="lobby-profile-meta">
               <strong>{profilePreviewName}</strong>
-              <span>{playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}</span>
+              <span>
+                {playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}
+                {isGoogleConnected ? ' | Google connected' : ' | Guest mode'}
+              </span>
+              {isGoogleConnected && googleAccount?.email ? <span>{googleAccount.email}</span> : null}
             </div>
             </div>
             {playerProfile ? (

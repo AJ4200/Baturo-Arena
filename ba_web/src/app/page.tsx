@@ -70,6 +70,16 @@ type GoogleIdInitializeConfig = {
   use_fedcm_for_prompt?: boolean;
 };
 
+type GoogleOauthTokenResponse = {
+  access_token?: string;
+  error?: string;
+  error_description?: string;
+};
+
+type GoogleTokenClient = {
+  requestAccessToken: (overrideConfig?: { prompt?: string }) => void;
+};
+
 type AuthSessionPayload = {
   player: PlayerProfile;
   account: GoogleAccount | null;
@@ -88,6 +98,13 @@ declare global {
           initialize: (config: GoogleIdInitializeConfig) => void;
           prompt: (listener?: (notification: GooglePromptNotification) => void) => void;
           cancel: () => void;
+        };
+        oauth2?: {
+          initTokenClient: (config: {
+            client_id: string;
+            scope: string;
+            callback: (response: GoogleOauthTokenResponse) => void;
+          }) => GoogleTokenClient;
         };
       };
     };
@@ -236,6 +253,7 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
+  const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
 
   const { activeRequests, runWithLoader, callApi } = useApiClient();
@@ -310,9 +328,15 @@ export default function Home() {
 
   const applyAuthenticatedSession = useCallback(
     (payload: AuthSessionPayload) => {
-      if (payload.account) {
-        saveGoogleAccount(payload.account);
-      }
+      const fallbackAccount =
+        !payload.account && payload.player?.playerId?.startsWith('google:')
+          ? {
+              sub: payload.player.playerId.replace(/^google:/, ''),
+              name: payload.player.name,
+            }
+          : null;
+
+      saveGoogleAccount(payload.account || fallbackAccount);
       setPlayer(payload.player);
       setPlayerName(payload.player.name);
       window.localStorage.setItem(STORAGE_KEYS.playerId, payload.player.playerId);
@@ -320,6 +344,29 @@ export default function Home() {
       window.localStorage.setItem(STORAGE_KEYS.authTokenExpiresAt, payload.expiresAt);
     },
     [saveGoogleAccount]
+  );
+
+  const syncAuthenticatedPlayerRecord = useCallback(
+    async (playerId: string, name: string): Promise<PlayerProfile> => {
+      const payload = await callApi<PlayerProfile>(
+        '/api/players/register',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            playerId,
+            name,
+          }),
+        },
+        false
+      );
+
+      setPlayer(payload);
+      setPlayerName(payload.name);
+      window.localStorage.setItem(STORAGE_KEYS.playerId, payload.playerId);
+      window.localStorage.setItem(STORAGE_KEYS.playerName, payload.name);
+      return payload;
+    },
+    [callApi]
   );
 
   const startGoogleSignIn = useCallback(() => {
@@ -335,31 +382,100 @@ export default function Home() {
       return;
     }
 
+    const finishSignIn = (payload: GoogleSignInPayload) => {
+      saveAuthToken(payload.authToken, payload.expiresAt);
+      applyAuthenticatedSession(payload);
+      setIsProfileDockOpen(true);
+
+      syncAuthenticatedPlayerRecord(payload.player.playerId, payload.player.name)
+        .then(() => {
+          setMessage('Google account connected and synced');
+        })
+        .catch(() => {
+          setMessage('Google account connected, but profile sync is delayed. Try again in a second.');
+        });
+    };
+
+    const failSignIn = (error: unknown) => {
+      clearStoredAuthSession();
+      saveGoogleAccount(null);
+      setMessage(error instanceof Error ? error.message : 'Google sign-in failed');
+    };
+
+    const signInWithAccessTokenFallback = () => {
+      const tokenClientFactory = window.google?.accounts?.oauth2?.initTokenClient;
+      if (!tokenClientFactory) {
+        setMessage(
+          'Google sign-in fallback is unavailable in this browser. Check Google Cloud OAuth origins and disable blockers for accounts.google.com.'
+        );
+        isGoogleSignInInFlightRef.current = false;
+        return;
+      }
+
+      const tokenClient = tokenClientFactory({
+        client_id: googleClientId,
+        scope: 'openid email profile',
+        callback: (tokenResponse: GoogleOauthTokenResponse) => {
+          if (!tokenResponse?.access_token) {
+            const details = tokenResponse?.error_description || tokenResponse?.error || 'token unavailable';
+            setMessage(`Google OAuth fallback failed (${details}).`);
+            isGoogleSignInInFlightRef.current = false;
+            return;
+          }
+
+          setIsLoading(true);
+          callApi<GoogleSignInPayload>('/api/auth/google/token', {
+            method: 'POST',
+            body: JSON.stringify({ accessToken: tokenResponse.access_token }),
+          })
+            .then((payload) => {
+              finishSignIn(payload);
+            })
+            .catch((error) => {
+              failSignIn(error);
+            })
+            .finally(() => {
+              isGoogleSignInInFlightRef.current = false;
+              setIsLoading(false);
+            });
+        },
+      });
+
+      try {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : 'Google OAuth fallback could not start.');
+        isGoogleSignInInFlightRef.current = false;
+      }
+    };
+
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       use_fedcm_for_prompt: useFedCmForPrompt,
       callback: (response: GoogleCredentialResponse) => {
+        if (isGoogleSignInInFlightRef.current) {
+          return;
+        }
+
         if (!response.credential) {
           setMessage('Google sign-in did not return credentials');
           return;
         }
 
+        isGoogleSignInInFlightRef.current = true;
         setIsLoading(true);
         callApi<GoogleSignInPayload>('/api/auth/google', {
           method: 'POST',
           body: JSON.stringify({ credential: response.credential }),
         })
           .then((payload) => {
-            saveAuthToken(payload.authToken, payload.expiresAt);
-            applyAuthenticatedSession(payload);
-            setMessage('Google account connected');
+            finishSignIn(payload);
           })
           .catch((error) => {
-            clearStoredAuthSession();
-            saveGoogleAccount(null);
-            setMessage(error instanceof Error ? error.message : 'Google sign-in failed');
+            failSignIn(error);
           })
           .finally(() => {
+            isGoogleSignInInFlightRef.current = false;
             setIsLoading(false);
           });
       },
@@ -382,12 +498,31 @@ export default function Home() {
 
       // eslint-disable-next-line no-console
       console.warn('Google sign-in prompt was not completed', { reason, isNotDisplayed, isSkipped, isDismissed });
+      const normalizedReason = String(reason).toLowerCase();
+      const shouldUseFallback =
+        normalizedReason.includes('fedcm') ||
+        normalizedReason.includes('network') ||
+        normalizedReason.includes('opt_out_or_no_session') ||
+        normalizedReason.includes('unknown_reason');
+
+      if (shouldUseFallback && !isGoogleSignInInFlightRef.current) {
+        isGoogleSignInInFlightRef.current = true;
+        signInWithAccessTokenFallback();
+        return;
+      }
 
       setMessage(
-        `Google sign-in could not complete (${reason}). Check Authorized JavaScript origins in Google Cloud, disable blockers for accounts.google.com, and retry.`
+        `Google sign-in could not complete (${reason}). Add ${window.location.origin} to Authorized JavaScript origins in Google Cloud, disable blockers for accounts.google.com, and retry.`
       );
     });
-  }, [applyAuthenticatedSession, callApi, clearStoredAuthSession, saveAuthToken, saveGoogleAccount]);
+  }, [
+    applyAuthenticatedSession,
+    callApi,
+    clearStoredAuthSession,
+    saveAuthToken,
+    saveGoogleAccount,
+    syncAuthenticatedPlayerRecord,
+  ]);
 
   const signOutGoogle = useCallback(() => {
     if (window.google?.accounts?.id) {
@@ -1034,6 +1169,7 @@ export default function Home() {
           games={availableGames}
           publicRooms={publicRooms}
           playerProfile={player}
+          googleAccount={googleAccount}
           message={message}
           isLoading={isLoading}
           onClearMessage={() => setMessage('')}

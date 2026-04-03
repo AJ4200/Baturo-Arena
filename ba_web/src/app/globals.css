@@ -1191,6 +1191,24 @@ h1 span:last-child {
     linear-gradient(160deg, rgba(54, 22, 79, 0.94), rgba(27, 71, 114, 0.92));
 }
 
+.music-dock-toggle-profile-connected {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.34), transparent 62%),
+    linear-gradient(160deg, rgba(18, 98, 47, 0.95), rgba(20, 108, 139, 0.9));
+}
+
+.profile-dock-live-dot {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #2cff7d;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.28);
+}
+
 .music-dock-toggle-active {
   filter: brightness(1.08);
 }
