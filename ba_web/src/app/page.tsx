@@ -13,6 +13,7 @@ import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
+import { GoogleNoticeDock } from '@/features/home/GoogleNoticeDock';
 import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
 import { useApiClient } from '@/hooks/useApiClient';
@@ -210,7 +211,7 @@ const APP_MUSIC_TRACKS: MusicTrack[] = [
   {
     id: 'nostaligic-actsii-remastered',
     title: 'Nostaligic ActsII Remastered',
-    artist: 'Jade Epoh',
+    artist: 'Jade Epoh & Capcidius',
     src: '/music/Nostaligic%20ActsII_Remastered.mp3',
     artSrc: '/music/art/Nostalgic%20Acts.jpg',
   },
@@ -222,6 +223,9 @@ const APP_MUSIC_TRACKS: MusicTrack[] = [
     artSrc: '/music/art/Untitled_08.jpg',
   },
 ];
+
+const GOOGLE_ONLINE_NOTICE_MESSAGE =
+  'Sign in with Google to access online multiplayer. CPU and solo play do not need an account.';
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -253,6 +257,7 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
+  const [isGoogleNoticeDockOpen, setIsGoogleNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
@@ -596,7 +601,7 @@ export default function Home() {
       }
     }
 
-    setMessage('Sign in with Google to access online multiplayer. CPU and solo play do not need an account.');
+    setMessage(GOOGLE_ONLINE_NOTICE_MESSAGE);
     setIsProfileDockOpen(true);
     return null;
   }, [getValidAuthToken, googleAccount, player, saveGoogleAccount]);
@@ -1114,6 +1119,16 @@ export default function Home() {
     };
   }, []);
 
+  const isGoogleOnlineNotice = message === GOOGLE_ONLINE_NOTICE_MESSAGE;
+
+  useEffect(() => {
+    if (isGoogleOnlineNotice) {
+      setIsGoogleNoticeDockOpen(true);
+      return;
+    }
+    setIsGoogleNoticeDockOpen(false);
+  }, [isGoogleOnlineNotice]);
+
   const applyCpuDifficulty = useCallback((difficulty: CpuDifficulty) => {
     setCpuDifficulty(difficulty);
     window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, difficulty);
@@ -1193,7 +1208,7 @@ export default function Home() {
           publicRooms={publicRooms}
           playerProfile={player}
           googleAccount={googleAccount}
-          message={message}
+          message={isGoogleOnlineNotice ? '' : message}
           isLoading={isLoading}
           onClearMessage={() => setMessage('')}
           onBack={() => setScreen('home')}
@@ -1360,7 +1375,7 @@ export default function Home() {
           <p>
             Backups are local-only right now. Use Settings to save or load this device backup for your Baturo Arena lineup.
           </p>
-          <label className="save-tip-check">
+          <label className="save-tip-check custome-shadow-invert">
             <input type="checkbox" checked={dontShowSaveTipAgain} onChange={(event) => setDontShowSaveTipAgain(event.target.checked)} />
             Don&apos;t show again
           </label>
@@ -1388,6 +1403,14 @@ export default function Home() {
           onSignIn={startGoogleSignIn}
           onSignOut={signOutGoogle}
         />
+        {screen === 'lobby' && isGoogleOnlineNotice ? (
+          <GoogleNoticeDock
+            isOpen={isGoogleNoticeDockOpen}
+            message={GOOGLE_ONLINE_NOTICE_MESSAGE}
+            onToggleOpen={() => setIsGoogleNoticeDockOpen((currentValue) => !currentValue)}
+            onDismiss={() => setMessage('')}
+          />
+        ) : null}
         <MusicDock
           tracks={APP_MUSIC_TRACKS}
           isMuted={isMusicMuted}

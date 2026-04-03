@@ -288,7 +288,7 @@ export function LobbyScreen({
                 />
               </div>
             <div className="lobby-profile-meta">
-              <strong>{profilePreviewName}</strong>
+              <strong className="custome-shadow-invert">{profilePreviewName}</strong>
               <span>
                 {playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}
                 {isGoogleConnected ? ' | Google connected' : ' | Guest mode'}
