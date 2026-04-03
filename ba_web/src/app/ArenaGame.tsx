@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { CpuArenaGame } from '@/features/game/CpuArenaGame';
+import { SoloDinoGame } from '@/features/game/SoloDinoGame';
 import { SoloMemoryMatchGame } from '@/features/game/SoloMemoryMatchGame';
 import { SoloMinesweeperGame } from '@/features/game/SoloMinesweeperGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
@@ -87,6 +88,19 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'memory-match') {
     return (
       <SoloMemoryMatchGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'dino-run') {
+    return (
+      <SoloDinoGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

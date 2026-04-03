@@ -207,7 +207,8 @@ export function GameBoard({
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
-    game.moveMode === 'solo-memory'
+    game.moveMode === 'solo-memory' ||
+    game.moveMode === 'solo-dino'
   ) {
     return null;
   }

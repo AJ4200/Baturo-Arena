@@ -127,6 +127,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'dino-run',
+    name: 'Dino-Run',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Dash through the neon desert, jump and duck hazards, and survive the distance target.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-dino',
+    winCondition: 'dino-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -295,7 +309,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
-    game.moveMode === 'solo-memory'
+    game.moveMode === 'solo-memory' ||
+    game.moveMode === 'solo-dino'
   ) {
     return [];
   }
@@ -335,7 +350,8 @@ export const applyMove = (
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
-    game.moveMode === 'solo-memory'
+    game.moveMode === 'solo-memory' ||
+    game.moveMode === 'solo-dino'
   ) {
     return [...board];
   }
@@ -472,7 +488,8 @@ export const evaluateBoard = (
     game.winCondition === 'target-2048' ||
     game.winCondition === 'sudoku-complete' ||
     game.winCondition === 'minesweeper-clear' ||
-    game.winCondition === 'memory-complete'
+    game.winCondition === 'memory-complete' ||
+    game.winCondition === 'dino-survive'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;

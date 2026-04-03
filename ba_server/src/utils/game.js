@@ -125,6 +125,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'dino-run': {
+    id: 'dino-run',
+    name: 'Dino-Run',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Dash through the neon desert, jump and duck hazards, and survive the distance target.',
+    moveMode: 'solo-dino',
+    winCondition: 'dino-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -354,7 +368,8 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'target-2048' ||
     rules.winCondition === 'sudoku-complete' ||
     rules.winCondition === 'minesweeper-clear' ||
-    rules.winCondition === 'memory-complete'
+    rules.winCondition === 'memory-complete' ||
+    rules.winCondition === 'dino-survive'
   ) {
     return null;
   }
@@ -475,7 +490,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
-    rules.moveMode === 'solo-memory'
+    rules.moveMode === 'solo-memory' ||
+    rules.moveMode === 'solo-dino'
   ) {
     return [];
   }
@@ -536,7 +552,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
-    rules.moveMode === 'solo-memory'
+    rules.moveMode === 'solo-memory' ||
+    rules.moveMode === 'solo-dino'
   ) {
     return [...board];
   }

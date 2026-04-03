@@ -30,6 +30,7 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'sudoku': '9 x 9',
   'minesweeper': 'MINES',
   'memory-match': 'PAIRS',
+  'dino-run': 'DODGE',
 };
 
 export function GameSelectScreen({
