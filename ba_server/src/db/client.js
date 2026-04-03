@@ -1,21 +1,91 @@
 const { Pool } = require('pg');
-const { Pool } = require('pg');
 const {
   postgresUrl,
   dbPoolMax,
-  dbPoolMax,
   dbConnectionTimeoutMs,
-  dbIdleTimeoutMs,
   dbIdleTimeoutMs,
   dbConnectRetries,
   dbConnectRetryDelayMs,
+  dbSslMode,
+  dbSslRejectUnauthorized,
 } = require('../config/env');
 
 let pool = null;
-let pool = null;
+
+function normalizeSslMode(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim().toLowerCase();
+}
+
+function extractSslModeFromConnectionString(connectionString) {
+  try {
+    const connectionUrl = new URL(connectionString);
+    const sslMode = normalizeSslMode(connectionUrl.searchParams.get('sslmode'));
+    if (sslMode) {
+      return sslMode;
+    }
+
+    const sslFlag = normalizeSslMode(connectionUrl.searchParams.get('ssl'));
+    if (['1', 'true', 'yes', 'on', 'require'].includes(sslFlag)) {
+      return 'require';
+    }
+
+    if (['0', 'false', 'no', 'off', 'disable'].includes(sslFlag)) {
+      return 'disable';
+    }
+  } catch (_error) {
+    return '';
+  }
+
+  return '';
+}
+
+function isLocalConnectionString(connectionString) {
+  try {
+    const connectionUrl = new URL(connectionString);
+    const hostname = connectionUrl.hostname.trim().toLowerCase();
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
+  } catch (_error) {
+    return false;
+  }
+}
+
+function resolveSslOptions() {
+  const mode = normalizeSslMode(dbSslMode) || extractSslModeFromConnectionString(postgresUrl);
+
+  if (mode === 'disable') {
+    return false;
+  }
+
+  if (mode === 'no-verify') {
+    return { rejectUnauthorized: false };
+  }
+
+  if (mode === 'verify-ca' || mode === 'verify-full') {
+    return { rejectUnauthorized: true };
+  }
+
+  if (mode === 'require' || mode === 'prefer') {
+    if (typeof dbSslRejectUnauthorized === 'boolean') {
+      return { rejectUnauthorized: dbSslRejectUnauthorized };
+    }
+
+    return { rejectUnauthorized: false };
+  }
+
+  if (isLocalConnectionString(postgresUrl)) {
+    return false;
+  }
+
+  return {
+    rejectUnauthorized: typeof dbSslRejectUnauthorized === 'boolean' ? dbSslRejectUnauthorized : false,
+  };
+}
 
 function ensureInitialized() {
-  if (!pool) {
   if (!pool) {
     throw new Error('Database not initialized');
   }
@@ -38,6 +108,7 @@ function createPool() {
     idleTimeoutMillis: Number.isFinite(dbIdleTimeoutMs) && dbIdleTimeoutMs > 0 ? dbIdleTimeoutMs : 30000,
     keepAlive: true,
     family: 4,
+    ssl: resolveSslOptions(),
   });
 }
 
@@ -114,7 +185,6 @@ async function executeQuery(sql, params = []) {
 
 async function initializeClient() {
   if (pool) {
-  if (pool) {
     return;
   }
 
@@ -136,14 +206,13 @@ async function initializeClient() {
     });
 
     try {
-      await candidatePool.query('SELECT 1');
-      pool = candidatePool;
+      // eslint-disable-next-line no-await-in-loop
       await candidatePool.query('SELECT 1');
       pool = candidatePool;
       return;
     } catch (error) {
       lastError = error;
-      await candidatePool.end().catch(() => {});
+      // eslint-disable-next-line no-await-in-loop
       await candidatePool.end().catch(() => {});
 
       const canRetry = isTransientConnectionError(error) && attempt < maxAttempts;

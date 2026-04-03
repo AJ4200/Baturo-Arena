@@ -82,8 +82,9 @@ export function LobbyScreen({
   const supportsCpu = selectedDefinition?.supportsCpu ?? true;
   const selectedGameName = formatGameName(selectedGame, games);
   const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
-  const profilePreviewName = (playerName || '').trim() || 'Player';
-  const profilePreviewAvatarUrl = `https://robohash.org/${encodeURIComponent(profilePreviewName)}?size=160x160`;
+  const profilePreviewName = (playerProfile?.name || playerName || '').trim() || 'Player';
+  const profilePreviewAvatarUrl =
+    googleAccount?.picture || `https://robohash.org/${encodeURIComponent(profilePreviewName)}?size=160x160`;
   const isGoogleConnected = Boolean(googleAccount?.sub);
   const roomNameSuggestions = useMemo(() => {
     const safePlayerName = (playerName || 'Player').trim() || 'Player';

@@ -1,7 +1,9 @@
 'use client';
 
 import classnames from 'classnames';
-import { AiOutlineClose, AiOutlineLogin, AiOutlineLogout, AiOutlineUser } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineLoading3Quarters, AiOutlineLogout, AiOutlineUser } from 'react-icons/ai';
+import { FcGoogle } from 'react-icons/fc';
+import type { PlayerProfile } from '@/types/game';
 
 export type GoogleAccount = {
   sub: string;
@@ -13,13 +15,25 @@ export type GoogleAccount = {
 type ProfileDockProps = {
   isOpen: boolean;
   account: GoogleAccount | null;
+  playerProfile: PlayerProfile | null;
+  isSigningIn: boolean;
   onToggleOpen: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
 };
 
-export function ProfileDock({ isOpen, account, onToggleOpen, onSignIn, onSignOut }: ProfileDockProps) {
+export function ProfileDock({
+  isOpen,
+  account,
+  playerProfile,
+  isSigningIn,
+  onToggleOpen,
+  onSignIn,
+  onSignOut,
+}: ProfileDockProps) {
   const isConnected = Boolean(account?.sub);
+  const displayName = (playerProfile?.name || account?.name || 'Player').trim() || 'Player';
+  const profileAvatar = `https://robohash.org/${encodeURIComponent(displayName)}?size=160x160`;
 
   return (
     <div className={classnames('profile-dock', isOpen && 'profile-dock-open')}>
@@ -48,22 +62,56 @@ export function ProfileDock({ isOpen, account, onToggleOpen, onSignIn, onSignOut
 
         {account ? (
           <div className="profile-dock-account">
-            <img src={account.picture || '/music/art/generic-cover.svg'} alt={`${account.name} avatar`} className="profile-dock-avatar" />
-            <strong>{account.name}</strong>
+            <img src={account.picture || profileAvatar} alt={`${displayName} avatar`} className="profile-dock-avatar" />
+            <strong>{displayName}</strong>
             <span>{account.email || 'Google account connected'}</span>
+            {playerProfile ? <span>Player ID: {playerProfile.playerId}</span> : <span>Online profile ready</span>}
+            {playerProfile ? (
+              <div className="profile-dock-stats">
+                <span className="public-room-pill">Wins {playerProfile.wins}</span>
+                <span className="public-room-pill">Losses {playerProfile.losses}</span>
+                <span className="public-room-pill">Draws {playerProfile.draws}</span>
+              </div>
+            ) : null}
             <button className={classnames('lobby-btn', 'custome-shadow', 'profile-dock-auth-btn')} type="button" onClick={onSignOut}>
               <AiOutlineLogout /> Sign out
             </button>
           </div>
         ) : (
           <div className="profile-dock-account">
-            <div className="profile-dock-avatar profile-dock-avatar-placeholder">
-              <AiOutlineUser />
-            </div>
-            <strong>Guest mode</strong>
+            {playerProfile ? (
+              <img src={profileAvatar} alt={`${displayName} avatar`} className="profile-dock-avatar" />
+            ) : (
+              <div className="profile-dock-avatar profile-dock-avatar-placeholder">
+                <AiOutlineUser />
+              </div>
+            )}
+            <strong>{playerProfile ? displayName : 'Guest mode'}</strong>
             <span>Google sign-in is required only for online multiplayer.</span>
-            <button className={classnames('lobby-btn', 'custome-shadow', 'profile-dock-auth-btn')} type="button" onClick={onSignIn}>
-              <AiOutlineLogin /> Sign in with Google
+            {playerProfile ? <span>Player ID: {playerProfile.playerId} | Guest mode</span> : null}
+            {playerProfile ? (
+              <div className="profile-dock-stats">
+                <span className="public-room-pill">Wins {playerProfile.wins}</span>
+                <span className="public-room-pill">Losses {playerProfile.losses}</span>
+                <span className="public-room-pill">Draws {playerProfile.draws}</span>
+              </div>
+            ) : null}
+            <button
+              className={classnames('lobby-btn', 'custome-shadow', 'profile-dock-auth-btn')}
+              type="button"
+              onClick={onSignIn}
+              disabled={isSigningIn}
+              aria-busy={isSigningIn}
+            >
+              {isSigningIn ? (
+                <>
+                  <AiOutlineLoading3Quarters className="animate-spin" /> Signing in...
+                </>
+              ) : (
+                <>
+                  <FcGoogle /> Sign in with Google
+                </>
+              )}
             </button>
           </div>
         )}

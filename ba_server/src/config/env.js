@@ -1,3 +1,24 @@
+function parseOptionalBoolean(value) {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) {
+    return null;
+  }
+
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+    return true;
+  }
+
+  if (['0', 'false', 'no', 'off'].includes(normalized)) {
+    return false;
+  }
+
+  return null;
+}
+
 module.exports = {
   port: Number(process.env.PORT || 4000),
   corsOrigin: process.env.CORS_ORIGIN || '*',
@@ -8,6 +29,8 @@ module.exports = {
   dbConnectRetries: Number(process.env.DB_CONNECT_RETRIES || 6),
   dbConnectRetryDelayMs: Number(process.env.DB_CONNECT_RETRY_DELAY_MS || 1500),
   dbInitRetryDelayMs: Number(process.env.DB_INIT_RETRY_DELAY_MS || 5000),
+  dbSslMode: (process.env.DB_SSL_MODE || process.env.PGSSLMODE || '').trim().toLowerCase(),
+  dbSslRejectUnauthorized: parseOptionalBoolean(process.env.DB_SSL_REJECT_UNAUTHORIZED),
   googleClientId: process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
   authSessionTtlHours: Number(process.env.AUTH_SESSION_TTL_HOURS || 168),
 };

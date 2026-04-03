@@ -13,8 +13,8 @@
   "type": "commonjs",
   "dependencies": {
     "dotenv": "^17.4.0",
-    "express": "^5.1.0",
+    "express": "^5.2.1",
     "google-auth-library": "^10.6.2",
-    "pg": "^8.16.0"
+    "pg": "^8.20.0"
   }
 }
