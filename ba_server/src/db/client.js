@@ -1,15 +1,17 @@
-const { neon } = require('@neondatabase/serverless');
+const { Pool } = require('pg');
 const {
   postgresUrl,
+  dbPoolMax,
   dbConnectionTimeoutMs,
+  dbIdleTimeoutMs,
   dbConnectRetries,
   dbConnectRetryDelayMs,
 } = require('../config/env');
 
-let queryClient = null;
+let pool = null;
 
 function ensureInitialized() {
-  if (!queryClient) {
+  if (!pool) {
     throw new Error('Database not initialized');
   }
 }
@@ -22,21 +24,52 @@ function replaceQuestionPlaceholders(sql) {
   });
 }
 
-function createQueryClient() {
-  const requestTimeoutMs =
+function createPool() {
+  const connectionTimeoutMs =
     Number.isFinite(dbConnectionTimeoutMs) && dbConnectionTimeoutMs > 0 ? dbConnectionTimeoutMs : 30000;
-  const supportsAbortTimeout =
-    typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function';
+  const idleTimeoutMs = Number.isFinite(dbIdleTimeoutMs) && dbIdleTimeoutMs > 0 ? dbIdleTimeoutMs : 30000;
+  const maxConnections = Number.isFinite(dbPoolMax) && dbPoolMax > 0 ? dbPoolMax : 5;
 
-  return neon(postgresUrl, {
-    fullResults: true,
-    fetchConnectionCache: true,
-    fetchOptions: supportsAbortTimeout
-      ? {
-          signal: AbortSignal.timeout(requestTimeoutMs),
-        }
-      : undefined,
+  return new Pool({
+    connectionString: postgresUrl,
+    max: maxConnections,
+    idleTimeoutMillis: idleTimeoutMs,
+    connectionTimeoutMillis: connectionTimeoutMs,
+    ssl: shouldUseSsl(postgresUrl) ? { rejectUnauthorized: false } : false,
   });
+}
+
+function shouldUseSsl(connectionString) {
+  if (!connectionString) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(connectionString);
+    const sslMode = String(parsed.searchParams.get('sslmode') || '').toLowerCase();
+    if (sslMode === 'disable') {
+      return false;
+    }
+
+    if (sslMode === 'require' || sslMode === 'prefer' || sslMode === 'allow' || sslMode === 'verify-ca' || sslMode === 'verify-full') {
+      return true;
+    }
+
+    const hostname = String(parsed.hostname || '').toLowerCase();
+    const isLocalHost =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '::1' ||
+      hostname === '[::1]';
+
+    if (isLocalHost) {
+      return false;
+    }
+
+    return parsed.protocol === 'postgresql:' || parsed.protocol === 'postgres:';
+  } catch (_error) {
+    return true;
+  }
 }
 
 function sleep(ms) {
@@ -100,17 +133,9 @@ function isTransientConnectionError(error) {
 
 async function executeQuery(sql, params = []) {
   const queryText = replaceQuestionPlaceholders(sql);
-  const result = await queryClient.query(queryText, params);
-
-  if (Array.isArray(result)) {
-    return {
-      rows: result,
-      rowCount: result.length,
-    };
-  }
-
-  const rows = Array.isArray(result?.rows) ? result.rows : [];
-  const rowCount = Number.isFinite(Number(result?.rowCount)) ? Number(result.rowCount) : rows.length;
+  const result = await pool.query(queryText, params);
+  const rows = Array.isArray(result.rows) ? result.rows : [];
+  const rowCount = Number.isFinite(Number(result.rowCount)) ? Number(result.rowCount) : rows.length;
 
   return {
     rows,
@@ -119,7 +144,7 @@ async function executeQuery(sql, params = []) {
 }
 
 async function initializeClient() {
-  if (queryClient) {
+  if (pool) {
     return;
   }
 
@@ -134,14 +159,15 @@ async function initializeClient() {
   let lastError = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const candidateClient = createQueryClient();
+    const candidatePool = createPool();
 
     try {
-      await candidateClient.query('SELECT 1');
-      queryClient = candidateClient;
+      await candidatePool.query('SELECT 1');
+      pool = candidatePool;
       return;
     } catch (error) {
       lastError = error;
+      await candidatePool.end().catch(() => {});
 
       const canRetry = isTransientConnectionError(error) && attempt < maxAttempts;
       if (!canRetry) {

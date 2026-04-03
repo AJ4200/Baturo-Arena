@@ -104,6 +104,7 @@ pnpm start
 7. Optional DB resilience vars: `DB_CONNECTION_TIMEOUT_MS`, `DB_CONNECT_RETRIES`, `DB_CONNECT_RETRY_DELAY_MS`, `DB_POOL_MAX`.
 8. Optional DB startup retry var: `DB_INIT_RETRY_DELAY_MS` (milliseconds between startup retries when DB is temporarily unavailable).
 9. For Google Sign-In, add each frontend origin you use (for example `http://localhost:3000` and your production domain) to OAuth Authorized JavaScript origins in Google Cloud.
+10. If your Postgres server does not support TLS (common on local development), append `?sslmode=disable` to `DATABASE_URL` / `POSTGRES_URL`.
 
 ---
 
