@@ -348,16 +348,19 @@ async function leaveRoom({ code, playerId }) {
 }
 
 async function getLeaderboard() {
-  const [overall, gameBreakdown] = await Promise.all([
-    listPlayersByScore(),
-    Promise.all(
-      listGames().map(async (game) => ({
-        gameType: game.id,
-        name: game.name,
-        players: (await listPlayersByGameScore(game.id)).map(serializeLeaderboardPlayer),
-      }))
-    ),
-  ]);
+  const overall = await listPlayersByScore();
+  const gameBreakdown = [];
+  for (const game of listGames()) {
+    // Sequential reads avoid sudden connection fan-out on constrained networks.
+    // This keeps leaderboard stable when DB connectivity is intermittent.
+    // eslint-disable-next-line no-await-in-loop
+    const players = await listPlayersByGameScore(game.id);
+    gameBreakdown.push({
+      gameType: game.id,
+      name: game.name,
+      players: players.map(serializeLeaderboardPlayer),
+    });
+  }
 
   return {
     overall: overall.map(serializeLeaderboardPlayer),

@@ -55,13 +55,38 @@ type GoogleCredentialResponse = {
   credential?: string;
 };
 
+type GooglePromptNotification = {
+  isNotDisplayed?: () => boolean;
+  isSkippedMoment?: () => boolean;
+  isDismissedMoment?: () => boolean;
+  getNotDisplayedReason?: () => string;
+  getSkippedReason?: () => string;
+  getDismissedReason?: () => string;
+};
+
+type GoogleIdInitializeConfig = {
+  client_id: string;
+  callback: (response: GoogleCredentialResponse) => void;
+  use_fedcm_for_prompt?: boolean;
+};
+
+type AuthSessionPayload = {
+  player: PlayerProfile;
+  account: GoogleAccount | null;
+  expiresAt: string;
+};
+
+type GoogleSignInPayload = AuthSessionPayload & {
+  authToken: string;
+};
+
 declare global {
   interface Window {
     google?: {
       accounts?: {
         id?: {
-          initialize: (config: { client_id: string; callback: (response: GoogleCredentialResponse) => void }) => void;
-          prompt: () => void;
+          initialize: (config: GoogleIdInitializeConfig) => void;
+          prompt: (listener?: (notification: GooglePromptNotification) => void) => void;
           cancel: () => void;
         };
       };
@@ -243,28 +268,36 @@ export default function Home() {
     }, 1800);
   }, []);
 
-  const decodeJwtPayload = (credential: string): GoogleAccount | null => {
-    const jwtParts = credential.split('.');
-    if (jwtParts.length < 2) {
+  const clearStoredAuthSession = useCallback(() => {
+    window.localStorage.removeItem(STORAGE_KEYS.authToken);
+    window.localStorage.removeItem(STORAGE_KEYS.authTokenExpiresAt);
+  }, []);
+
+  const saveAuthToken = useCallback((token: string, expiresAt: string) => {
+    window.localStorage.setItem(STORAGE_KEYS.authToken, token);
+    window.localStorage.setItem(STORAGE_KEYS.authTokenExpiresAt, expiresAt);
+  }, []);
+
+  const getValidAuthToken = useCallback((): string | null => {
+    const token = window.localStorage.getItem(STORAGE_KEYS.authToken);
+    if (!token) {
       return null;
     }
 
-    try {
-      const payload = JSON.parse(atob(jwtParts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      if (!payload || typeof payload.sub !== 'string' || typeof payload.name !== 'string') {
-        return null;
-      }
-
-      return {
-        sub: payload.sub,
-        name: payload.name,
-        email: typeof payload.email === 'string' ? payload.email : undefined,
-        picture: typeof payload.picture === 'string' ? payload.picture : undefined,
-      };
-    } catch (_error) {
+    const expiresAt = window.localStorage.getItem(STORAGE_KEYS.authTokenExpiresAt);
+    if (!expiresAt) {
+      clearStoredAuthSession();
       return null;
     }
-  };
+
+    const expiresAtMs = new Date(expiresAt).getTime();
+    if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+      clearStoredAuthSession();
+      return null;
+    }
+
+    return token;
+  }, [clearStoredAuthSession]);
 
   const saveGoogleAccount = useCallback((account: GoogleAccount | null) => {
     setGoogleAccount(account);
@@ -275,8 +308,23 @@ export default function Home() {
     window.localStorage.setItem(STORAGE_KEYS.googleAccount, JSON.stringify(account));
   }, []);
 
+  const applyAuthenticatedSession = useCallback(
+    (payload: AuthSessionPayload) => {
+      if (payload.account) {
+        saveGoogleAccount(payload.account);
+      }
+      setPlayer(payload.player);
+      setPlayerName(payload.player.name);
+      window.localStorage.setItem(STORAGE_KEYS.playerId, payload.player.playerId);
+      window.localStorage.setItem(STORAGE_KEYS.playerName, payload.player.name);
+      window.localStorage.setItem(STORAGE_KEYS.authTokenExpiresAt, payload.expiresAt);
+    },
+    [saveGoogleAccount]
+  );
+
   const startGoogleSignIn = useCallback(() => {
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const useFedCmForPrompt = process.env.NEXT_PUBLIC_GOOGLE_USE_FEDCM === 'true';
     if (!googleClientId) {
       setMessage('Missing NEXT_PUBLIC_GOOGLE_CLIENT_ID in frontend env');
       return;
@@ -289,44 +337,111 @@ export default function Home() {
 
     window.google.accounts.id.initialize({
       client_id: googleClientId,
+      use_fedcm_for_prompt: useFedCmForPrompt,
       callback: (response: GoogleCredentialResponse) => {
         if (!response.credential) {
           setMessage('Google sign-in did not return credentials');
           return;
         }
 
-        const parsedAccount = decodeJwtPayload(response.credential);
-        if (!parsedAccount) {
-          setMessage('Could not read Google account details');
-          return;
-        }
-
-        saveGoogleAccount(parsedAccount);
-        setPlayerName(parsedAccount.name);
-        window.localStorage.setItem(STORAGE_KEYS.playerName, parsedAccount.name);
-        setMessage('Google account connected');
+        setIsLoading(true);
+        callApi<GoogleSignInPayload>('/api/auth/google', {
+          method: 'POST',
+          body: JSON.stringify({ credential: response.credential }),
+        })
+          .then((payload) => {
+            saveAuthToken(payload.authToken, payload.expiresAt);
+            applyAuthenticatedSession(payload);
+            setMessage('Google account connected');
+          })
+          .catch((error) => {
+            clearStoredAuthSession();
+            saveGoogleAccount(null);
+            setMessage(error instanceof Error ? error.message : 'Google sign-in failed');
+          })
+          .finally(() => {
+            setIsLoading(false);
+          });
       },
     });
 
-    window.google.accounts.id.prompt();
-  }, [saveGoogleAccount]);
+    window.google.accounts.id.prompt((notification) => {
+      const isNotDisplayed = Boolean(notification?.isNotDisplayed && notification.isNotDisplayed());
+      const isSkipped = Boolean(notification?.isSkippedMoment && notification.isSkippedMoment());
+      const isDismissed = Boolean(notification?.isDismissedMoment && notification.isDismissedMoment());
+
+      if (!isNotDisplayed && !isSkipped && !isDismissed) {
+        return;
+      }
+
+      const reason =
+        (notification?.getNotDisplayedReason && notification.getNotDisplayedReason()) ||
+        (notification?.getSkippedReason && notification.getSkippedReason()) ||
+        (notification?.getDismissedReason && notification.getDismissedReason()) ||
+        'unknown';
+
+      // eslint-disable-next-line no-console
+      console.warn('Google sign-in prompt was not completed', { reason, isNotDisplayed, isSkipped, isDismissed });
+
+      setMessage(
+        `Google sign-in could not complete (${reason}). Check Authorized JavaScript origins in Google Cloud, disable blockers for accounts.google.com, and retry.`
+      );
+    });
+  }, [applyAuthenticatedSession, callApi, clearStoredAuthSession, saveAuthToken, saveGoogleAccount]);
 
   const signOutGoogle = useCallback(() => {
     if (window.google?.accounts?.id) {
       window.google.accounts.id.cancel();
     }
-    saveGoogleAccount(null);
-    setMessage('Signed out from Google account');
-  }, [saveGoogleAccount]);
+
+    const wasGooglePlayer = Boolean(player?.playerId && player.playerId.startsWith('google:'));
+
+    callApi<{ ok: boolean }>(
+      '/api/auth/logout',
+      {
+        method: 'POST',
+        body: JSON.stringify({}),
+      },
+      false
+    )
+      .catch(() => {
+        // Ignore logout network errors; local sign-out still applies.
+      })
+      .finally(() => {
+        clearStoredAuthSession();
+        saveGoogleAccount(null);
+        if (wasGooglePlayer) {
+          setPlayer(null);
+          window.localStorage.removeItem(STORAGE_KEYS.playerId);
+          if (screen === 'game') {
+            setActiveRoomCode(null);
+            setGameMode('online');
+            setScreen('lobby');
+          }
+        }
+        setMessage('Signed out from Google account');
+      });
+  }, [callApi, clearStoredAuthSession, player, saveGoogleAccount, screen]);
 
   const requireGoogleAccountForOnline = useCallback((): GoogleAccount | null => {
-    if (googleAccount) {
+    const authToken = getValidAuthToken();
+
+    if (googleAccount && authToken) {
       return googleAccount;
     }
+
+    if (googleAccount && !authToken) {
+      saveGoogleAccount(null);
+      if (player?.playerId && player.playerId.startsWith('google:')) {
+        setPlayer(null);
+        window.localStorage.removeItem(STORAGE_KEYS.playerId);
+      }
+    }
+
     setMessage('Sign in with Google to access online multiplayer. CPU and solo play do not need an account.');
     setIsProfileDockOpen(true);
     return null;
-  }, [googleAccount]);
+  }, [getValidAuthToken, googleAccount, player, saveGoogleAccount]);
 
   const parseLocalBackup = (rawValue: string | null): LocalBackupPayload | null => {
     if (!rawValue) {
@@ -628,15 +743,10 @@ export default function Home() {
       if (!onlineAccount) {
         return;
       }
-      const registeredPlayer = await ensurePlayer({
-        playerId: `google:${onlineAccount.sub}`,
-        name: onlineAccount.name,
-      });
 
       const payload = await callApi<RoomPayload>('/api/rooms', {
         method: 'POST',
         body: JSON.stringify({
-          playerId: registeredPlayer.playerId,
           roomName,
           isPublic,
           gameType: selectedGame,
@@ -670,15 +780,10 @@ export default function Home() {
       if (!onlineAccount) {
         return;
       }
-      const registeredPlayer = await ensurePlayer({
-        playerId: `google:${onlineAccount.sub}`,
-        name: onlineAccount.name,
-      });
 
       const payload = await callApi<RoomPayload>('/api/rooms/join', {
         method: 'POST',
         body: JSON.stringify({
-          playerId: registeredPlayer.playerId,
           code: roomCode,
         }),
       });
@@ -725,6 +830,7 @@ export default function Home() {
     const savedDifficulty = window.localStorage.getItem(STORAGE_KEYS.cpuDifficulty);
     const savedPreferredGame = window.localStorage.getItem(STORAGE_KEYS.preferredGame);
     const savedGoogleAccount = window.localStorage.getItem(STORAGE_KEYS.googleAccount);
+    const validAuthToken = getValidAuthToken();
 
     if (savedName) {
       setPlayerName(savedName);
@@ -744,7 +850,7 @@ export default function Home() {
     if (savedDifficulty === 'easy' || savedDifficulty === 'medium' || savedDifficulty === 'hard') {
       setCpuDifficulty(savedDifficulty);
     }
-    if (savedGoogleAccount) {
+    if (savedGoogleAccount && validAuthToken) {
       try {
         const parsedGoogle = JSON.parse(savedGoogleAccount) as GoogleAccount;
         if (parsedGoogle?.sub && parsedGoogle?.name) {
@@ -754,6 +860,8 @@ export default function Home() {
       } catch (_error) {
         // ignore malformed saved account
       }
+    } else if (savedGoogleAccount && !validAuthToken) {
+      window.localStorage.removeItem(STORAGE_KEYS.googleAccount);
     }
     if (savedPreferredGame) {
       const normalizedPreferredGame = normalizeGameType(savedPreferredGame);
@@ -779,6 +887,22 @@ export default function Home() {
         }
         setMatchHistory(parseMatchHistory(window.localStorage.getItem(STORAGE_KEYS.matchHistory)));
       });
+
+    if (validAuthToken) {
+      callApi<AuthSessionPayload>('/api/auth/session', undefined, false)
+        .then((payload) => {
+          applyAuthenticatedSession(payload);
+        })
+        .catch(() => {
+          clearStoredAuthSession();
+          saveGoogleAccount(null);
+          const storedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
+          if (storedPlayerId && storedPlayerId.startsWith('google:')) {
+            window.localStorage.removeItem(STORAGE_KEYS.playerId);
+            setPlayer(null);
+          }
+        });
+    }
 
     const shouldHideSaveTip = window.localStorage.getItem(STORAGE_KEYS.hideSaveTip);
     setShowSaveTip(shouldHideSaveTip !== 'true');

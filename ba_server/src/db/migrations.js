@@ -83,6 +83,44 @@ async function runMigrations() {
     FROM players
     ON CONFLICT (player_id, game_type) DO NOTHING
   `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS google_accounts (
+      google_sub TEXT PRIMARY KEY,
+      player_id TEXT NOT NULL UNIQUE,
+      email TEXT,
+      picture TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      last_login_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS auth_sessions (
+      token_hash TEXT PRIMARY KEY,
+      player_id TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      expires_at TIMESTAMPTZ NOT NULL,
+      last_used_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_auth_sessions_player_id
+    ON auth_sessions(player_id)
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at
+    ON auth_sessions(expires_at)
+  `);
+
+  await run(`
+    DELETE FROM auth_sessions
+    WHERE expires_at <= CURRENT_TIMESTAMP
+  `);
 }
 
 module.exports = { runMigrations };

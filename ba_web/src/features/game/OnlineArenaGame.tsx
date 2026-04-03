@@ -17,7 +17,7 @@ import {
 } from 'react-icons/ai';
 import PlayerO from '@/components/game/player/PlayerO';
 import PlayerX from '@/components/game/player/PlayerX';
-import { API_BASE_URL } from '@/lib/constants';
+import { API_BASE_URL, STORAGE_KEYS } from '@/lib/constants';
 import { formatGameName } from '@/lib/games';
 import { GameBoard } from '@/features/game/GameBoard';
 import type {
@@ -58,6 +58,28 @@ const getPlayerLabels = (currentGameType: string | null | undefined): { x: strin
     return { x: 'Red Checkers', o: 'Blue Checkers' };
   }
   return { x: 'Player 1', o: 'Player 2' };
+};
+
+const readValidAuthToken = (): string | null => {
+  const token = window.localStorage.getItem(STORAGE_KEYS.authToken);
+  if (!token) {
+    return null;
+  }
+
+  const expiresAt = window.localStorage.getItem(STORAGE_KEYS.authTokenExpiresAt);
+  if (!expiresAt) {
+    window.localStorage.removeItem(STORAGE_KEYS.authToken);
+    return null;
+  }
+
+  const expiresAtMs = new Date(expiresAt).getTime();
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+    window.localStorage.removeItem(STORAGE_KEYS.authToken);
+    window.localStorage.removeItem(STORAGE_KEYS.authTokenExpiresAt);
+    return null;
+  }
+
+  return token;
 };
 
 export function OnlineArenaGame({
@@ -131,14 +153,36 @@ export function OnlineArenaGame({
 
   const callApi = async <T,>(path: string, init?: RequestInit, showLoader = true): Promise<T> => {
     return runWithLoader(async () => {
+      const headers = new Headers(init?.headers || undefined);
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+
+      const authToken = readValidAuthToken();
+      if (authToken && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${authToken}`);
+      }
+
       const response = await fetch(`${API_BASE_URL}${path}`, {
-        headers: { 'Content-Type': 'application/json' },
         ...init,
+        headers,
       });
 
-      const payload = await response.json();
+      const text = await response.text();
+      let payload: Record<string, unknown> = {};
+      if (text) {
+        try {
+          payload = JSON.parse(text) as Record<string, unknown>;
+        } catch (_error) {
+          payload = {};
+        }
+      }
       if (!response.ok) {
-        throw new Error(payload?.error || 'Request failed');
+        if (response.status === 401) {
+          window.localStorage.removeItem(STORAGE_KEYS.authToken);
+          window.localStorage.removeItem(STORAGE_KEYS.authTokenExpiresAt);
+        }
+        throw new Error(typeof payload?.error === 'string' ? payload.error : 'Request failed');
       }
 
       return payload as T;
@@ -154,11 +198,7 @@ export function OnlineArenaGame({
   };
 
   const syncRoom = async () => {
-    const payload = await callApi<RoomStatePayload>(
-      `/api/rooms/${encodeURIComponent(roomCode)}?playerId=${encodeURIComponent(player.playerId)}`,
-      undefined,
-      false
-    );
+    const payload = await callApi<RoomStatePayload>(`/api/rooms/${encodeURIComponent(roomCode)}`, undefined, false);
     applyPayload(payload);
   };
 
@@ -168,10 +208,7 @@ export function OnlineArenaGame({
     }
 
     try {
-      const movePayload =
-        typeof move === 'number'
-          ? { playerId: player.playerId, index: move }
-          : { playerId: player.playerId, move };
+      const movePayload = typeof move === 'number' ? { index: move } : { move };
       const payload = await callApi<RoomStatePayload>(
         `/api/rooms/${encodeURIComponent(room.code)}/move`,
         {
@@ -196,7 +233,7 @@ export function OnlineArenaGame({
         `/api/rooms/${encodeURIComponent(room.code)}/rematch`,
         {
           method: 'POST',
-          body: JSON.stringify({ playerId: player.playerId }),
+          body: JSON.stringify({}),
         }
       );
       applyPayload(payload);
@@ -217,7 +254,7 @@ export function OnlineArenaGame({
         `/api/rooms/${encodeURIComponent(room.code)}/leave`,
         {
           method: 'POST',
-          body: JSON.stringify({ playerId: player.playerId }),
+          body: JSON.stringify({}),
         }
       );
       if (payload.you) {

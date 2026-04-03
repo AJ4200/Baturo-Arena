@@ -7,6 +7,8 @@ export const API_BASE_URL =
 export const STORAGE_KEYS = {
   playerId: 'baruto_player_id',
   playerName: 'baruto_player_name',
+  authToken: 'baruto_auth_token_v1',
+  authTokenExpiresAt: 'baruto_auth_token_expires_at_v1',
   musicMuted: 'baruto_music_muted',
   musicVolume: 'baruto_music_volume',
   enableAnimations: 'baruto_enable_animations',

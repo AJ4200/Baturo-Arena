@@ -96,8 +96,12 @@ pnpm start
 ### Environment quick start
 
 1. Copy `.env.example` to `.env`.
-2. Set `POSTGRES_URL` for the API server.
-3. Set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` for Google Sign-In (used for online multiplayer account access).
+2. Set `DATABASE_URL` (or `POSTGRES_URL`) for the API server.
+3. Set `GOOGLE_CLIENT_ID` for the API server Google token verification (`ba_server`).
+4. Set `NEXT_PUBLIC_GOOGLE_CLIENT_ID` for frontend Google Sign-In (`ba_web`).
+5. Optional: set `NEXT_PUBLIC_GOOGLE_USE_FEDCM=true` to force FedCM prompt mode; default behavior is standard Google prompt mode.
+6. Optional: set `AUTH_SESSION_TTL_HOURS` to control login session duration (defaults to `168` hours).
+7. Optional DB resilience vars: `DB_CONNECTION_TIMEOUT_MS`, `DB_CONNECT_RETRIES`, `DB_CONNECT_RETRY_DELAY_MS`, `DB_POOL_MAX`.
 
 ---
 
