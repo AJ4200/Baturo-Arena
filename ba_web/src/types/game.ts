@@ -1,6 +1,8 @@
-export type Screen = 'home' | 'game-select' | 'lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
+export type Screen = 'home' | 'game-type-select' | 'game-select' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
 export type GameMode = 'online' | 'cpu';
+
+export type GameTypeCategory = 'online-multiplayer' | 'online' | 'single-player' | 'all';
 
 export type GameType =
   | 'tic-tac-two'
