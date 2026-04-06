@@ -16,23 +16,29 @@ type ProfileDockProps = {
   isOpen: boolean;
   account: GoogleAccount | null;
   playerProfile: PlayerProfile | null;
+  playerName: string;
   isSigningIn: boolean;
   onToggleOpen: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
+  onPlayerNameChange: (value: string) => void;
+  onSaveName: () => void;
 };
 
 export function ProfileDock({
   isOpen,
   account,
   playerProfile,
+  playerName,
   isSigningIn,
   onToggleOpen,
   onSignIn,
   onSignOut,
+  onPlayerNameChange,
+  onSaveName,
 }: ProfileDockProps) {
   const isConnected = Boolean(account?.sub);
-  const displayName = (playerProfile?.name || account?.name || 'Player').trim() || 'Player';
+  const displayName = (playerProfile?.name || account?.name || playerName || 'Player').trim() || 'Player';
   const profileAvatar = `https://robohash.org/${encodeURIComponent(displayName)}?size=160x160`;
 
   return (
@@ -88,6 +94,25 @@ export function ProfileDock({
             )}
             <strong>{playerProfile ? displayName : 'Guest mode'}</strong>
             <span>Google sign-in is required only for online multiplayer.</span>
+            <input
+              className="profile-dock-input"
+              value={playerName}
+              onChange={(event) => onPlayerNameChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  onSaveName();
+                }
+              }}
+              placeholder="Set guest name"
+            />
+            <button
+              className={classnames('lobby-btn', 'custome-shadow', 'profile-dock-auth-btn')}
+              type="button"
+              onClick={onSaveName}
+            >
+              Save Name
+            </button>
             {playerProfile ? <span>Player ID: {playerProfile.playerId} | Guest mode</span> : null}
             {playerProfile ? (
               <div className="profile-dock-stats">

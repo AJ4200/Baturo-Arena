@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import { IconContext } from 'react-icons';
@@ -8,6 +8,7 @@ import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
+import { GameTypeSelectScreen } from '@/features/home/GameTypeSelectScreen';
 import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
@@ -25,6 +26,7 @@ import type {
   GameDefinition,
   GameMode,
   GameType,
+  GameTypeCategory,
   LeaderboardCategory,
   LeaderboardPayload,
   MatchHistoryEntry,
@@ -232,6 +234,7 @@ export default function Home() {
   const [gameMode, setGameMode] = useState<GameMode>('online');
   const [selectedGame, setSelectedGame] = useState<GameType>('tic-tac-two');
   const [activeGameType, setActiveGameType] = useState<GameType>('tic-tac-two');
+  const [selectedGameCategory, setSelectedGameCategory] = useState<GameTypeCategory>('all');
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>(FALLBACK_GAMES);
   const [leaderboardCategory, setLeaderboardCategory] = useState<GameType | 'overall'>('overall');
   const [historyCategory, setHistoryCategory] = useState<GameType | 'all'>('all');
@@ -868,6 +871,29 @@ export default function Home() {
     [availableGames]
   );
 
+  const getGamesByCategory = useCallback(
+    (category: GameTypeCategory): GameDefinition[] => {
+      return availableGames.filter((game) => {
+        if (category === 'online-multiplayer') {
+          return game.supportsOnline && game.minPlayers >= 2;
+        }
+        if (category === 'online') {
+          return game.supportsOnline;
+        }
+        if (category === 'single-player') {
+          return !game.supportsOnline || game.maxPlayers === 1;
+        }
+        return true;
+      });
+    },
+    [availableGames]
+  );
+
+  const filteredGames = useMemo(
+    () => getGamesByCategory(selectedGameCategory),
+    [getGamesByCategory, selectedGameCategory]
+  );
+
   const ensurePlayer = async (identity?: { playerId: string; name: string }) => {
     const savedPlayerId = identity?.playerId || window.localStorage.getItem(STORAGE_KEYS.playerId);
     const payload = await callApi<PlayerProfile>('/api/players/register', {
@@ -1171,7 +1197,7 @@ export default function Home() {
       return (
         <MainMenu
           enableAnimations={enableAnimations}
-          onPlay={() => setScreen('game-select')}
+          onPlay={() => setScreen('game-type-select')}
           onLeaderboard={() => {
             refreshLeaderboard().catch(() => {
               setMessage('Could not load leaderboard');
@@ -1184,14 +1210,45 @@ export default function Home() {
       );
     }
 
+    if (screen === 'game-type-select') {
+      return (
+        <GameTypeSelectScreen
+          games={availableGames}
+          selectedCategory={selectedGameCategory}
+          onSelectCategory={(category) => {
+            const filtered = getGamesByCategory(category);
+            if (filtered.length > 0 && !filtered.some((game) => game.id === selectedGame)) {
+              setSelectedGame(filtered[0].id);
+            }
+            setSelectedGameCategory(category);
+          }}
+          onBack={() => setScreen('home')}
+          onContinue={() => {
+            const filtered = getGamesByCategory(selectedGameCategory);
+            if (filtered.length === 0) {
+              setMessage('No games are available for that category yet.');
+              return;
+            }
+            if (!filtered.some((game) => game.id === selectedGame)) {
+              setSelectedGame(filtered[0].id);
+            }
+            setScreen('game-select');
+          }}
+        />
+      );
+    }
+
     if (screen === 'game-select') {
       return (
         <GameSelectScreen
-          games={availableGames}
+          games={filteredGames}
           selectedGame={selectedGame}
           onSelectGame={setSelectedGame}
-          onBack={() => setScreen('home')}
-          onContinue={() => setScreen('lobby')}
+          onBack={() => setScreen('game-type-select')}
+          onContinue={() => {
+            const selectedDefinition = findGameDefinition(selectedGame);
+            setScreen(selectedDefinition.supportsOnline ? 'lobby' : 'single-player-lobby');
+          }}
         />
       );
     }
@@ -1211,7 +1268,7 @@ export default function Home() {
           message={isGoogleOnlineNotice ? '' : message}
           isLoading={isLoading}
           onClearMessage={() => setMessage('')}
-          onBack={() => setScreen('home')}
+          onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
           onCpuDifficultyChange={applyCpuDifficulty}
           onPlayerNameChange={setPlayerName}
@@ -1236,6 +1293,43 @@ export default function Home() {
             });
           }}
           onJoinRoom={(code) => void joinRoom(code)}
+          onPlayCpu={() => void startCpuMatch()}
+        />
+      );
+    }
+
+    if (screen === 'single-player-lobby') {
+      return (
+        <LobbyScreen
+          playerName={playerName}
+          roomName={roomName}
+          joinCode={joinCode}
+          selectedGame={selectedGame}
+          cpuDifficulty={cpuDifficulty}
+          games={availableGames}
+          publicRooms={publicRooms}
+          playerProfile={player}
+          googleAccount={googleAccount}
+          message={isGoogleOnlineNotice ? '' : message}
+          isLoading={isLoading}
+          isSinglePlayerMode={true}
+          onClearMessage={() => setMessage('')}
+          onBack={() => setScreen('game-select')}
+          onGameChange={setSelectedGame}
+          onCpuDifficultyChange={applyCpuDifficulty}
+          onPlayerNameChange={setPlayerName}
+          onRoomNameChange={setRoomName}
+          onJoinCodeChange={setJoinCode}
+          onSaveName={() => {
+            ensurePlayer()
+              .then((registeredPlayer) => {
+                setPlayer(registeredPlayer);
+                setMessage('Profile saved');
+              })
+              .catch((error) => {
+                setMessage(error instanceof Error ? error.message : 'Could not save profile');
+              });
+          }}
           onPlayCpu={() => void startCpuMatch()}
         />
       );
@@ -1398,10 +1492,22 @@ export default function Home() {
           isOpen={isProfileDockOpen}
           account={googleAccount}
           playerProfile={player}
+          playerName={playerName}
           isSigningIn={isGoogleSignInLoading}
           onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
           onSignIn={startGoogleSignIn}
           onSignOut={signOutGoogle}
+          onPlayerNameChange={setPlayerName}
+          onSaveName={() => {
+            ensurePlayer()
+              .then((registeredPlayer) => {
+                setPlayer(registeredPlayer);
+                setMessage('Profile saved');
+              })
+              .catch((error) => {
+                setMessage(error instanceof Error ? error.message : 'Could not save profile');
+              });
+          }}
         />
         {screen === 'lobby' && isGoogleOnlineNotice ? (
           <GoogleNoticeDock
