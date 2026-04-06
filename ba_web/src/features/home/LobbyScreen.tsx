@@ -1,3 +1,5 @@
+'use client';
+
 import classnames from 'classnames';
 import {
   AiOutlineArrowLeft,
@@ -27,6 +29,7 @@ type LobbyScreenProps = {
   googleAccount: GoogleAccount | null;
   message: string;
   isLoading: boolean;
+  isSinglePlayerMode?: boolean;
   onClearMessage: () => void;
   onBack: () => void;
   onGameChange: (value: GameType) => void;
@@ -35,11 +38,11 @@ type LobbyScreenProps = {
   onRoomNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
   onSaveName: () => void;
-  onCreatePublic: () => void;
-  onCreatePrivate: () => void;
-  onJoinByCode: () => void;
-  onRefreshRooms: () => void;
-  onJoinRoom: (code: string) => void;
+  onCreatePublic?: () => void;
+  onCreatePrivate?: () => void;
+  onJoinByCode?: () => void;
+  onRefreshRooms?: () => void;
+  onJoinRoom?: (code: string) => void;
   onPlayCpu: () => void;
 };
 
@@ -55,6 +58,7 @@ export function LobbyScreen({
   googleAccount,
   message,
   isLoading,
+  isSinglePlayerMode = false,
   onClearMessage,
   onBack,
   onGameChange,
@@ -174,7 +178,7 @@ export function LobbyScreen({
   };
 
   const handleCreateRoom = () => {
-    if (!supportsOnline || isLoading) {
+    if (!supportsOnline || isLoading || !onCreatePublic || !onCreatePrivate) {
       return;
     }
     if (createRoomMode === 'public') {
@@ -287,14 +291,14 @@ export function LobbyScreen({
                   className="lobby-profile-avatar"
                 />
               </div>
-            <div className="lobby-profile-meta">
-              <strong className="custome-shadow-invert">{profilePreviewName}</strong>
-              <span>
-                {playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}
-                {isGoogleConnected ? ' | Google connected' : ' | Guest mode'}
-              </span>
-              {isGoogleConnected && googleAccount?.email ? <span>{googleAccount.email}</span> : null}
-            </div>
+              <div className="lobby-profile-meta">
+                <strong className="custome-shadow-invert">{profilePreviewName}</strong>
+                <span>
+                  {playerProfile ? `Player ID: ${playerProfile.playerId}` : 'Live avatar preview'}
+                  {isGoogleConnected ? ' | Google connected' : ' | Guest mode'}
+                </span>
+                {isGoogleConnected && googleAccount?.email ? <span>{googleAccount.email}</span> : null}
+              </div>
             </div>
             {playerProfile ? (
               <div className="public-room-summary">
@@ -322,254 +326,260 @@ export function LobbyScreen({
             </div>
           </section>
 
-          <section className="lobby-panel lobby-panel-create">
-            <div className="lobby-panel-head lobby-panel-head-static">
-              <div>
-                <p className="lobby-panel-title">Create Online Room</p>
-                <p className="lobby-panel-subtitle">
-                  Spin up a public room for quick joins or private room for invite-only matches.
-                </p>
+          {!isSinglePlayerMode && onCreatePublic && onCreatePrivate ? (
+            <section className="lobby-panel lobby-panel-create">
+              <div className="lobby-panel-head lobby-panel-head-static">
+                <div>
+                  <p className="lobby-panel-title">Create Online Room</p>
+                  <p className="lobby-panel-subtitle">
+                    Spin up a public room for quick joins or private room for invite-only matches.
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="create-room-visibility">
-              <button
-                className={classnames(
-                  'create-room-mode-btn',
-                  createRoomMode === 'public' && 'create-room-mode-btn-active'
-                )}
-                type="button"
-                disabled={!supportsOnline}
-                onClick={() => setCreateRoomMode('public')}
-              >
-                Public Room
-              </button>
-              <button
-                className={classnames(
-                  'create-room-mode-btn',
-                  createRoomMode === 'private' && 'create-room-mode-btn-active'
-                )}
-                type="button"
-                disabled={!supportsOnline}
-                onClick={() => setCreateRoomMode('private')}
-              >
-                Private Room
-              </button>
-            </div>
-            <p className="create-room-mode-hint">
-              {createRoomMode === 'public'
-                ? 'Public rooms show in discovery and can be joined quickly.'
-                : 'Private rooms stay hidden and require your room code.'}
-            </p>
-            <div className="lobby-row">
-              <input
-                className="lobby-input"
-                value={roomName}
-                disabled={!supportsOnline}
-                onChange={(event) => onRoomNameChange(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    handleCreateRoom();
-                  }
-                }}
-                placeholder={supportsOnline ? `${selectedGameName} room name` : 'Online rooms are disabled for this game'}
-              />
-              <button
-                className={classnames('lobby-btn', 'custome-shadow', 'lobby-btn-create-primary')}
-                type="button"
-                disabled={isLoading || !supportsOnline}
-                onClick={handleCreateRoom}
-              >
-                {createRoomMode === 'public' ? 'Create Public Room' : 'Create Private Room'}
-              </button>
-            </div>
-            <div className="create-room-suggestions">
-              {roomNameSuggestions.map((suggestion) => (
+              <div className="create-room-visibility">
                 <button
-                  key={suggestion}
                   className={classnames(
-                    'create-room-suggestion-btn',
-                    roomName === suggestion && 'create-room-suggestion-btn-active'
+                    'create-room-mode-btn',
+                    createRoomMode === 'public' && 'create-room-mode-btn-active'
                   )}
                   type="button"
                   disabled={!supportsOnline}
-                  onClick={() => onRoomNameChange(suggestion)}
+                  onClick={() => setCreateRoomMode('public')}
                 >
-                  {suggestion}
+                  Public Room
                 </button>
-              ))}
-            </div>
-            <p className="create-room-name-meta">
-              {roomName.trim().length > 0
-                ? `${roomName.trim().length} characters`
-                : 'Leave blank to use default room naming.'}
-            </p>
-          </section>
-        </div>
-
-        <section className="lobby-panel lobby-panel-join">
-          <div className="lobby-panel-head">
-            <div>
-              <p className="lobby-panel-title">Join Private Room</p>
-              <p className="lobby-panel-subtitle">Have a code? Paste it and jump straight into the match.</p>
-            </div>
-            <span className="join-room-chip">
-              <AiOutlineKey /> 8-Char Code
-            </span>
-          </div>
-          <div className="lobby-row lobby-row-join">
-            <input
-              className="lobby-input"
-              value={joinCode}
-              disabled={!supportsOnline}
-              onChange={(event) =>
-                onJoinCodeChange(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
-              }
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  if (!isLoading && supportsOnline) {
-                    onJoinByCode();
-                  }
-                }
-              }}
-              placeholder={supportsOnline ? 'private room code' : 'Join by code is disabled for this game'}
-            />
-            <button
-              className={classnames('lobby-btn', 'custome-shadow', 'join-room-btn-primary')}
-              type="button"
-              disabled={isLoading || !supportsOnline}
-              onClick={onJoinByCode}
-            >
-              Join by Code
-            </button>
-          </div>
-          <p className="join-room-hint">Tip: code accepts letters and numbers only, and auto-formats as you type.</p>
-        </section>
-
-        <div className="public-rooms lobby-panel">
-          <div className="lobby-panel-head lobby-panel-head-static public-room-head">
-            <div>
-              <p className="lobby-panel-title">Public Rooms | {selectedGameName}</p>
-              <p className="lobby-panel-subtitle">Discover active rooms and use filters to find your next match.</p>
-            </div>
-          </div>
-          {supportsOnline ? (
-            <>
-              <div className="public-room-summary">
-                <span className="public-room-pill">Total {roomStats.total}</span>
-                <span className="public-room-pill">Waiting {roomStats.waiting}</span>
-                <span className="public-room-pill">Playing {roomStats.playing}</span>
-                <span className="public-room-pill">Open {roomStats.openSlots}</span>
-              </div>
-
-              <div className="public-room-tools">
-                <input
-                  className="lobby-input public-room-search"
-                  value={roomQuery}
-                  onChange={(event) => setRoomQuery(event.target.value)}
-                  placeholder="Search room name or code"
-                />
-                <select
-                  className="settings-select"
-                  value={roomStatusFilter}
-                  onChange={(event) =>
-                    setRoomStatusFilter(event.target.value as 'all' | 'waiting' | 'playing' | 'open')
-                  }
-                >
-                  <option value="all">All Status</option>
-                  <option value="waiting">Waiting</option>
-                  <option value="playing">Playing</option>
-                  <option value="open">Open Slots</option>
-                </select>
-                <button
-                  className={classnames('lobby-btn', 'custome-shadow', 'public-room-refresh-btn')}
-                  type="button"
-                  disabled={isLoading}
-                  onClick={onRefreshRooms}
-                >
-                  <AiOutlineReload /> Refresh List
-                </button>
-              </div>
-            </>
-          ) : null}
-          {!supportsOnline ? (
-            <p className="public-room-empty">{formatGameName(selectedGame, games)} is single-player only. Start a solo run above.</p>
-          ) : filteredRooms.length === 0 ? (
-            <p className="public-room-empty">No public rooms match this filter yet.</p>
-          ) : (
-            filteredRooms.map((roomItem) => (
-              <div key={roomItem.code} className="public-room-item">
-                <div className="public-room-main">
-                  <div className="public-room-top">
-                    <p className="public-room-title">{roomItem.name}</p>
-                    <span
-                      className={classnames(
-                        'public-room-status-pill',
-                        roomItem.status === 'waiting' && 'public-room-status-pill-waiting',
-                        roomItem.status === 'playing' && 'public-room-status-pill-playing',
-                        roomItem.status === 'finished' && 'public-room-status-pill-finished'
-                      )}
-                    >
-                      {roomItem.status === 'waiting' ? (
-                        <AiOutlineClockCircle />
-                      ) : roomItem.status === 'playing' ? (
-                        <AiOutlinePlayCircle />
-                      ) : (
-                        <AiOutlineCheckCircle />
-                      )}{' '}
-                      {roomItem.status}
-                    </span>
-                  </div>
-                  <div className="public-room-meta">
-                    <span className="public-room-meta-pill">
-                      <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
-                    </span>
-                    <span className="public-room-meta-pill">{formatGameName(roomItem.gameType, games)}</span>
-                    <span className="public-room-meta-pill">Host {roomItem.creatorName}</span>
-                    <span className="public-room-meta-pill">Updated {formatUpdatedTime(roomItem.updatedAt)}</span>
-                    <span className="public-room-meta-pill public-room-code-pill">
-                      Code <span className="public-room-code-badge">{roomItem.code}</span>
-                    </span>
-                    <button
-                      className="room-code-copy-btn"
-                      type="button"
-                      onClick={() => void handleCopyRoomCode(roomItem.code)}
-                      aria-label={`Copy room code ${roomItem.code}`}
-                      title={copiedRoomCode === roomItem.code ? 'Copied' : 'Copy room code'}
-                    >
-                      <AiOutlineCopy />
-                    </button>
-                    {copiedRoomCode === roomItem.code ? <span className="room-code-copy-feedback">Copied</span> : null}
-                  </div>
-                  {roomItem.players.length > 0 ? (
-                    <div className="public-room-meta">
-                      {roomItem.players.map((joinedPlayer) => (
-                        <span key={`${roomItem.code}-${joinedPlayer.playerId}`} className="public-room-meta-pill">
-                          {joinedPlayer.symbol} · {joinedPlayer.name} ({joinedPlayer.wins}-{joinedPlayer.losses}-
-                          {joinedPlayer.draws})
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
                 <button
                   className={classnames(
-                    'lobby-btn',
-                    'custome-shadow',
-                    'public-room-join-btn',
-                    roomItem.playersCount >= roomItem.maxPlayers && 'public-room-join-btn-full'
+                    'create-room-mode-btn',
+                    createRoomMode === 'private' && 'create-room-mode-btn-active'
                   )}
                   type="button"
-                  disabled={isLoading || roomItem.playersCount >= roomItem.maxPlayers}
-                  onClick={() => onJoinRoom(roomItem.code)}
+                  disabled={!supportsOnline}
+                  onClick={() => setCreateRoomMode('private')}
                 >
-                  {roomItem.playersCount >= roomItem.maxPlayers ? 'Full' : 'Join'}
+                  Private Room
                 </button>
               </div>
-            ))
-          )}
+              <p className="create-room-mode-hint">
+                {createRoomMode === 'public'
+                  ? 'Public rooms show in discovery and can be joined quickly.'
+                  : 'Private rooms stay hidden and require your room code.'}
+              </p>
+              <div className="lobby-row">
+                <input
+                  className="lobby-input"
+                  value={roomName}
+                  disabled={!supportsOnline}
+                  onChange={(event) => onRoomNameChange(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      handleCreateRoom();
+                    }
+                  }}
+                  placeholder={supportsOnline ? `${selectedGameName} room name` : 'Online rooms are disabled for this game'}
+                />
+                <button
+                  className={classnames('lobby-btn', 'custome-shadow', 'lobby-btn-create-primary')}
+                  type="button"
+                  disabled={isLoading || !supportsOnline}
+                  onClick={handleCreateRoom}
+                >
+                  {createRoomMode === 'public' ? 'Create Public Room' : 'Create Private Room'}
+                </button>
+              </div>
+              <div className="create-room-suggestions">
+                {roomNameSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    className={classnames(
+                      'create-room-suggestion-btn',
+                      roomName === suggestion && 'create-room-suggestion-btn-active'
+                    )}
+                    type="button"
+                    disabled={!supportsOnline}
+                    onClick={() => onRoomNameChange(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+              <p className="create-room-name-meta">
+                {roomName.trim().length > 0
+                  ? `${roomName.trim().length} characters`
+                  : 'Leave blank to use default room naming.'}
+              </p>
+            </section>
+          ) : null}
         </div>
+
+        {!isSinglePlayerMode && onJoinByCode ? (
+          <section className="lobby-panel lobby-panel-join">
+            <div className="lobby-panel-head">
+              <div>
+                <p className="lobby-panel-title">Join Private Room</p>
+                <p className="lobby-panel-subtitle">Have a code? Paste it and jump straight into the match.</p>
+              </div>
+              <span className="join-room-chip">
+                <AiOutlineKey /> 8-Char Code
+              </span>
+            </div>
+            <div className="lobby-row lobby-row-join">
+              <input
+                className="lobby-input"
+                value={joinCode}
+                disabled={!supportsOnline}
+                onChange={(event) =>
+                  onJoinCodeChange(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))
+                }
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    if (!isLoading && supportsOnline && onJoinByCode) {
+                      onJoinByCode();
+                    }
+                  }
+                }}
+                placeholder={supportsOnline ? 'private room code' : 'Join by code is disabled for this game'}
+              />
+              <button
+                className={classnames('lobby-btn', 'custome-shadow', 'join-room-btn-primary')}
+                type="button"
+                disabled={isLoading || !supportsOnline}
+                onClick={onJoinByCode}
+              >
+                Join by Code
+              </button>
+            </div>
+            <p className="join-room-hint">Tip: code accepts letters and numbers only, and auto-formats as you type.</p>
+          </section>
+        ) : null}
+
+        {!isSinglePlayerMode && onRefreshRooms && onJoinRoom ? (
+          <div className="public-rooms lobby-panel">
+            <div className="lobby-panel-head lobby-panel-head-static public-room-head">
+              <div>
+                <p className="lobby-panel-title">Public Rooms | {selectedGameName}</p>
+                <p className="lobby-panel-subtitle">Discover active rooms and use filters to find your next match.</p>
+              </div>
+            </div>
+            {supportsOnline ? (
+              <>
+                <div className="public-room-summary">
+                  <span className="public-room-pill">Total {roomStats.total}</span>
+                  <span className="public-room-pill">Waiting {roomStats.waiting}</span>
+                  <span className="public-room-pill">Playing {roomStats.playing}</span>
+                  <span className="public-room-pill">Open {roomStats.openSlots}</span>
+                </div>
+
+                <div className="public-room-tools">
+                  <input
+                    className="lobby-input public-room-search"
+                    value={roomQuery}
+                    onChange={(event) => setRoomQuery(event.target.value)}
+                    placeholder="Search room name or code"
+                  />
+                  <select
+                    className="settings-select"
+                    value={roomStatusFilter}
+                    onChange={(event) =>
+                      setRoomStatusFilter(event.target.value as 'all' | 'waiting' | 'playing' | 'open')
+                    }
+                  >
+                    <option value="all">All Status</option>
+                    <option value="waiting">Waiting</option>
+                    <option value="playing">Playing</option>
+                    <option value="open">Open Slots</option>
+                  </select>
+                  <button
+                    className={classnames('lobby-btn', 'custome-shadow', 'public-room-refresh-btn')}
+                    type="button"
+                    disabled={isLoading}
+                    onClick={onRefreshRooms}
+                  >
+                    <AiOutlineReload /> Refresh List
+                  </button>
+                </div>
+              </>
+            ) : null}
+            {!supportsOnline ? (
+              <p className="public-room-empty">{formatGameName(selectedGame, games)} is single-player only. Start a solo run above.</p>
+            ) : filteredRooms.length === 0 ? (
+              <p className="public-room-empty">No public rooms match this filter yet.</p>
+            ) : (
+              filteredRooms.map((roomItem) => (
+                <div key={roomItem.code} className="public-room-item">
+                  <div className="public-room-main">
+                    <div className="public-room-top">
+                      <p className="public-room-title">{roomItem.name}</p>
+                      <span
+                        className={classnames(
+                          'public-room-status-pill',
+                          roomItem.status === 'waiting' && 'public-room-status-pill-waiting',
+                          roomItem.status === 'playing' && 'public-room-status-pill-playing',
+                          roomItem.status === 'finished' && 'public-room-status-pill-finished'
+                        )}
+                      >
+                        {roomItem.status === 'waiting' ? (
+                          <AiOutlineClockCircle />
+                        ) : roomItem.status === 'playing' ? (
+                          <AiOutlinePlayCircle />
+                        ) : (
+                          <AiOutlineCheckCircle />
+                        )}{' '}
+                        {roomItem.status}
+                      </span>
+                    </div>
+                    <div className="public-room-meta">
+                      <span className="public-room-meta-pill">
+                        <AiOutlineTeam /> {roomItem.playersCount}/{roomItem.maxPlayers} players
+                      </span>
+                      <span className="public-room-meta-pill">{formatGameName(roomItem.gameType, games)}</span>
+                      <span className="public-room-meta-pill">Host {roomItem.creatorName}</span>
+                      <span className="public-room-meta-pill">Updated {formatUpdatedTime(roomItem.updatedAt)}</span>
+                      <span className="public-room-meta-pill public-room-code-pill">
+                        Code <span className="public-room-code-badge">{roomItem.code}</span>
+                      </span>
+                      <button
+                        className="room-code-copy-btn"
+                        type="button"
+                        onClick={() => void handleCopyRoomCode(roomItem.code)}
+                        aria-label={`Copy room code ${roomItem.code}`}
+                        title={copiedRoomCode === roomItem.code ? 'Copied' : 'Copy room code'}
+                      >
+                        <AiOutlineCopy />
+                      </button>
+                      {copiedRoomCode === roomItem.code ? <span className="room-code-copy-feedback">Copied</span> : null}
+                    </div>
+                    {roomItem.players.length > 0 ? (
+                      <div className="public-room-meta">
+                        {roomItem.players.map((joinedPlayer) => (
+                          <span key={`${roomItem.code}-${joinedPlayer.playerId}`} className="public-room-meta-pill">
+                            {joinedPlayer.symbol} · {joinedPlayer.name} ({joinedPlayer.wins}-{joinedPlayer.losses}-
+                            {joinedPlayer.draws})
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  <button
+                    className={classnames(
+                      'lobby-btn',
+                      'custome-shadow',
+                      'public-room-join-btn',
+                      roomItem.playersCount >= roomItem.maxPlayers && 'public-room-join-btn-full'
+                    )}
+                    type="button"
+                    disabled={isLoading || roomItem.playersCount >= roomItem.maxPlayers}
+                    onClick={() => onJoinRoom(roomItem.code)}
+                  >
+                    {roomItem.playersCount >= roomItem.maxPlayers ? 'Full' : 'Join'}
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        ) : null}
       </div>
 
       {message ? (
