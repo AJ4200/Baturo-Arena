@@ -358,20 +358,6 @@ export function SoloSudokuGame({
     }
   }, [onMatchComplete, state.hasGivenUp, state.isComplete, state.puzzle.difficulty]);
 
-  const moveSelectedCell = useCallback((rowStep: number, columnStep: number) => {
-    setState((currentState) => {
-      const selectedIndex = currentState.selectedCell ?? 0;
-      const currentRow = Math.floor(selectedIndex / GRID_SIZE);
-      const currentColumn = selectedIndex % GRID_SIZE;
-      const nextRow = (currentRow + rowStep + GRID_SIZE) % GRID_SIZE;
-      const nextColumn = (currentColumn + columnStep + GRID_SIZE) % GRID_SIZE;
-      return {
-        ...currentState,
-        selectedCell: nextRow * GRID_SIZE + nextColumn,
-      };
-    });
-  }, []);
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key;
