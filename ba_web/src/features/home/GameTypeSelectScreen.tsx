@@ -8,6 +8,7 @@ import {
   AiOutlineRobot,
   AiOutlineAppstore,
   AiOutlinePlayCircle,
+  AiOutlineCheckCircle,
 } from 'react-icons/ai';
 import type { GameTypeCategory, GameDefinition } from '@/types/game';
 
@@ -59,10 +60,10 @@ export function GameTypeSelectScreen({
       icon: <AiOutlineTeam />,
     },
     {
-      id: 'online',
-      label: 'Online Games',
-      description: `${getGameCountByCategory('online')} games - All online-enabled games`,
-      icon: <AiOutlinePlayCircle />,
+      id: 'all',
+      label: 'All Games',
+      description: `${getGameCountByCategory('all')} games - Browse everything`,
+      icon: <AiOutlineAppstore />,
     },
     {
       id: 'single-player',
@@ -70,12 +71,7 @@ export function GameTypeSelectScreen({
       description: `${getGameCountByCategory('single-player')} games - Solo challenges`,
       icon: <AiOutlineRobot />,
     },
-    {
-      id: 'all',
-      label: 'All Games',
-      description: `${getGameCountByCategory('all')} games - Browse everything`,
-      icon: <AiOutlineAppstore />,
-    },
+
   ];
 
   return (
@@ -102,7 +98,7 @@ export function GameTypeSelectScreen({
           {gameTypeOptions.map((option) => (
             <div
               key={option.id}
-              className={classnames('game-type-card', selectedCategory === option.id && 'game-type-card-active')}
+              className={classnames('game-type-card flex flex-col items-center', selectedCategory === option.id && 'game-type-card-active')}
             >
               <button
                 className="game-type-card-select"
@@ -116,7 +112,7 @@ export function GameTypeSelectScreen({
 
               {selectedCategory === option.id ? (
                 <button className="game-type-play-btn" type="button" onClick={onContinue}>
-                  Continue
+                 <AiOutlineCheckCircle /> Continue
                 </button>
               ) : null}
             </div>

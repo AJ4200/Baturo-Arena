@@ -249,9 +249,9 @@ export function LobbyScreen({
             >
               <span className="lobby-cpu-cta-main">
                 {supportsOnline ? <AiOutlineRobot /> : <AiOutlinePlayCircle />} Play {selectedGameName}{' '}
-                {supportsOnline ? 'vs CPU' : 'Solo'}
+                {supportsOnline ? 'vs CPU' : ''}
               </span>
-              <small>{supportsCpu ? 'Quick practice run' : 'CPU mode unavailable for this game'}</small>
+              <small>{supportsCpu && supportsOnline ? 'Quick practice run' :  ''}</small>
             </button>
           </div>
         </div>
