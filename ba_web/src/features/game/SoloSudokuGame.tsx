@@ -319,7 +319,7 @@ export function SoloSudokuGame({
     { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, onClick: () => moveSelectedCell(0, -1) },
     { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => moveSelectedCell(0, 1) },
     { key: 'clear', label: 'Clear', icon: <AiOutlineCloseCircle />, onClick: handleClearCell },
-    { key: 'new', label: 'New Puzzle', icon: <AiOutlineReload />, onClick: handleNewPuzzle },
+    { key: 'new', label: 'New', icon: <AiOutlineReload />, onClick: handleNewPuzzle },
     { key: 'giveup', label: 'Give Up', icon: <AiOutlineFlag />, onClick: handleGiveUp },
     ...Array.from({ length: 9 }, (_, index) => ({
       key: `num-${index + 1}`,
@@ -327,8 +327,6 @@ export function SoloSudokuGame({
       icon: <strong>{index + 1}</strong>,
       onClick: () => setCellValue(index + 1),
     })),
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
   ];
 
   useEffect(() => {
@@ -414,6 +412,7 @@ export function SoloSudokuGame({
         title="Sudoku Controller"
         subtitle="Use the keypad to fill cells"
         buttons={controllerButtons}
+        isNumpad={true}
       />
 
       <motion.div

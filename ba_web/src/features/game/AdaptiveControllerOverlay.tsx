@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
-import { AiOutlineAppstore, AiOutlineDrag, AiOutlineClose } from 'react-icons/ai';
+import { AiOutlineDrag, AiOutlineClose, AiOutlineArrowDown } from 'react-icons/ai';
+import { GiGamepad } from 'react-icons/gi';
 
 type ControllerButton = {
   key: string;
@@ -21,6 +22,7 @@ type AdaptiveControllerOverlayProps = {
   buttons: ControllerButton[];
   collapsedLabel?: string;
   initialCollapsed?: boolean;
+  isNumpad?: boolean;
 };
 
 export function AdaptiveControllerOverlay({
@@ -29,6 +31,7 @@ export function AdaptiveControllerOverlay({
   buttons,
   collapsedLabel = 'Controls',
   initialCollapsed = false,
+  isNumpad = false,
 }: AdaptiveControllerOverlayProps) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
 
@@ -36,25 +39,25 @@ export function AdaptiveControllerOverlay({
     <motion.div
       drag
       dragMomentum={false}
-      className={classnames('adaptive-controller-root', collapsed && 'adaptive-controller-collapsed')}
+      className="adaptive-controller-root"
       initial={false}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.16 }}
     >
       {collapsed ? (
         <button
-          className="adaptive-controller-collapsed-btn"
+          className={classnames('adaptive-controller-collapsed-btn', collapsed && 'adaptive-controller-collapsed')}
           type="button"
           onClick={() => setCollapsed(false)}
           aria-label={`Expand ${collapsedLabel}`}
         >
-          <AiOutlineAppstore />
+          <GiGamepad />
         </button>
       ) : (
         <div className="adaptive-controller-card">
           <div className="adaptive-controller-header">
             <span className="adaptive-controller-title">
-              <AiOutlineAppstore /> {title}
+              <GiGamepad /> {title}
             </span>
             <div className="adaptive-controller-header-controls">
               {subtitle ? <span className="adaptive-controller-subtitle">{subtitle}</span> : null}
@@ -64,17 +67,17 @@ export function AdaptiveControllerOverlay({
                 onClick={() => setCollapsed(true)}
                 aria-label="Collapse controls"
               >
-                <AiOutlineClose />
+                <AiOutlineArrowDown />
               </button>
             </div>
           </div>
 
-          <div className="adaptive-controller-grid" role="toolbar" aria-label={title}>
+          <div className={classnames('adaptive-controller-grid', isNumpad && 'adaptive-controller-grid-numpad')} role="toolbar" aria-label={title}>
             {buttons.map((button) => (
               <button
                 key={button.key}
                 type="button"
-                className={classnames('adaptive-controller-btn', button.disabled && 'adaptive-controller-btn-disabled')}
+                className={classnames('adaptive-controller-btn', button.disabled && 'adaptive-controller-btn-disabled', isNumpad && 'adaptive-controller-btn-numpad')}
                 onClick={button.onClick}
                 onPointerDown={button.onPointerDown}
                 onPointerUp={button.onPointerUp}

@@ -627,13 +627,17 @@ h1 span:last-child {
   top: 1.5rem;
   right: 1.5rem;
   z-index: 50;
-  min-width: 260px;
-  max-width: min(92vw, 320px);
+  cursor: grab;
   pointer-events: auto;
 }
 
+.adaptive-controller-root:active {
+  cursor: grabbing;
+}
+
 .adaptive-controller-collapsed {
-  min-width: 0;
+  width: 96px;
+  height: 96px;
 }
 
 .adaptive-controller-card {
@@ -641,6 +645,7 @@ h1 span:last-child {
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.7rem 0.8rem;
+  width: min(90vw, 380px);
   border-radius: 20px;
   border: 4px solid;
   border-color: var(--match-outline, rgba(0, 0, 0, 0.55));
@@ -656,6 +661,8 @@ h1 span:last-child {
     0 18px 34px rgba(0, 0, 0, 0.33),
     inset 0 0 0 1px rgba(var(--match-light-rgb, 255, 255, 255), 0.35);
   user-select: none;
+  transform: skewX(-5deg);
+  animation: roomFloatHover 5s infinite;
 }
 
 .adaptive-controller-card,
@@ -692,35 +699,86 @@ h1 span:last-child {
   white-space: nowrap;
 }
 
+.adaptive-controller-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.42);
+  background: rgba(var(--match-dark-rgb, 24, 24, 24), 0.16);
+  color: var(--match-text, #171717);
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.adaptive-controller-toggle-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(var(--match-dark-rgb, 24, 24, 24), 0.28);
+}
+
 .adaptive-controller-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.42rem;
 }
 
-.adaptive-controller-btn,
+.adaptive-controller-grid.adaptive-controller-grid-numpad {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .adaptive-controller-collapsed-btn {
   all: unset;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  min-height: 3rem;
-  padding: 0.8rem 0.85rem;
-  border-radius: 16px;
-  border: 2px solid rgba(0, 0, 0, 0.16);
-  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.95);
-  color: var(--match-text, #111);
+  width: 100%;
+  height: 100%;
+  border: 4px solid;
+  border-color: var(--match-outline, rgba(0, 0, 0, 0.55));
+  border-radius: 20px;
+  background: linear-gradient(
+      155deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.9),
+      rgba(var(--match-soft-light-rgb, 242, 242, 242), 0.82)
+    ),
+    radial-gradient(circle at top right, var(--match-tint-strong, rgba(255, 255, 255, 0.55)), transparent 58%);
+  color: var(--match-text, #171717);
+  font-size: 2.2rem;
+  cursor: pointer;
+  transform: skewX(-5deg);
+  animation: roomFloatHover 5s infinite;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.adaptive-controller-btn,
+.adaptive-controller-btn.adaptive-controller-btn-numpad {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 2.4rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 14px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.3);
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.88);
+  color: var(--match-text, #171717);
   cursor: pointer;
   text-align: center;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
-.adaptive-controller-btn:hover:not(:disabled),
-.adaptive-controller-collapsed-btn:hover {
+.adaptive-controller-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  background: rgba(var(--match-light-rgb, 255, 255, 255), 1);
-  border-color: rgba(0, 0, 0, 0.28);
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.98);
+  border-color: rgba(var(--match-dark-rgb, 24, 24, 24), 0.5);
+}
+
+.adaptive-controller-collapsed-btn:hover {
+  filter: brightness(1.05);
 }
 
 .adaptive-controller-btn-disabled {
@@ -732,14 +790,25 @@ h1 span:last-child {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.3rem;
-  height: 1.3rem;
-  font-size: 1.1rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 1rem;
 }
 
 .adaptive-controller-btn-label {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1;
+}
+
+.adaptive-controller-btn.adaptive-controller-btn-numpad .adaptive-controller-btn-icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 1.1rem;
+}
+
+.adaptive-controller-btn.adaptive-controller-btn-numpad .adaptive-controller-btn-label {
+  font-size: 0.85rem;
 }
 
 .adaptive-controller-footer {
