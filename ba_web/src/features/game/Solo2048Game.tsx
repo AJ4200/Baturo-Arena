@@ -12,6 +12,7 @@ import {
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -231,6 +232,16 @@ export function Solo2048Game({
     setState(createInitialState());
   }, []);
 
+  const controllerButtons = [
+    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, onClick: () => handleDirection('up') },
+    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, onClick: () => handleDirection('left') },
+    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => handleDirection('right') },
+    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, onClick: () => handleDirection('down') },
+    { key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleReset },
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+
   useEffect(() => {
     setState(createInitialState());
   }, []);
@@ -309,6 +320,12 @@ export function Solo2048Game({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <AdaptiveControllerOverlay
+        title="2048 Controller"
+        subtitle="Tap the arrows to slide tiles"
+        buttons={controllerButtons}
+      />
 
       <motion.div
         drag
