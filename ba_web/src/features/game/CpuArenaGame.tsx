@@ -16,6 +16,7 @@ import {
   AiOutlineRobot,
   AiOutlineTeam,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import PlayerO from '@/components/game/player/PlayerO';
 import PlayerX from '@/components/game/player/PlayerX';
 import { GameBoard } from '@/features/game/GameBoard';
@@ -107,6 +108,13 @@ export function CpuArenaGame({
   const xResult = winner === 'X' ? 'winner' : winner === 'O' ? 'loser' : 'neutral';
   const oResult = winner === 'O' ? 'winner' : winner === 'X' ? 'loser' : 'neutral';
 
+  const controllerButtons = [
+    { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: onLeave },
+  ];
+
   const applyBoardState = (nextBoard: BoardCell[], nextTurn: Symbol) => {
     const result = evaluateBoard(gameType, nextBoard, gameDefinitions);
     setBoard(nextBoard);
@@ -188,6 +196,11 @@ export function CpuArenaGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+      <AdaptiveControllerOverlay
+        title="CPU Controller"
+        subtitle="Quick access to match controls"
+        buttons={controllerButtons}
+      />
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>

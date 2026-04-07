@@ -12,6 +12,7 @@ import {
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -156,6 +157,41 @@ export function SoloMinesweeperGame({
     setElapsedSeconds(0);
     setState(createInitialState());
   }, []);
+
+  const controllerButtons = [
+    {
+      key: 'mode',
+      label: state.flagMode ? 'Reveal Mode' : 'Flag Mode',
+      icon: <AiOutlineFlag />,
+      onClick: () =>
+        setState((currentState) => ({
+          ...currentState,
+          flagMode: !currentState.flagMode,
+        })),
+    },
+    { key: 'new', label: 'New Board', icon: <AiOutlineReload />, onClick: resetBoard },
+    {
+      key: 'giveup',
+      label: 'Give Up',
+      icon: <AiOutlineArrowDown />,
+      onClick: () =>
+        setState((currentState) => {
+          if (currentState.status === 'won' || currentState.status === 'lost') {
+            return currentState;
+          }
+
+          const nextTiles = currentState.tiles.map((tile) => ({ ...tile, isRevealed: true }));
+          return {
+            ...currentState,
+            tiles: nextTiles,
+            status: 'lost',
+            flagMode: false,
+          };
+        }),
+    },
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
 
   const toggleFlagAt = useCallback((index: number) => {
     setState((currentState) => {
@@ -306,6 +342,12 @@ export function SoloMinesweeperGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <AdaptiveControllerOverlay
+        title="Minesweeper Controller"
+        subtitle="Switch between reveal and flag modes"
+        buttons={controllerButtons}
+      />
 
       <motion.div
         drag

@@ -10,6 +10,7 @@ import {
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -432,6 +433,20 @@ export function SoloDinoGame({
     };
   }, [persistBestScore, syncHud]);
 
+  const controllerButtons = [
+    { key: 'jump', label: 'Jump', icon: <AiOutlineArrowUp />, onClick: handleJump },
+    {
+      key: 'duck',
+      label: 'Duck',
+      icon: <AiOutlineArrowDown />,
+      onPointerDown: () => setDuckIntent(true),
+      onPointerUp: () => setDuckIntent(false),
+    },
+    { key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleNewRun },
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
@@ -622,6 +637,12 @@ export function SoloDinoGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <AdaptiveControllerOverlay
+        title="Dino Run Controller"
+        subtitle="Tap jump or hold duck"
+        buttons={controllerButtons}
+      />
 
       <motion.div
         drag

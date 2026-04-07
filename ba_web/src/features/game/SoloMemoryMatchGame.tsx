@@ -11,6 +11,7 @@ import {
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -271,6 +272,13 @@ export function SoloMemoryMatchGame({
   }, [onMatchComplete, state.status]);
 
   const pairsLeft = TOTAL_PAIRS - state.matchedPairs;
+  const controllerButtons = [
+    { key: 'new', label: 'New Deck', icon: <AiOutlineReload />, onClick: handleNewBoard },
+    { key: 'giveup', label: 'Give Up', icon: <AiOutlineFlag />, onClick: handleGiveUp },
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+
   const accuracy = useMemo(() => {
     if (state.moves === 0) {
       return 100;
@@ -284,6 +292,12 @@ export function SoloMemoryMatchGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <AdaptiveControllerOverlay
+        title="Memory Match Controller"
+        subtitle="Flip cards and manage your deck"
+        buttons={controllerButtons}
+      />
 
       <motion.div
         drag

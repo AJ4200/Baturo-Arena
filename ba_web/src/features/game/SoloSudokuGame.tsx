@@ -6,12 +6,15 @@ import { motion } from 'framer-motion';
 import {
   AiOutlineCloseCircle,
   AiOutlineArrowDown,
+  AiOutlineArrowLeft,
+  AiOutlineArrowRight,
   AiOutlineArrowUp,
   AiOutlineDrag,
   AiOutlineFlag,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -296,6 +299,38 @@ export function SoloSudokuGame({
     });
   }, []);
 
+  const moveSelectedCell = useCallback((rowStep: number, columnStep: number) => {
+    setState((currentState) => {
+      const selectedIndex = currentState.selectedCell ?? 0;
+      const currentRow = Math.floor(selectedIndex / GRID_SIZE);
+      const currentColumn = selectedIndex % GRID_SIZE;
+      const nextRow = (currentRow + rowStep + GRID_SIZE) % GRID_SIZE;
+      const nextColumn = (currentColumn + columnStep + GRID_SIZE) % GRID_SIZE;
+      return {
+        ...currentState,
+        selectedCell: nextRow * GRID_SIZE + nextColumn,
+      };
+    });
+  }, []);
+
+  const controllerButtons = [
+    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, onClick: () => moveSelectedCell(-1, 0) },
+    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, onClick: () => moveSelectedCell(1, 0) },
+    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, onClick: () => moveSelectedCell(0, -1) },
+    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => moveSelectedCell(0, 1) },
+    { key: 'clear', label: 'Clear', icon: <AiOutlineCloseCircle />, onClick: handleClearCell },
+    { key: 'new', label: 'New Puzzle', icon: <AiOutlineReload />, onClick: handleNewPuzzle },
+    { key: 'giveup', label: 'Give Up', icon: <AiOutlineFlag />, onClick: handleGiveUp },
+    ...Array.from({ length: 9 }, (_, index) => ({
+      key: `num-${index + 1}`,
+      label: `${index + 1}`,
+      icon: <strong>{index + 1}</strong>,
+      onClick: () => setCellValue(index + 1),
+    })),
+    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
+    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+
   useEffect(() => {
     setState(createInitialState());
   }, []);
@@ -323,21 +358,21 @@ export function SoloSudokuGame({
     }
   }, [onMatchComplete, state.hasGivenUp, state.isComplete, state.puzzle.difficulty]);
 
-  useEffect(() => {
-    const moveSelectedCell = (rowStep: number, columnStep: number) => {
-      setState((currentState) => {
-        const selectedIndex = currentState.selectedCell ?? 0;
-        const currentRow = Math.floor(selectedIndex / GRID_SIZE);
-        const currentColumn = selectedIndex % GRID_SIZE;
-        const nextRow = (currentRow + rowStep + GRID_SIZE) % GRID_SIZE;
-        const nextColumn = (currentColumn + columnStep + GRID_SIZE) % GRID_SIZE;
-        return {
-          ...currentState,
-          selectedCell: nextRow * GRID_SIZE + nextColumn,
-        };
-      });
-    };
+  const moveSelectedCell = useCallback((rowStep: number, columnStep: number) => {
+    setState((currentState) => {
+      const selectedIndex = currentState.selectedCell ?? 0;
+      const currentRow = Math.floor(selectedIndex / GRID_SIZE);
+      const currentColumn = selectedIndex % GRID_SIZE;
+      const nextRow = (currentRow + rowStep + GRID_SIZE) % GRID_SIZE;
+      const nextColumn = (currentColumn + columnStep + GRID_SIZE) % GRID_SIZE;
+      return {
+        ...currentState,
+        selectedCell: nextRow * GRID_SIZE + nextColumn,
+      };
+    });
+  }, []);
 
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key;
 
@@ -388,6 +423,12 @@ export function SoloSudokuGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <AdaptiveControllerOverlay
+        title="Sudoku Controller"
+        subtitle="Use the keypad to fill cells"
+        buttons={controllerButtons}
+      />
 
       <motion.div
         drag

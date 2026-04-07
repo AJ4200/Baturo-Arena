@@ -618,11 +618,122 @@ h1 span:last-child {
   gap: 0.5rem;
   margin-bottom: 0.62rem;
   padding: 0.5rem;
-  border: 2px solid var(--lobby-border);
-  border-radius: 14px;
-  background:
-    var(--lobby-surface-soft),
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.2), transparent 60%);
+
+  /* Adaptive controller overlay styles */
+}
+
+.adaptive-controller-root {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 50;
+  min-width: 260px;
+  max-width: min(92vw, 320px);
+  pointer-events: auto;
+}
+
+.adaptive-controller-collapsed {
+  min-width: 0;
+}
+
+.adaptive-controller-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 18px;
+  border: 2px solid rgba(0, 0, 0, 0.22);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+  color: #111;
+}
+
+.adaptive-controller-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.adaptive-controller-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.adaptive-controller-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.adaptive-controller-subtitle {
+  font-size: 0.77rem;
+  opacity: 0.76;
+  white-space: nowrap;
+}
+
+.adaptive-controller-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.adaptive-controller-btn,
+.adaptive-controller-collapsed-btn {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.8rem 0.85rem;
+  border-radius: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.95);
+  color: #111;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.adaptive-controller-btn:hover:not(:disabled),
+.adaptive-controller-collapsed-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
+.adaptive-controller-btn-disabled {
+  opacity: 0.54;
+  cursor: not-allowed;
+}
+
+.adaptive-controller-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  font-size: 1.1rem;
+}
+
+.adaptive-controller-btn-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.adaptive-controller-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.74;
 }
 
 .public-room-search {
