@@ -56,23 +56,27 @@ export function AdaptiveControllerOverlay({
       ) : (
         <div className="adaptive-controller-card">
           <div className="adaptive-controller-header">
-            <span className="adaptive-controller-title">
-              <GiGamepad /> {title}
+            <span className="room-float-anchor">
+              <AiOutlineDrag /> drag
             </span>
+            <span className="adaptive-controller-title">
+              <GiGamepad /> {title + " " + "Controller"}
+            </span>         
+             <button
+              className="adaptive-controller-toggle-btn"
+              type="button"
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse controls"
+            >
+              <AiOutlineArrowDown />
+            </button>
             <div className="adaptive-controller-header-controls">
               {subtitle ? <span className="adaptive-controller-subtitle">{subtitle}</span> : null}
-              <button
-                className="adaptive-controller-toggle-btn"
-                type="button"
-                onClick={() => setCollapsed(true)}
-                aria-label="Collapse controls"
-              >
-                <AiOutlineArrowDown />
-              </button>
+
             </div>
           </div>
 
-          <div className={classnames('adaptive-controller-grid', isNumpad && 'adaptive-controller-grid-numpad')} role="toolbar" aria-label={title}>
+          <div className={classnames('adaptive-controller-grid', isNumpad && 'adaptive-controller-grid-numpad',title === "2048" && 'solo-2048-controls')} role="toolbar" aria-label={title}>
             {buttons.map((button) => (
               <button
                 key={button.key}
@@ -93,11 +97,6 @@ export function AdaptiveControllerOverlay({
             ))}
           </div>
 
-          <div className="adaptive-controller-footer">
-            <span className="adaptive-controller-drag-hint">
-              <AiOutlineDrag /> Drag anywhere to reposition
-            </span>
-          </div>
         </div>
       )}
     </motion.div>

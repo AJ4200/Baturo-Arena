@@ -238,8 +238,7 @@ export function Solo2048Game({
     { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => handleDirection('right') },
     { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, onClick: () => handleDirection('down') },
     { key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleReset },
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+   
   ];
 
   useEffect(() => {
@@ -322,7 +321,7 @@ export function Solo2048Game({
       </div>
 
       <AdaptiveControllerOverlay
-        title="2048 Controller"
+        title={gameLabel}
         subtitle="Tap the arrows to slide tiles"
         buttons={controllerButtons}
       />
@@ -391,9 +390,6 @@ export function Solo2048Game({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('room-float-action-btn')} type="button" onClick={handleReset}>
-                  <AiOutlineReload /> New Run
-                </button>
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -426,25 +422,6 @@ export function Solo2048Game({
           ))}
         </div>
 
-        <motion.div
-          className="solo-2048-controls"
-          animate={{ y: [6, -6, 6] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          <button className="solo-2048-control solo-2048-up" type="button" onClick={() => handleDirection('up')} aria-label="Move up">
-            <AiOutlineArrowUp />
-          </button>
-          <button className="solo-2048-control solo-2048-left" type="button" onClick={() => handleDirection('left')} aria-label="Move left">
-            <AiOutlineArrowLeft />
-          </button>
-          <button className="solo-2048-control solo-2048-right" type="button" onClick={() => handleDirection('right')} aria-label="Move right">
-            <AiOutlineArrowRight />
-          </button>
-          <button className="solo-2048-control solo-2048-down" type="button" onClick={() => handleDirection('down')} aria-label="Move down">
-            <AiOutlineArrowDown />
-          </button>
-        </motion.div>
-
         <p className="solo-2048-message">
           {state.isGameOver
             ? state.hasWon
@@ -452,7 +429,7 @@ export function Solo2048Game({
               : 'No moves left. Start a new run and try again.'
             : state.hasWon
               ? '2048 reached. Keep merging for a bigger score.'
-              : 'Use arrow keys, WASD, or buttons to slide tiles.'}
+              : 'Use arrow keys, WASD, or controller buttons to slide tiles.'}
         </p>
       </section>
     </>

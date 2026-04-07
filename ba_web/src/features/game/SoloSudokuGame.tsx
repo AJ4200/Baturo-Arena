@@ -477,20 +477,6 @@ export function SoloSudokuGame({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('room-float-action-btn')} type="button" onClick={handleNewPuzzle}>
-                  <AiOutlineReload /> New Puzzle
-                </button>
-                <button className={classnames('room-float-action-btn')} type="button" onClick={handleClearCell}>
-                  <AiOutlineCloseCircle /> Clear Cell
-                </button>
-                <button
-                  className={classnames('room-float-action-btn')}
-                  type="button"
-                  disabled={state.hasGivenUp || state.isComplete}
-                  onClick={handleGiveUp}
-                >
-                  <AiOutlineFlag /> Give Up
-                </button>
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -549,25 +535,7 @@ export function SoloSudokuGame({
           })}
         </div>
 
-        <motion.div
-          className="solo-sudoku-pad"
-          animate={{ y: [6, -6, 6] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          {Array.from({ length: 9 }, (_, i) => i + 1).map((value) => (
-            <button
-              key={value}
-              className="solo-sudoku-pad-btn"
-              type="button"
-              onClick={() => setCellValue(value)}
-            >
-              {value}
-            </button>
-          ))}
-          <button className="solo-sudoku-pad-btn solo-sudoku-pad-clear" type="button" onClick={handleClearCell}>
-            Clear
-          </button>
-        </motion.div>
+       
 
         <p className="solo-sudoku-message">
           {state.isComplete
