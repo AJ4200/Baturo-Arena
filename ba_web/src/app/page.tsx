@@ -20,6 +20,7 @@ import { SettingsScreen } from '@/features/home/SettingsScreen';
 import { useApiClient } from '@/hooks/useApiClient';
 import { STORAGE_KEYS } from '@/lib/constants';
 import { FALLBACK_GAMES } from '@/lib/games';
+import { getOfflineSeats } from '@/lib/offline';
 import { getRandomBrightColor } from '@/lib/random';
 import type {
   CpuDifficulty,
@@ -227,7 +228,7 @@ const APP_MUSIC_TRACKS: MusicTrack[] = [
 ];
 
 const GOOGLE_ONLINE_NOTICE_MESSAGE =
-  'Sign in with Google to access online multiplayer. CPU and solo play do not need an account.';
+  'Sign in with Google to access online multiplayer. CPU and offline play do not need an account.';
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -251,6 +252,13 @@ export default function Home() {
   const [musicVolume, setMusicVolume] = useState(70);
   const [enableAnimations, setEnableAnimations] = useState(true);
   const [cpuDifficulty, setCpuDifficulty] = useState<CpuDifficulty>('medium');
+  const [offlineParticipantCount, setOfflineParticipantCount] = useState(2);
+  const [offlineParticipantNames, setOfflineParticipantNames] = useState<string[]>([
+    'Player',
+    'Player 2',
+    'Player 3',
+    'Player 4',
+  ]);
   const [matchBackgroundColor, setMatchBackgroundColor] = useState('#ffffff');
   const [hasLocalSave, setHasLocalSave] = useState(false);
   const [lastLocalSavedAt, setLastLocalSavedAt] = useState<string | null>(null);
@@ -681,7 +689,9 @@ export default function Home() {
             typeof entry === 'object' &&
             typeof (entry as MatchHistoryEntry).id === 'string' &&
             typeof (entry as MatchHistoryEntry).finishedAt === 'string' &&
-            ((entry as MatchHistoryEntry).mode === 'online' || (entry as MatchHistoryEntry).mode === 'cpu') &&
+            ((entry as MatchHistoryEntry).mode === 'online' ||
+              (entry as MatchHistoryEntry).mode === 'cpu' ||
+              (entry as MatchHistoryEntry).mode === 'offline') &&
             ((entry as MatchHistoryEntry).outcome === 'win' ||
               (entry as MatchHistoryEntry).outcome === 'loss' ||
               (entry as MatchHistoryEntry).outcome === 'draw') &&
@@ -889,6 +899,44 @@ export default function Home() {
     [availableGames]
   );
 
+  const getSupportedModesForGame = useCallback(
+    (gameType: GameType): GameMode[] => {
+      const definition = findGameDefinition(gameType);
+      const modes: GameMode[] = [];
+      if (definition.supportsCpu) {
+        modes.push('cpu');
+      }
+      if (definition.supportsOnline) {
+        modes.push('online');
+      }
+      if (definition.maxPlayers > 1) {
+        modes.push('offline');
+      }
+      return modes;
+    },
+    [findGameDefinition]
+  );
+
+  const getPreferredModeForGame = useCallback(
+    (gameType: GameType, preferredMode?: GameMode): GameMode => {
+      const supportedModes = getSupportedModesForGame(gameType);
+      if (supportedModes.length === 0) {
+        return 'cpu';
+      }
+      if (preferredMode && supportedModes.includes(preferredMode)) {
+        return preferredMode;
+      }
+      if (supportedModes.includes('online')) {
+        return 'online';
+      }
+      if (supportedModes.includes('offline')) {
+        return 'offline';
+      }
+      return supportedModes[0];
+    },
+    [getSupportedModesForGame]
+  );
+
   const filteredGames = useMemo(
     () => getGamesByCategory(selectedGameCategory),
     [getGamesByCategory, selectedGameCategory]
@@ -917,6 +965,67 @@ export default function Home() {
     setActiveGameType(gameType);
     setMatchBackgroundColor(getRandomBrightColor());
     setScreen('game');
+  };
+
+  const getOfflineParticipantCountRange = useCallback(
+    (gameType: GameType) => {
+      const definition = findGameDefinition(gameType);
+      const max = Math.max(2, Math.min(4, definition.maxPlayers));
+      const min = Math.max(2, Math.min(max, definition.minPlayers));
+      return { min, max };
+    },
+    [findGameDefinition]
+  );
+
+  const clampOfflineParticipantCount = useCallback(
+    (gameType: GameType, desiredCount: number) => {
+      const { min, max } = getOfflineParticipantCountRange(gameType);
+      return Math.min(max, Math.max(min, desiredCount));
+    },
+    [getOfflineParticipantCountRange]
+  );
+
+  const resolveOfflineParticipantNames = useCallback(
+    (gameType: GameType, count: number): string[] => {
+      const seats = getOfflineSeats(gameType, count);
+      return seats.map((seat, index) => {
+        const nextValue = String(offlineParticipantNames[index] || '').trim();
+        if (nextValue.length > 0) {
+          return nextValue;
+        }
+        return index === 0 ? playerName || 'Player' : `Player ${index + 1}`;
+      });
+    },
+    [offlineParticipantNames, playerName]
+  );
+
+  const startOfflineMatch = async () => {
+    const selectedDefinition = findGameDefinition(selectedGame);
+    if (selectedDefinition.maxPlayers <= 1) {
+      setMessage(`${selectedDefinition.name} is single-player only`);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await ensurePlayer();
+      const nextCount = clampOfflineParticipantCount(selectedGame, offlineParticipantCount);
+      const nextNames = resolveOfflineParticipantNames(selectedGame, nextCount);
+      setOfflineParticipantCount(nextCount);
+      setOfflineParticipantNames((currentValue) => {
+        const merged = [...currentValue];
+        nextNames.forEach((name, index) => {
+          merged[index] = name;
+        });
+        return merged;
+      });
+      beginMatch('offline', null, selectedGame);
+      setMessage('');
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not start offline match');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const createRoom = async (isPublic: boolean) => {
@@ -1128,6 +1237,47 @@ export default function Home() {
   }, [selectedGame]);
 
   useEffect(() => {
+    const preferredMode = getPreferredModeForGame(selectedGame, gameMode);
+    if (preferredMode !== gameMode) {
+      setGameMode(preferredMode);
+    }
+
+    const clampedCount = clampOfflineParticipantCount(selectedGame, offlineParticipantCount);
+    if (clampedCount !== offlineParticipantCount) {
+      setOfflineParticipantCount(clampedCount);
+    }
+
+    const seats = getOfflineSeats(selectedGame, clampedCount);
+    setOfflineParticipantNames((currentValue) => {
+      const nextValue = [...currentValue];
+      let hasChanged = false;
+      seats.forEach((seat, index) => {
+        if (index === 0) {
+          const nextName = playerName || 'Player';
+          if (nextValue[index] !== nextName) {
+            nextValue[index] = nextName;
+            hasChanged = true;
+          }
+          return;
+        }
+        const existingValue = String(nextValue[index] || '').trim();
+        if (!existingValue) {
+          nextValue[index] = `Player ${seat.index + 1}`;
+          hasChanged = true;
+        }
+      });
+      return hasChanged ? nextValue : currentValue;
+    });
+  }, [
+    clampOfflineParticipantCount,
+    gameMode,
+    getPreferredModeForGame,
+    offlineParticipantCount,
+    playerName,
+    selectedGame,
+  ]);
+
+  useEffect(() => {
     const intervalId = window.setInterval(() => {
       saveLocalBackup('auto');
     }, 1 * 60 * 1000);
@@ -1158,6 +1308,29 @@ export default function Home() {
   const applyCpuDifficulty = useCallback((difficulty: CpuDifficulty) => {
     setCpuDifficulty(difficulty);
     window.localStorage.setItem(STORAGE_KEYS.cpuDifficulty, difficulty);
+  }, []);
+
+  const applyPlayMode = useCallback(
+    (mode: GameMode) => {
+      const preferred = getPreferredModeForGame(selectedGame, mode);
+      setGameMode(preferred);
+    },
+    [getPreferredModeForGame, selectedGame]
+  );
+
+  const applyOfflineParticipantCount = useCallback(
+    (count: number) => {
+      setOfflineParticipantCount(clampOfflineParticipantCount(selectedGame, count));
+    },
+    [clampOfflineParticipantCount, selectedGame]
+  );
+
+  const applyOfflineParticipantName = useCallback((index: number, value: string) => {
+    setOfflineParticipantNames((currentValue) => {
+      const nextValue = [...currentValue];
+      nextValue[index] = value;
+      return nextValue;
+    });
   }, []);
 
   const isInMatch = screen === 'game' && Boolean(player);
@@ -1247,6 +1420,7 @@ export default function Home() {
           onBack={() => setScreen('game-type-select')}
           onContinue={() => {
             const selectedDefinition = findGameDefinition(selectedGame);
+            setGameMode(getPreferredModeForGame(selectedGame, gameMode));
             setScreen(selectedDefinition.supportsOnline ? 'lobby' : 'single-player-lobby');
           }}
         />
@@ -1260,7 +1434,10 @@ export default function Home() {
           roomName={roomName}
           joinCode={joinCode}
           selectedGame={selectedGame}
+          playMode={gameMode}
           cpuDifficulty={cpuDifficulty}
+          offlinePlayerCount={offlineParticipantCount}
+          offlinePlayerNames={offlineParticipantNames}
           games={availableGames}
           publicRooms={publicRooms}
           playerProfile={player}
@@ -1270,7 +1447,10 @@ export default function Home() {
           onClearMessage={() => setMessage('')}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
+          onPlayModeChange={applyPlayMode}
           onCpuDifficultyChange={applyCpuDifficulty}
+          onOfflinePlayerCountChange={applyOfflineParticipantCount}
+          onOfflinePlayerNameChange={applyOfflineParticipantName}
           onPlayerNameChange={setPlayerName}
           onRoomNameChange={setRoomName}
           onJoinCodeChange={setJoinCode}
@@ -1294,6 +1474,7 @@ export default function Home() {
           }}
           onJoinRoom={(code) => void joinRoom(code)}
           onPlayCpu={() => void startCpuMatch()}
+          onPlayOffline={() => void startOfflineMatch()}
         />
       );
     }
@@ -1305,7 +1486,10 @@ export default function Home() {
           roomName={roomName}
           joinCode={joinCode}
           selectedGame={selectedGame}
+          playMode={gameMode}
           cpuDifficulty={cpuDifficulty}
+          offlinePlayerCount={offlineParticipantCount}
+          offlinePlayerNames={offlineParticipantNames}
           games={availableGames}
           publicRooms={publicRooms}
           playerProfile={player}
@@ -1316,7 +1500,10 @@ export default function Home() {
           onClearMessage={() => setMessage('')}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
+          onPlayModeChange={applyPlayMode}
           onCpuDifficultyChange={applyCpuDifficulty}
+          onOfflinePlayerCountChange={applyOfflineParticipantCount}
+          onOfflinePlayerNameChange={applyOfflineParticipantName}
           onPlayerNameChange={setPlayerName}
           onRoomNameChange={setRoomName}
           onJoinCodeChange={setJoinCode}
@@ -1331,6 +1518,7 @@ export default function Home() {
               });
           }}
           onPlayCpu={() => void startCpuMatch()}
+          onPlayOffline={() => void startOfflineMatch()}
         />
       );
     }
@@ -1438,9 +1626,10 @@ export default function Home() {
           onMatchComplete={recordMatchResult}
           onLeave={() => {
             setActiveRoomCode(null);
-            setGameMode('online');
+            setGameMode(getPreferredModeForGame(activeGameType, gameMode));
             setSelectedGame(activeGameType);
-            setScreen('lobby');
+            const activeDefinition = findGameDefinition(activeGameType);
+            setScreen(activeDefinition.supportsOnline ? 'lobby' : 'single-player-lobby');
             refreshPublicRooms().catch(() => {
               // ignore
             });
@@ -1448,6 +1637,8 @@ export default function Home() {
               // ignore
             });
           }}
+          offlineParticipantNames={resolveOfflineParticipantNames(activeGameType, offlineParticipantCount)}
+          offlineParticipantCount={clampOfflineParticipantCount(activeGameType, offlineParticipantCount)}
         />
       );
     }

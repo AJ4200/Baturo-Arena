@@ -434,17 +434,24 @@ export function SoloDinoGame({
   }, [persistBestScore, syncHud]);
 
   const controllerButtons = [
-    { key: 'jump', label: 'Jump', icon: <AiOutlineArrowUp />, onClick: handleJump },
+    { key: 'jump', label: 'Jump', icon: <AiOutlineArrowUp />, slot: 'up' as const, onClick: handleJump },
     {
       key: 'duck',
       label: 'Duck',
       icon: <AiOutlineArrowDown />,
+      slot: 'down' as const,
       onPointerDown: () => setDuckIntent(true),
       onPointerUp: () => setDuckIntent(false),
     },
-    { key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleNewRun },
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+    { key: 'new', label: 'New Run', icon: <AiOutlineReload />, slot: 'center' as const, onClick: handleNewRun },
+  ];
+  const controllerSections = [
+    {
+      key: 'run-controls',
+      title: 'Run Controls',
+      layout: 'dpad' as const,
+      buttons: controllerButtons,
+    },
   ];
 
   useEffect(() => {
@@ -621,16 +628,13 @@ export function SoloDinoGame({
       return 'Jump over cacti, duck under low birds, and hit 1000m.';
     }
     if (hud.status === 'running') {
-      return 'Controls: Space / W / Up to jump. Hold Down / S to duck.';
+      return 'Controls: Space / W / Up to jump, Down / S to duck, or use adaptive controls.';
     }
     if (hud.status === 'won') {
       return `Target cleared at ${hud.score}m. Queue another run to push your best.`;
     }
     return 'Collision detected. Reset and keep the rhythm.';
   }, [hud.score, hud.status]);
-
-  const runButtonLabel =
-    hud.status === 'ready' ? 'Start Run' : hud.status === 'running' ? 'Restart Run' : 'New Run';
 
   return (
     <>
@@ -641,7 +645,7 @@ export function SoloDinoGame({
       <AdaptiveControllerOverlay
         title="Dino Run Controller"
         subtitle="Tap jump or hold duck"
-        buttons={controllerButtons}
+        sections={controllerSections}
       />
 
       <motion.div
@@ -715,21 +719,6 @@ export function SoloDinoGame({
                 <button
                   className={classnames('room-float-action-btn')}
                   type="button"
-                  onClick={handleNewRun}
-                >
-                  <AiOutlineReload /> {runButtonLabel}
-                </button>
-                <button
-                  className={classnames('room-float-action-btn')}
-                  type="button"
-                  disabled={hud.status === 'won' || hud.status === 'crashed'}
-                  onClick={handleJump}
-                >
-                  <AiOutlineArrowUp /> Jump
-                </button>
-                <button
-                  className={classnames('room-float-action-btn')}
-                  type="button"
                   onClick={onToggleMusic}
                 >
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
@@ -787,45 +776,6 @@ export function SoloDinoGame({
             aria-label="Dino run board"
           />
         </div>
-
-        <motion.div
-          className="solo-dino-controls"
-          animate={{ y: [5, -5, 5] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          <button
-            className={classnames('solo-dino-btn', 'solo-dino-btn-primary')}
-            type="button"
-            onClick={handleNewRun}
-          >
-            <AiOutlineReload /> {runButtonLabel}
-          </button>
-          <button
-            className="solo-dino-btn"
-            type="button"
-            disabled={hud.status === 'won' || hud.status === 'crashed'}
-            onClick={handleJump}
-          >
-            <AiOutlineArrowUp /> Jump
-          </button>
-          <button
-            className={classnames(
-              'solo-dino-btn',
-              isDuckPressed && 'solo-dino-btn-duck-active'
-            )}
-            type="button"
-            disabled={hud.status === 'won' || hud.status === 'crashed'}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              setDuckIntent(true);
-            }}
-            onPointerUp={() => setDuckIntent(false)}
-            onPointerCancel={() => setDuckIntent(false)}
-            onPointerLeave={() => setDuckIntent(false)}
-          >
-            <AiOutlineArrowDown /> Hold Duck
-          </button>
-        </motion.div>
 
         <p className="solo-dino-message">{helperMessage}</p>
       </section>

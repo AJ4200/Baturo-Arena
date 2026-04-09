@@ -10,11 +10,13 @@ import {
   AiOutlinePlayCircle,
   AiOutlineReload,
   AiOutlineRobot,
+  AiOutlineGlobal,
   AiOutlineTeam,
 } from 'react-icons/ai';
 import { useCallback, useMemo, useState } from 'react';
 import { formatGameName } from '@/lib/games';
-import type { CpuDifficulty, GameDefinition, GameType, PlayerProfile, PublicRoom } from '@/types/game';
+import { getOfflineSeats } from '@/lib/offline';
+import type { CpuDifficulty, GameDefinition, GameMode, GameType, PlayerProfile, PublicRoom } from '@/types/game';
 import type { GoogleAccount } from '@/features/home/ProfileDock';
 
 type LobbyScreenProps = {
@@ -22,7 +24,10 @@ type LobbyScreenProps = {
   roomName: string;
   joinCode: string;
   selectedGame: GameType;
+  playMode: GameMode;
   cpuDifficulty: CpuDifficulty;
+  offlinePlayerCount: number;
+  offlinePlayerNames: string[];
   games: GameDefinition[];
   publicRooms: PublicRoom[];
   playerProfile: PlayerProfile | null;
@@ -33,7 +38,10 @@ type LobbyScreenProps = {
   onClearMessage: () => void;
   onBack: () => void;
   onGameChange: (value: GameType) => void;
+  onPlayModeChange: (mode: GameMode) => void;
   onCpuDifficultyChange: (difficulty: CpuDifficulty) => void;
+  onOfflinePlayerCountChange: (count: number) => void;
+  onOfflinePlayerNameChange: (index: number, value: string) => void;
   onPlayerNameChange: (value: string) => void;
   onRoomNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
@@ -44,6 +52,7 @@ type LobbyScreenProps = {
   onRefreshRooms?: () => void;
   onJoinRoom?: (code: string) => void;
   onPlayCpu: () => void;
+  onPlayOffline: () => void;
 };
 
 export function LobbyScreen({
@@ -51,7 +60,10 @@ export function LobbyScreen({
   roomName,
   joinCode,
   selectedGame,
+  playMode,
   cpuDifficulty,
+  offlinePlayerCount,
+  offlinePlayerNames,
   games,
   publicRooms,
   playerProfile,
@@ -62,7 +74,10 @@ export function LobbyScreen({
   onClearMessage,
   onBack,
   onGameChange,
+  onPlayModeChange,
   onCpuDifficultyChange,
+  onOfflinePlayerCountChange,
+  onOfflinePlayerNameChange,
   onPlayerNameChange,
   onRoomNameChange,
   onJoinCodeChange,
@@ -73,6 +88,7 @@ export function LobbyScreen({
   onRefreshRooms,
   onJoinRoom,
   onPlayCpu,
+  onPlayOffline,
 }: LobbyScreenProps) {
   const [copiedRoomCode, setCopiedRoomCode] = useState<string | null>(null);
   const [roomQuery, setRoomQuery] = useState('');
@@ -84,8 +100,49 @@ export function LobbyScreen({
   );
   const supportsOnline = selectedDefinition?.supportsOnline ?? true;
   const supportsCpu = selectedDefinition?.supportsCpu ?? true;
+  const supportsOffline = (selectedDefinition?.maxPlayers ?? 1) > 1;
   const selectedGameName = formatGameName(selectedGame, games);
   const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
+  const modeOptions = useMemo(
+    () => [
+      {
+        id: 'cpu' as const,
+        icon: <AiOutlineRobot />,
+        label: 'CPU Mode',
+        description: supportsCpu
+          ? `Play ${selectedGameName} against AI.`
+          : `${selectedGameName} does not support CPU mode.`,
+        disabled: !supportsCpu,
+      },
+      {
+        id: 'online' as const,
+        icon: <AiOutlineGlobal />,
+        label: 'Online Mode',
+        description: supportsOnline
+          ? 'Create or join network rooms.'
+          : `${selectedGameName} does not support online rooms.`,
+        disabled: !supportsOnline || isSinglePlayerMode,
+      },
+      {
+        id: 'offline' as const,
+        icon: <AiOutlineTeam />,
+        label: 'Offline Multiplayer',
+        description: supportsOffline
+          ? 'Play locally with shared turns on one device.'
+          : `${selectedGameName} is single-player only.`,
+        disabled: !supportsOffline,
+      },
+    ],
+    [isSinglePlayerMode, selectedGameName, supportsCpu, supportsOffline, supportsOnline]
+  );
+  const selectedModeIndex = Math.max(0, modeOptions.findIndex((option) => option.id === playMode));
+  const activeModeOption = modeOptions.find((option) => option.id === playMode) || modeOptions[0];
+  const activeModeThumbWidth = `${100 / Math.max(1, modeOptions.length)}%`;
+  const activeModeThumbTransform = `translateX(${selectedModeIndex * 100}%)`;
+  const offlineSeats = useMemo(
+    () => getOfflineSeats(selectedGame, offlinePlayerCount),
+    [offlinePlayerCount, selectedGame]
+  );
   const profilePreviewName = (playerProfile?.name || playerName || '').trim() || 'Player';
   const profilePreviewAvatarUrl =
     googleAccount?.picture || `https://robohash.org/${encodeURIComponent(profilePreviewName)}?size=160x160`;
@@ -219,40 +276,94 @@ export function LobbyScreen({
                 </select>
               </label>
 
-              <div className="lobby-difficulty-stack">
-                <span className="lobby-select-caption">CPU Difficulty</span>
-                <div className="lobby-difficulty-tabs" aria-label="CPU difficulty">
-                  {(['easy', 'medium', 'hard'] as CpuDifficulty[]).map((difficultyOption) => (
+              <div className="lobby-play-mode-stack">
+                <span className="lobby-select-caption">Play Mode</span>
+                <div className="lobby-play-mode-slider" role="tablist" aria-label="Play mode selector">
+                  <span
+                    className="lobby-play-mode-slider-thumb"
+                    style={{
+                      width: activeModeThumbWidth,
+                      transform: activeModeThumbTransform,
+                    }}
+                  />
+                  {modeOptions.map((modeOption) => (
                     <button
-                      key={difficultyOption}
+                      key={modeOption.id}
                       className={classnames(
-                        'lobby-difficulty-tab',
-                        cpuDifficulty === difficultyOption && 'lobby-difficulty-tab-active'
+                        'lobby-play-mode-btn',
+                        playMode === modeOption.id && 'lobby-play-mode-btn-active'
                       )}
                       type="button"
-                      disabled={!supportsCpu}
-                      aria-pressed={cpuDifficulty === difficultyOption}
-                      onClick={() => onCpuDifficultyChange(difficultyOption)}
+                      role="tab"
+                      aria-selected={playMode === modeOption.id}
+                      aria-label={modeOption.label}
+                      title={modeOption.label}
+                      disabled={modeOption.disabled}
+                      onClick={() => onPlayModeChange(modeOption.id)}
                     >
-                      {difficultyOption}
+                      {modeOption.icon}
                     </button>
                   ))}
                 </div>
+                <div className="lobby-play-mode-meta">
+                  <strong>{activeModeOption.label}</strong>
+                  <span>{activeModeOption.description}</span>
+                </div>
               </div>
+
+              {playMode === 'cpu' ? (
+                <div className="lobby-difficulty-stack">
+                  <span className="lobby-select-caption">CPU Difficulty</span>
+                  <div className="lobby-difficulty-tabs" aria-label="CPU difficulty">
+                    {(['easy', 'medium', 'hard'] as CpuDifficulty[]).map((difficultyOption) => (
+                      <button
+                        key={difficultyOption}
+                        className={classnames(
+                          'lobby-difficulty-tab',
+                          cpuDifficulty === difficultyOption && 'lobby-difficulty-tab-active'
+                        )}
+                        type="button"
+                        disabled={!supportsCpu}
+                        aria-pressed={cpuDifficulty === difficultyOption}
+                        onClick={() => onCpuDifficultyChange(difficultyOption)}
+                      >
+                        {difficultyOption}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <button
-              className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
-              type="button"
-              disabled={!supportsCpu}
-              onClick={onPlayCpu}
-            >
-              <span className="lobby-cpu-cta-main">
-                {supportsOnline ? <AiOutlineRobot /> : <AiOutlinePlayCircle />} Play {selectedGameName}{' '}
-                {supportsOnline ? 'vs CPU' : ''}
-              </span>
-              <small>{supportsCpu && supportsOnline ? 'Quick practice run' :  ''}</small>
-            </button>
+            {playMode === 'cpu' ? (
+              <button
+                className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
+                type="button"
+                disabled={!supportsCpu}
+                onClick={onPlayCpu}
+              >
+                <span className="lobby-cpu-cta-main">
+                  <AiOutlineRobot /> Play {selectedGameName} vs CPU
+                </span>
+                <small>{supportsCpu ? 'Quick practice run' : ''}</small>
+              </button>
+            ) : playMode === 'offline' ? (
+              <button
+                className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
+                type="button"
+                disabled={!supportsOffline}
+                onClick={onPlayOffline}
+              >
+                <span className="lobby-cpu-cta-main">
+                  <AiOutlineTeam /> Start Offline Match
+                </span>
+                <small>{supportsOffline ? 'Local shared-device turn play' : ''}</small>
+              </button>
+            ) : (
+              <div className="lobby-online-cta-tip">
+                <AiOutlineGlobal /> Create or join an online room below.
+              </div>
+            )}
           </div>
         </div>
 
@@ -268,6 +379,9 @@ export function LobbyScreen({
               </span>
               <span className={classnames('lobby-flag', supportsCpu ? 'lobby-flag-on' : 'lobby-flag-off')}>
                 CPU {supportsCpu ? 'On' : 'Off'}
+              </span>
+              <span className={classnames('lobby-flag', supportsOffline ? 'lobby-flag-on' : 'lobby-flag-off')}>
+                Offline {supportsOffline ? 'On' : 'Off'}
               </span>
             </div>
           </div>
@@ -326,7 +440,7 @@ export function LobbyScreen({
             </div>
           </section>
 
-          {!isSinglePlayerMode && onCreatePublic && onCreatePrivate ? (
+          {playMode === 'online' && !isSinglePlayerMode && onCreatePublic && onCreatePrivate ? (
             <section className="lobby-panel lobby-panel-create">
               <div className="lobby-panel-head lobby-panel-head-static">
                 <div>
@@ -411,9 +525,58 @@ export function LobbyScreen({
               </p>
             </section>
           ) : null}
+
+          {playMode === 'offline' ? (
+            <section className="lobby-panel lobby-panel-create">
+              <div className="lobby-panel-head lobby-panel-head-static">
+                <div>
+                  <p className="lobby-panel-title">Offline Setup</p>
+                  <p className="lobby-panel-subtitle">
+                    Configure local players. Turns rotate per team on one device.
+                  </p>
+                </div>
+              </div>
+              <div className="lobby-row">
+                <label className="lobby-select-stack lobby-offline-count">
+                  <span className="lobby-select-caption">Local Players</span>
+                  <select
+                    className="settings-select lobby-select-control"
+                    value={offlinePlayerCount}
+                    onChange={(event) =>
+                      onOfflinePlayerCountChange(
+                        Math.max(2, Number.parseInt(event.target.value, 10) || 2)
+                      )
+                    }
+                  >
+                    {Array.from(
+                      { length: Math.max(0, (selectedDefinition?.maxPlayers ?? 2) - 1) },
+                      (_, index) => index + 2
+                    ).map((count) => (
+                      <option key={count} value={count}>
+                        {count} Players
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="lobby-offline-players">
+                {offlineSeats.map((seat) => (
+                  <label key={seat.token} className="lobby-select-stack lobby-offline-player">
+                    <span className="lobby-select-caption">{seat.label}</span>
+                    <input
+                      className="lobby-input"
+                      value={offlinePlayerNames[seat.index] || ''}
+                      onChange={(event) => onOfflinePlayerNameChange(seat.index, event.target.value)}
+                      placeholder={seat.label}
+                    />
+                  </label>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
 
-        {!isSinglePlayerMode && onJoinByCode ? (
+        {playMode === 'online' && !isSinglePlayerMode && onJoinByCode ? (
           <section className="lobby-panel lobby-panel-join">
             <div className="lobby-panel-head">
               <div>
@@ -455,7 +618,7 @@ export function LobbyScreen({
           </section>
         ) : null}
 
-        {!isSinglePlayerMode && onRefreshRooms && onJoinRoom ? (
+        {playMode === 'online' && !isSinglePlayerMode && onRefreshRooms && onJoinRoom ? (
           <div className="public-rooms lobby-panel">
             <div className="lobby-panel-head lobby-panel-head-static public-room-head">
               <div>

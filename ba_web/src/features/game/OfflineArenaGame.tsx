@@ -3,41 +3,43 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  AiOutlineReload,
-  AiOutlineSound,
-  AiOutlineClockCircle,
-  AiOutlinePlayCircle,
-  AiOutlineCheckCircle,
   AiOutlineArrowDown,
   AiOutlineArrowUp,
-  AiOutlineUser,
+  AiOutlineCheckCircle,
+  AiOutlineClockCircle,
   AiOutlineCrown,
   AiOutlineDrag,
-  AiOutlineRobot,
+  AiOutlinePlayCircle,
+  AiOutlineReload,
   AiOutlineTeam,
+  AiOutlineUser,
 } from 'react-icons/ai';
-import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import PlayerO from '@/components/game/player/PlayerO';
 import PlayerX from '@/components/game/player/PlayerX';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { GameBoard } from '@/features/game/GameBoard';
-import { evaluateBoard, getCpuMove } from '@/lib/cpu';
+import { evaluateBoard } from '@/lib/cpu';
 import { applyMove, createEmptyBoard, formatGameName } from '@/lib/games';
-import type { BoardCell, CpuDifficulty, GameDefinition, GameMove, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
+import { getOfflineSeats, type OfflineSeatToken } from '@/lib/offline';
+import type { BoardCell, GameDefinition, GameMove, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
 
-type CpuArenaGameProps = {
+type OfflineArenaGameProps = {
   player: PlayerProfile;
   gameType: GameType;
   gameDefinitions: GameDefinition[];
-  isMusicMuted: boolean;
-  enableAnimations: boolean;
-  onToggleMusic: () => void;
-  onToggleAnimations: () => void;
-  difficulty: CpuDifficulty;
+  participantNames: string[];
+  participantCount: number;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
 
 type Symbol = 'X' | 'O';
+
+type OfflineParticipant = {
+  name: string;
+  token: OfflineSeatToken;
+  symbol: Symbol;
+};
 
 const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } => {
   if (currentGameType === 'tic-tac-two') {
@@ -55,65 +57,117 @@ const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } =>
   if (currentGameType === 'checkers') {
     return { x: 'Red Checkers', o: 'Blue Checkers' };
   }
-  return { x: 'Player 1', o: 'Player 2' };
+  return { x: 'Team X', o: 'Team O' };
 };
 
-export function CpuArenaGame({
+const formatParticipantLabel = (participant: OfflineParticipant): string =>
+  `${participant.name} (${participant.token})`;
+
+const createOfflineParticipants = (
+  gameType: GameType,
+  participantNames: string[],
+  participantCount: number,
+  fallbackName: string
+): OfflineParticipant[] => {
+  const seats = getOfflineSeats(gameType, participantCount);
+  return seats.map((seat, index) => {
+    const trimmedName = String(participantNames[index] || '').trim();
+    return {
+      name: trimmedName || (index === 0 ? fallbackName : `Player ${index + 1}`),
+      token: seat.token,
+      symbol: seat.symbol,
+    };
+  });
+};
+
+export function OfflineArenaGame({
   player,
   gameType,
   gameDefinitions,
-  isMusicMuted,
-  enableAnimations,
-  onToggleMusic,
-  onToggleAnimations,
-  difficulty,
+  participantNames,
+  participantCount,
   onMatchComplete,
   onLeave,
-}: CpuArenaGameProps) {
+}: OfflineArenaGameProps) {
   const [board, setBoard] = useState<BoardCell[]>(() => createEmptyBoard(gameType, gameDefinitions));
   const [turn, setTurn] = useState<Symbol>('X');
   const [winner, setWinner] = useState<Symbol | 'draw' | null>(null);
   const [isRoomCardCollapsed, setIsRoomCardCollapsed] = useState(false);
+  const [teamTurnOffsets, setTeamTurnOffsets] = useState<{ X: number; O: number }>({ X: 0, O: 0 });
   const lastReportedWinnerRef = useRef<Symbol | 'draw' | null>(null);
   const gameLabel = formatGameName(gameType, gameDefinitions);
   const playerLabels = useMemo(() => getPlayerLabels(gameType), [gameType]);
+
+  const participants = useMemo(
+    () => createOfflineParticipants(gameType, participantNames, participantCount, player.name),
+    [gameType, participantCount, participantNames, player.name]
+  );
+  const xParticipants = useMemo(
+    () => participants.filter((entry) => entry.symbol === 'X'),
+    [participants]
+  );
+  const oParticipants = useMemo(
+    () => participants.filter((entry) => entry.symbol === 'O'),
+    [participants]
+  );
+
+  const activeTurnParticipant = useMemo(() => {
+    const team = turn === 'X' ? xParticipants : oParticipants;
+    if (team.length === 0) {
+      return null;
+    }
+    const offset = turn === 'X' ? teamTurnOffsets.X : teamTurnOffsets.O;
+    return team[offset % team.length];
+  }, [oParticipants, teamTurnOffsets.O, teamTurnOffsets.X, turn, xParticipants]);
 
   useEffect(() => {
     setBoard(createEmptyBoard(gameType, gameDefinitions));
     setTurn('X');
     setWinner(null);
-  }, [gameDefinitions, gameType]);
+    setTeamTurnOffsets({ X: 0, O: 0 });
+    lastReportedWinnerRef.current = null;
+  }, [gameDefinitions, gameType, participantCount, participants.length]);
 
   const status = useMemo(() => {
     if (winner === 'draw') {
-      return `${gameLabel} | CPU Match | Draw`;
+      return `${gameLabel} | Offline Match | Draw`;
     }
     if (winner === 'X') {
-      return `${gameLabel} | CPU Match | You win`;
+      return `${gameLabel} | Offline Match | ${playerLabels.x} win`;
     }
     if (winner === 'O') {
-      return `${gameLabel} | CPU Match | CPU wins`;
+      return `${gameLabel} | Offline Match | ${playerLabels.o} win`;
     }
-
-    if (turn === 'X') {
-      return `${gameLabel} | CPU Match | Your turn`;
+    if (!activeTurnParticipant) {
+      return `${gameLabel} | Offline Match | ${playerLabels[turn.toLowerCase() as 'x' | 'o']} to move`;
     }
+    return `${gameLabel} | Offline Match | ${formatParticipantLabel(activeTurnParticipant)} turn`;
+  }, [activeTurnParticipant, gameLabel, playerLabels, turn, winner]);
 
-    return `${gameLabel} | CPU Match | CPU thinking...`;
-  }, [gameLabel, turn, winner]);
+  const roomStatusIcon = winner
+    ? <AiOutlineCheckCircle />
+    : <AiOutlineClockCircle />;
 
-  const roomStatusIcon = winner ? <AiOutlineCheckCircle /> : turn === 'X' ? <AiOutlinePlayCircle /> : <AiOutlineClockCircle />;
-
-  const canPlay = turn === 'X' && winner === null;
   const xResult = winner === 'X' ? 'winner' : winner === 'O' ? 'loser' : 'neutral';
   const oResult = winner === 'O' ? 'winner' : winner === 'X' ? 'loser' : 'neutral';
+
+  const controllerButtons = [
+    { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
+    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: onLeave },
+  ];
+
+  const canPlay = winner === null;
   const showAdaptiveController = gameType !== 'checkers';
 
-  const applyBoardState = (nextBoard: BoardCell[], nextTurn: Symbol) => {
-    const result = evaluateBoard(gameType, nextBoard, gameDefinitions);
-    setBoard(nextBoard);
-    setTurn(nextTurn);
-    setWinner(result);
+  const advanceTeamTurnOffset = (symbol: Symbol) => {
+    setTeamTurnOffsets((currentValue) => {
+      const teamSize = symbol === 'X' ? xParticipants.length : oParticipants.length;
+      const nextValue = teamSize > 1 ? (currentValue[symbol] + 1) % teamSize : 0;
+      return {
+        ...currentValue,
+        [symbol]: nextValue,
+      };
+    });
   };
 
   const handleMove = (move: GameMove) => {
@@ -121,7 +175,7 @@ export function CpuArenaGame({
       return;
     }
 
-    const appliedBoard = applyMove(gameType, board, move, 'X', gameDefinitions);
+    const appliedBoard = applyMove(gameType, board, move, turn, gameDefinitions);
     if (appliedBoard.every((cell, index) => cell === board[index])) {
       return;
     }
@@ -133,80 +187,67 @@ export function CpuArenaGame({
       return;
     }
 
+    advanceTeamTurnOffset(turn);
     setBoard(appliedBoard);
-    setTurn('O');
+    setTurn(turn === 'X' ? 'O' : 'X');
   };
 
-  const handleRematch = () => {
+  function handleRematch() {
     setBoard(createEmptyBoard(gameType, gameDefinitions));
     setTurn('X');
     setWinner(null);
-  };
-
-  const controllerButtons = [
-    { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
-    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: onLeave },
-  ];
+    setTeamTurnOffsets({ X: 0, O: 0 });
+    lastReportedWinnerRef.current = null;
+  }
 
   useEffect(() => {
     if (winner === null) {
-      lastReportedWinnerRef.current = null;
       return;
     }
     if (lastReportedWinnerRef.current === winner) {
       return;
     }
 
+    const primarySymbol = participants[0]?.symbol ?? 'X';
+    const opponent = participants
+      .filter((entry) => entry.symbol !== primarySymbol)
+      .map((entry) => entry.name)
+      .join(', ');
+
     lastReportedWinnerRef.current = winner;
     onMatchComplete({
-      mode: 'cpu',
+      mode: 'offline',
       gameType,
-      outcome: winner === 'draw' ? 'draw' : winner === 'X' ? 'win' : 'loss',
-      opponent: `CPU (${difficulty})`,
+      outcome: winner === 'draw' ? 'draw' : winner === primarySymbol ? 'win' : 'loss',
+      opponent: opponent || 'Offline Opponent',
     });
-  }, [difficulty, gameType, onMatchComplete, winner]);
-
-  useEffect(() => {
-    if (turn !== 'O' || winner !== null) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      const move = getCpuMove(gameType, board, difficulty);
-      if (move === null) {
-        const stalledResult = evaluateBoard(gameType, board, gameDefinitions);
-        if (stalledResult) {
-          setWinner(stalledResult);
-        }
-        return;
-      }
-
-      const nextBoard = applyMove(gameType, board, move, 'O', gameDefinitions);
-      applyBoardState(nextBoard, 'X');
-    }, 450);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [turn, winner, board, difficulty, gameDefinitions, gameType]);
+  }, [gameType, onMatchComplete, participants, winner]);
 
   return (
     <>
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
       {showAdaptiveController ? (
         <AdaptiveControllerOverlay
-          title="CPU Match"
-          subtitle="Quick access to match controls"
+          title="Offline Match"
+          subtitle="Local turn-based controls"
           buttons={controllerButtons}
         />
       ) : null}
+
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
             {isRoomCardCollapsed ? (
-              <button className="room-float-collapsed-center" type="button" onClick={() => setIsRoomCardCollapsed(false)} aria-label="Expand room info" title="Expand room info">
+              <button
+                className="room-float-collapsed-center"
+                type="button"
+                onClick={() => setIsRoomCardCollapsed(false)}
+                aria-label="Expand room info"
+                title="Expand room info"
+              >
                 <AiOutlineArrowUp />
               </button>
             ) : (
@@ -215,8 +256,14 @@ export function CpuArenaGame({
                   <span className="room-float-anchor">
                     <AiOutlineDrag /> drag
                   </span>
-                  <span className="room-float-title">{gameLabel} CPU Match ({difficulty})</span>
-                  <button className="room-float-toggle-btn" type="button" onClick={() => setIsRoomCardCollapsed(true)} aria-label="Collapse room info" title="Collapse room info">
+                  <span className="room-float-title">{gameLabel} Offline Match</span>
+                  <button
+                    className="room-float-toggle-btn"
+                    type="button"
+                    onClick={() => setIsRoomCardCollapsed(true)}
+                    aria-label="Collapse room info"
+                    title="Collapse room info"
+                  >
                     <AiOutlineArrowDown />
                   </button>
                 </div>
@@ -229,14 +276,13 @@ export function CpuArenaGame({
 
                 <div className="room-joined">
                   <p className="room-joined-title">
-                    <AiOutlineTeam /> Players
+                    <AiOutlineTeam /> Local Players ({participants.length})
                   </p>
-                  <p className="room-joined-line">
-                    <AiOutlinePlayCircle /> {player.name} ({playerLabels.x})
-                  </p>
-                  <p className="room-joined-line">
-                    <AiOutlineRobot /> CPU ({difficulty}) ({playerLabels.o})
-                  </p>
+                  {participants.map((entry) => (
+                    <p key={`${entry.token}-${entry.name}`} className="room-joined-line">
+                      <AiOutlinePlayCircle /> {formatParticipantLabel(entry)}
+                    </p>
+                  ))}
                 </div>
 
                 <div className="room-float-actions">
@@ -248,26 +294,6 @@ export function CpuArenaGame({
                     whileTap={{ scale: 0.95 }}
                   >
                     <AiOutlineReload /> Rematch
-                  </motion.button>
-
-                  <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleMusic}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-                  </motion.button>
-
-                  <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleAnimations}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Motion {enableAnimations ? 'On' : 'Off'}
                   </motion.button>
 
                   <motion.button
@@ -291,7 +317,7 @@ export function CpuArenaGame({
             board={board}
             gameDefinitions={gameDefinitions}
             disabled={!canPlay}
-            interactiveSymbol="X"
+            interactiveSymbol={turn}
             onMove={handleMove}
           />
         </div>
@@ -299,8 +325,8 @@ export function CpuArenaGame({
 
       <PlayerX
         pieceLabel={playerLabels.x}
-        alias={player.name}
-        picture={`https://robohash.org/${player.name}`}
+        alias={xParticipants.map((entry) => `${entry.token}:${entry.name}`).join(' | ') || 'Team X'}
+        picture={`https://robohash.org/offline-x-${gameType}`}
         wins={player.wins}
         losses={player.losses}
         draws={player.draws}
@@ -310,17 +336,21 @@ export function CpuArenaGame({
             <span className="player-state winner">
               <AiOutlineCrown /> Winner
             </span>
-          ) : (
+          ) : turn === 'X' ? (
             <span className="player-state you">
-              <AiOutlineUser /> You
+              <AiOutlineUser /> Turn
+            </span>
+          ) : (
+            <span className="player-state ready">
+              <AiOutlineCheckCircle /> Ready
             </span>
           )
         }
       />
       <PlayerO
         pieceLabel={playerLabels.o}
-        alias={`CPU (${difficulty})`}
-        picture={`https://robohash.org/cpu-${gameType}-${difficulty}`}
+        alias={oParticipants.map((entry) => `${entry.token}:${entry.name}`).join(' | ') || 'Team O'}
+        picture={`https://robohash.org/offline-o-${gameType}`}
         wins={0}
         losses={0}
         draws={0}
@@ -330,9 +360,13 @@ export function CpuArenaGame({
             <span className="player-state winner">
               <AiOutlineCrown /> Winner
             </span>
+          ) : turn === 'O' ? (
+            <span className="player-state you">
+              <AiOutlineUser /> Turn
+            </span>
           ) : (
             <span className="player-state ready">
-              <AiOutlineRobot /> CPU
+              <AiOutlineCheckCircle /> Ready
             </span>
           )
         }

@@ -313,20 +313,42 @@ export function SoloSudokuGame({
     });
   }, []);
 
-  const controllerButtons = [
-    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, onClick: () => moveSelectedCell(-1, 0) },
-    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, onClick: () => moveSelectedCell(1, 0) },
-    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, onClick: () => moveSelectedCell(0, -1) },
-    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => moveSelectedCell(0, 1) },
+  const navigationButtons = [
+    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, slot: 'up' as const, onClick: () => moveSelectedCell(-1, 0) },
+    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, slot: 'down' as const, onClick: () => moveSelectedCell(1, 0) },
+    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, slot: 'left' as const, onClick: () => moveSelectedCell(0, -1) },
+    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, slot: 'right' as const, onClick: () => moveSelectedCell(0, 1) },
+  ];
+  const actionButtons = [
     { key: 'clear', label: 'Clear', icon: <AiOutlineCloseCircle />, onClick: handleClearCell },
     { key: 'new', label: 'New', icon: <AiOutlineReload />, onClick: handleNewPuzzle },
     { key: 'giveup', label: 'Give Up', icon: <AiOutlineFlag />, onClick: handleGiveUp },
-    ...Array.from({ length: 9 }, (_, index) => ({
-      key: `num-${index + 1}`,
-      label: `${index + 1}`,
-      icon: <strong>{index + 1}</strong>,
-      onClick: () => setCellValue(index + 1),
-    })),
+  ];
+  const numpadButtons = Array.from({ length: 9 }, (_, index) => ({
+    key: `num-${index + 1}`,
+    label: `${index + 1}`,
+    icon: <strong>{index + 1}</strong>,
+    onClick: () => setCellValue(index + 1),
+  }));
+  const controllerSections = [
+    {
+      key: 'navigation',
+      title: 'Cell Navigation',
+      layout: 'dpad' as const,
+      buttons: navigationButtons,
+    },
+    {
+      key: 'digits',
+      title: 'Number Pad',
+      layout: 'numpad' as const,
+      buttons: numpadButtons,
+    },
+    {
+      key: 'actions',
+      title: 'Puzzle Actions',
+      layout: 'row' as const,
+      buttons: actionButtons,
+    },
   ];
 
   useEffect(() => {
@@ -410,9 +432,8 @@ export function SoloSudokuGame({
 
       <AdaptiveControllerOverlay
         title="Sudoku Controller"
-        subtitle="Use the keypad to fill cells"
-        buttons={controllerButtons}
-        isNumpad={true}
+        subtitle="Navigate with arrows and fill with the numpad"
+        sections={controllerSections}
       />
 
       <motion.div
@@ -542,7 +563,7 @@ export function SoloSudokuGame({
             ? 'Solved. Great run.'
             : state.hasGivenUp
               ? 'Puzzle revealed. Start a new one when you are ready.'
-              : 'Select a cell, then use 1-9, Backspace, or the pad.'}
+              : 'Select a cell, then use 1-9, Backspace, or the adaptive numpad.'}
         </p>
       </section>
     </>

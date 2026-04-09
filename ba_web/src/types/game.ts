@@ -1,6 +1,6 @@
 export type Screen = 'home' | 'game-type-select' | 'game-select' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
-export type GameMode = 'online' | 'cpu';
+export type GameMode = 'online' | 'cpu' | 'offline';
 
 export type GameTypeCategory = 'online-multiplayer' | 'online' | 'single-player' | 'all';
 

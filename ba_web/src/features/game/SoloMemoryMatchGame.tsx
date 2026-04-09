@@ -275,8 +275,14 @@ export function SoloMemoryMatchGame({
   const controllerButtons = [
     { key: 'new', label: 'New Deck', icon: <AiOutlineReload />, onClick: handleNewBoard },
     { key: 'giveup', label: 'Give Up', icon: <AiOutlineFlag />, onClick: handleGiveUp },
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+  const controllerSections = [
+    {
+      key: 'deck-actions',
+      title: 'Deck Actions',
+      layout: 'row' as const,
+      buttons: controllerButtons,
+    },
   ];
 
   const accuracy = useMemo(() => {
@@ -295,8 +301,8 @@ export function SoloMemoryMatchGame({
 
       <AdaptiveControllerOverlay
         title="Memory Match Controller"
-        subtitle="Flip cards and manage your deck"
-        buttons={controllerButtons}
+        subtitle="Manage deck actions from the adaptive controls"
+        sections={controllerSections}
       />
 
       <motion.div
@@ -363,17 +369,6 @@ export function SoloMemoryMatchGame({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('room-float-action-btn')} type="button" onClick={handleNewBoard}>
-                  <AiOutlineReload /> New Board
-                </button>
-                <button
-                  className={classnames('room-float-action-btn')}
-                  type="button"
-                  disabled={state.status === 'won' || state.status === 'lost'}
-                  onClick={handleGiveUp}
-                >
-                  <AiOutlineFlag /> Give Up
-                </button>
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>

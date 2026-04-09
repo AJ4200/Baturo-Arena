@@ -4,11 +4,12 @@ import { useCallback } from 'react';
 import classnames from 'classnames';
 import {
   AiOutlineArrowLeft,
-  AiOutlineTeam,
-  AiOutlineRobot,
   AiOutlineAppstore,
-  AiOutlinePlayCircle,
   AiOutlineCheckCircle,
+  AiOutlineCompass,
+  AiOutlineRobot,
+  AiOutlineTeam,
+  AiOutlineThunderbolt,
 } from 'react-icons/ai';
 import type { GameTypeCategory, GameDefinition } from '@/types/game';
 
@@ -23,7 +24,8 @@ type GameTypeSelectScreenProps = {
 type GameTypeOption = {
   id: GameTypeCategory;
   label: string;
-  description: string;
+  shortDescription: string;
+  detail: string;
   icon: React.ReactNode;
 };
 
@@ -56,23 +58,36 @@ export function GameTypeSelectScreen({
     {
       id: 'online-multiplayer',
       label: 'Online Multiplayer',
-      description: `${getGameCountByCategory('online-multiplayer')} games - Play with others online`,
+      shortDescription: `${getGameCountByCategory('online-multiplayer')} games`,
+      detail: 'Fast matchmaking and room-based online competition.',
       icon: <AiOutlineTeam />,
     },
     {
       id: 'all',
       label: 'All Games',
-      description: `${getGameCountByCategory('all')} games - Browse everything`,
+      shortDescription: `${getGameCountByCategory('all')} games`,
+      detail: 'Browse the full arena catalog in one view.',
       icon: <AiOutlineAppstore />,
     },
     {
       id: 'single-player',
       label: 'Single Player',
-      description: `${getGameCountByCategory('single-player')} games - Solo challenges`,
+      shortDescription: `${getGameCountByCategory('single-player')} games`,
+      detail: 'Practice, puzzle runs, and skill-building sessions.',
       icon: <AiOutlineRobot />,
     },
-
   ];
+  const selectedOption =
+    gameTypeOptions.find((option) => option.id === selectedCategory) || gameTypeOptions[0];
+  const selectedGames = games.filter((game) => {
+    if (selectedCategory === 'online-multiplayer') {
+      return game.supportsOnline && game.minPlayers >= 2;
+    }
+    if (selectedCategory === 'single-player') {
+      return !game.supportsOnline || game.maxPlayers === 1;
+    }
+    return true;
+  });
 
   return (
     <section className="title-screen-content">
@@ -90,33 +105,76 @@ export function GameTypeSelectScreen({
         </div>
 
         <div className="game-type-banner">
-          <strong>Choose how you want to play</strong>
-          <span>Select a game type to filter and discover your next match</span>
+          <strong>Choose Your Arena Focus</strong>
+          <span>Pick a mode lane first, then lock in the exact game on the next screen.</span>
         </div>
 
-        <div className="game-type-grid">
-          {gameTypeOptions.map((option) => (
-            <div
-              key={option.id}
-              className={classnames('game-type-card flex flex-col items-center', selectedCategory === option.id && 'game-type-card-active')}
-            >
-              <button
-                className="game-type-card-select"
-                type="button"
-                onClick={() => onSelectCategory(option.id)}
+        <div className="game-type-layout">
+          <div className="game-type-grid">
+            {gameTypeOptions.map((option) => (
+              <div
+                key={option.id}
+                className={classnames(
+                  'game-type-card',
+                  'flex',
+                  'flex-col',
+                  selectedCategory === option.id && 'game-type-card-active'
+                )}
               >
-                <div className="game-type-icon">{option.icon}</div>
-                <strong>{option.label}</strong>
-                <span>{option.description}</span>
-              </button>
-
-              {selectedCategory === option.id ? (
-                <button className="game-type-play-btn" type="button" onClick={onContinue}>
-                 <AiOutlineCheckCircle /> Continue
+                <button
+                  className="game-type-card-select"
+                  type="button"
+                  onClick={() => onSelectCategory(option.id)}
+                >
+                  <div className="game-type-card-top">
+                    <div className="game-type-icon">{option.icon}</div>
+                    <span className="game-type-chip">{option.shortDescription}</span>
+                  </div>
+                  <strong>{option.label}</strong>
+                  <span>{option.detail}</span>
                 </button>
-              ) : null}
+
+                {selectedCategory === option.id ? (
+                  <button className="game-type-play-btn" type="button" onClick={onContinue}>
+                    <AiOutlineCheckCircle /> Continue
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+
+          <aside className="game-type-preview">
+            <div className="game-type-preview-head">
+              <p className="game-type-preview-label">Selected Lane</p>
+              <strong>{selectedOption.label}</strong>
+              <span>{selectedOption.detail}</span>
             </div>
-          ))}
+
+            <div className="game-type-preview-stats">
+              <span className="game-type-preview-pill">
+                <AiOutlineCompass /> {selectedGames.length} Available
+              </span>
+              <span className="game-type-preview-pill">
+                <AiOutlineThunderbolt /> Ready to Queue
+              </span>
+            </div>
+
+            <ul className="game-type-preview-list">
+              {selectedGames.slice(0, 5).map((game) => (
+                <li key={game.id}>
+                  <span>{game.name}</span>
+                  <small>
+                    {game.minPlayers}-{game.maxPlayers} players
+                  </small>
+                </li>
+              ))}
+              {selectedGames.length > 5 ? <li>+ {selectedGames.length - 5} more</li> : null}
+            </ul>
+
+            <button className="game-type-preview-cta" type="button" onClick={onContinue}>
+              <AiOutlineCheckCircle /> Continue With {selectedOption.label}
+            </button>
+          </aside>
         </div>
       </div>
     </section>

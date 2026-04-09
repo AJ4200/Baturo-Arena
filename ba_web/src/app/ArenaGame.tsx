@@ -6,6 +6,7 @@ import { SoloDinoGame } from '@/features/game/SoloDinoGame';
 import { SoloMemoryMatchGame } from '@/features/game/SoloMemoryMatchGame';
 import { SoloMinesweeperGame } from '@/features/game/SoloMinesweeperGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
+import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/Solo2048Game';
 import { SoloSudokuGame } from '@/features/game/SoloSudokuGame';
 import type {
@@ -32,6 +33,8 @@ type ArenaGameProps = {
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
   cpuDifficulty: CpuDifficulty;
+  offlineParticipantNames: string[];
+  offlineParticipantCount: number;
 };
 
 const ArenaGame: React.FC<ArenaGameProps> = ({
@@ -49,6 +52,8 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   onMatchComplete,
   onLeave,
   cpuDifficulty,
+  offlineParticipantNames,
+  offlineParticipantCount,
 }) => {
   if (gameType === '2048') {
     return (
@@ -136,6 +141,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onToggleMusic={onToggleMusic}
         onToggleAnimations={onToggleAnimations}
         difficulty={cpuDifficulty}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (mode === 'offline') {
+    return (
+      <OfflineArenaGame
+        player={player}
+        gameType={gameType}
+        gameDefinitions={gameDefinitions}
+        participantNames={offlineParticipantNames}
+        participantCount={offlineParticipantCount}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />

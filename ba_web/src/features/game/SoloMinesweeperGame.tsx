@@ -189,8 +189,14 @@ export function SoloMinesweeperGame({
           };
         }),
     },
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
+  ];
+  const controllerSections = [
+    {
+      key: 'board-actions',
+      title: 'Board Actions',
+      layout: 'row' as const,
+      buttons: controllerButtons,
+    },
   ];
 
   const toggleFlagAt = useCallback((index: number) => {
@@ -345,8 +351,8 @@ export function SoloMinesweeperGame({
 
       <AdaptiveControllerOverlay
         title="Minesweeper Controller"
-        subtitle="Switch between reveal and flag modes"
-        buttons={controllerButtons}
+        subtitle="Switch between reveal and flag controls"
+        sections={controllerSections}
       />
 
       <motion.div
@@ -409,21 +415,6 @@ export function SoloMinesweeperGame({
               </div>
 
               <div className="solo-float-actions">
-                <button className={classnames('room-float-action-btn')} type="button" onClick={resetBoard}>
-                  <AiOutlineReload /> New Board
-                </button>
-                <button
-                  className={classnames('room-float-action-btn')}
-                  type="button"
-                  onClick={() =>
-                    setState((currentState) => ({
-                      ...currentState,
-                      flagMode: !currentState.flagMode,
-                    }))
-                  }
-                >
-                  <AiOutlineFlag /> {state.flagMode ? 'Flag Mode On' : 'Reveal Mode On'}
-                </button>
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -488,7 +479,7 @@ export function SoloMinesweeperGame({
               ? 'Mine triggered. Start a new board.'
               : state.flagMode
                 ? 'Tap to place/remove flags. Right-click also flags.'
-                : 'Tap to reveal cells. Use flag mode or right-click to mark mines.'}
+                : 'Tap to reveal cells. Use adaptive controls or right-click to mark mines.'}
         </p>
         <p className="solo-mines-tip">
           <AiOutlineInfoCircle /> First reveal is always safe.

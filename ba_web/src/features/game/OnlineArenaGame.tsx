@@ -17,6 +17,7 @@ import {
 } from 'react-icons/ai';
 import PlayerO from '@/components/game/player/PlayerO';
 import PlayerX from '@/components/game/player/PlayerX';
+import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { API_BASE_URL, STORAGE_KEYS } from '@/lib/constants';
 import { formatGameName } from '@/lib/games';
 import { GameBoard } from '@/features/game/GameBoard';
@@ -316,11 +317,10 @@ export function OnlineArenaGame({
   }, [onMatchComplete, player.playerId, room, yourSymbol]);
 
   const roomStatusIcon = room?.status === 'waiting' ? <AiOutlineClockCircle /> : room?.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />;
+  const showAdaptiveController = room?.gameType !== 'checkers';
 
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
-    { key: 'sound', label: isMusicMuted ? 'Unmute' : 'Mute', icon: <AiOutlineSound />, onClick: onToggleMusic },
-    { key: 'motion', label: enableAnimations ? 'Motion On' : 'Motion Off', icon: <AiOutlineDrag />, onClick: onToggleAnimations },
     { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: handleLeave },
   ];
 
@@ -329,11 +329,13 @@ export function OnlineArenaGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
-      <AdaptiveControllerOverlay
-        title="Online Controller"
-        subtitle="Control room actions and audio"
-        buttons={controllerButtons}
-      />
+      {showAdaptiveController ? (
+        <AdaptiveControllerOverlay
+          title="Online Match"
+          subtitle="Control room actions"
+          buttons={controllerButtons}
+        />
+      ) : null}
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>

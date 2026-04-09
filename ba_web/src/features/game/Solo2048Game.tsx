@@ -233,12 +233,24 @@ export function Solo2048Game({
   }, []);
 
   const controllerButtons = [
-    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, onClick: () => handleDirection('up') },
-    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, onClick: () => handleDirection('left') },
-    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, onClick: () => handleDirection('right') },
-    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, onClick: () => handleDirection('down') },
-    { key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleReset },
-   
+    { key: 'up', label: 'Up', icon: <AiOutlineArrowUp />, slot: 'up' as const, onClick: () => handleDirection('up') },
+    { key: 'left', label: 'Left', icon: <AiOutlineArrowLeft />, slot: 'left' as const, onClick: () => handleDirection('left') },
+    { key: 'right', label: 'Right', icon: <AiOutlineArrowRight />, slot: 'right' as const, onClick: () => handleDirection('right') },
+    { key: 'down', label: 'Down', icon: <AiOutlineArrowDown />, slot: 'down' as const, onClick: () => handleDirection('down') },
+  ];
+  const controllerSections = [
+    {
+      key: 'movement',
+      title: 'Directional Pad',
+      layout: 'dpad' as const,
+      buttons: controllerButtons,
+    },
+    {
+      key: 'actions',
+      title: 'Run Controls',
+      layout: 'row' as const,
+      buttons: [{ key: 'new', label: 'New Run', icon: <AiOutlineReload />, onClick: handleReset }],
+    },
   ];
 
   useEffect(() => {
@@ -322,8 +334,8 @@ export function Solo2048Game({
 
       <AdaptiveControllerOverlay
         title={gameLabel}
-        subtitle="Tap the arrows to slide tiles"
-        buttons={controllerButtons}
+        subtitle="Use the directional pad for tile movement"
+        sections={controllerSections}
       />
 
       <motion.div
@@ -429,7 +441,7 @@ export function Solo2048Game({
               : 'No moves left. Start a new run and try again.'
             : state.hasWon
               ? '2048 reached. Keep merging for a bigger score.'
-              : 'Use arrow keys, WASD, or controller buttons to slide tiles.'}
+              : 'Use arrow keys, WASD, or the adaptive controller D-pad to slide tiles.'}
         </p>
       </section>
     </>
