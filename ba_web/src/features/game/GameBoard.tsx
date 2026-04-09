@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import X from '@/components/game/X';
-import O from '@/components/game/O';
+import X from '@/components/game/tic-tac-two/X';
+import O from '@/components/game/tic-tac-two/O';
 import { getGameDefinition } from '@/lib/games';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';

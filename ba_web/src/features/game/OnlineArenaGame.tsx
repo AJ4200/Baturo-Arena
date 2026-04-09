@@ -44,23 +44,23 @@ type OnlineArenaGameProps = {
   onLeave: () => void;
 };
 
-const getPlayerLabels = (currentGameType: string | null | undefined): { x: string; o: string } => {
+const getPlayerLabels = (currentGameType: string | null | undefined): { x: string; o: string; y: string; z: string } => {
   if (currentGameType === 'tic-tac-two') {
-    return { x: 'Player X', o: 'Player O' };
+    return { x: 'Player X', o: 'Player O', y: 'Player Y', z: 'Player Z' };
   }
   if (currentGameType === 'connect-all-four') {
-    return { x: 'Red Team', o: 'Blue Team' };
+    return { x: 'Red Team', o: 'Blue Team', y: 'Yellow Team', z: 'Purple Team' };
   }
   if (currentGameType === 'orbital-flip') {
-    return { x: 'Nova Team', o: 'Pulse Team' };
+    return { x: 'Nova Team', o: 'Pulse Team', y: 'Yellow Team', z: 'Purple Team' };
   }
   if (currentGameType === 'corner-clash') {
-    return { x: 'Flare Team', o: 'Tide Team' };
+    return { x: 'Flare Team', o: 'Tide Team', y: 'Yellow Team', z: 'Purple Team' };
   }
   if (currentGameType === 'checkers') {
-    return { x: 'Red Checkers', o: 'Blue Checkers' };
+    return { x: 'Red Checkers', o: 'Blue Checkers', y: 'Yellow Checkers', z: 'Purple Checkers' };
   }
-  return { x: 'Player 1', o: 'Player 2' };
+  return { x: 'Player 1', o: 'Player 2', y: 'Player 3', z: 'Player 4' };
 };
 
 const readValidAuthToken = (): string | null => {
