@@ -9,6 +9,7 @@ import {
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
   AiOutlineArrowUp,
+  AiOutlineInfoCircle,
   AiOutlineReload,
   AiOutlineSound,
 } from 'react-icons/ai';
@@ -354,7 +355,7 @@ export function Solo2048Game({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineArrowUp />
+              <AiOutlineInfoCircle />
             </button>
           ) : (
             <>
@@ -362,7 +363,7 @@ export function Solo2048Game({
                 <span className="room-float-anchor">
                   <AiOutlineDrag /> drag
                 </span>
-                <span className="room-float-title">{gameLabel} Solo</span>
+                <span className="room-float-title"><AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} Solo</span>
                 <button
                   className="room-float-toggle-btn"
                   type="button"
