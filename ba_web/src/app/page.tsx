@@ -14,7 +14,7 @@ import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
-import { GoogleNoticeDock } from '@/features/home/GoogleNoticeDock';
+import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
 import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
 import { useApiClient } from '@/hooks/useApiClient';
@@ -268,7 +268,7 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
-  const [isGoogleNoticeDockOpen, setIsGoogleNoticeDockOpen] = useState(false);
+  const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
@@ -1295,15 +1295,50 @@ export default function Home() {
     };
   }, []);
 
-  const isGoogleOnlineNotice = message === GOOGLE_ONLINE_NOTICE_MESSAGE;
-
   useEffect(() => {
-    if (isGoogleOnlineNotice) {
-      setIsGoogleNoticeDockOpen(true);
-      return;
+    setIsNoticeDockOpen(Boolean(message));
+  }, [message]);
+
+  const noticeTone = useMemo<NoticeTone>(() => {
+    const normalizedMessage = message.trim().toLowerCase();
+    if (!normalizedMessage) {
+      return 'info';
     }
-    setIsGoogleNoticeDockOpen(false);
-  }, [isGoogleOnlineNotice]);
+
+    if (normalizedMessage === GOOGLE_ONLINE_NOTICE_MESSAGE.toLowerCase()) {
+      return 'warning';
+    }
+
+    const errorPattern =
+      /could not|failed|fail|error|missing|required|invalid|unavailable|not ready|disabled|no valid|delayed/;
+    const warningPattern = /tip|notice|retry|recommended|only|first/;
+    const successPattern = /saved|loaded|connected|signed out|reset|synced|joined|created|started|ready/;
+
+    if (errorPattern.test(normalizedMessage)) {
+      return 'error';
+    }
+    if (successPattern.test(normalizedMessage)) {
+      return 'success';
+    }
+    if (warningPattern.test(normalizedMessage)) {
+      return 'warning';
+    }
+
+    return 'info';
+  }, [message]);
+
+  const noticeTitle = useMemo(() => {
+    if (noticeTone === 'error') {
+      return 'Error';
+    }
+    if (noticeTone === 'success') {
+      return 'Success';
+    }
+    if (noticeTone === 'warning') {
+      return 'Notice';
+    }
+    return 'Update';
+  }, [noticeTone]);
 
   const applyCpuDifficulty = useCallback((difficulty: CpuDifficulty) => {
     setCpuDifficulty(difficulty);
@@ -1442,9 +1477,7 @@ export default function Home() {
           publicRooms={publicRooms}
           playerProfile={player}
           googleAccount={googleAccount}
-          message={isGoogleOnlineNotice ? '' : message}
           isLoading={isLoading}
-          onClearMessage={() => setMessage('')}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
@@ -1494,10 +1527,8 @@ export default function Home() {
           publicRooms={publicRooms}
           playerProfile={player}
           googleAccount={googleAccount}
-          message={isGoogleOnlineNotice ? '' : message}
           isLoading={isLoading}
           isSinglePlayerMode={true}
-          onClearMessage={() => setMessage('')}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
@@ -1700,12 +1731,17 @@ export default function Home() {
               });
           }}
         />
-        {screen === 'lobby' && isGoogleOnlineNotice ? (
+        {message ? (
           <GoogleNoticeDock
-            isOpen={isGoogleNoticeDockOpen}
-            message={GOOGLE_ONLINE_NOTICE_MESSAGE}
-            onToggleOpen={() => setIsGoogleNoticeDockOpen((currentValue) => !currentValue)}
-            onDismiss={() => setMessage('')}
+            isOpen={isNoticeDockOpen}
+            title={noticeTitle}
+            tone={noticeTone}
+            message={message}
+            onToggleOpen={() => setIsNoticeDockOpen((currentValue) => !currentValue)}
+            onDismiss={() => {
+              setIsNoticeDockOpen(false);
+              setMessage('');
+            }}
           />
         ) : null}
         <MusicDock

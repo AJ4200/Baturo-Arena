@@ -32,10 +32,8 @@ type LobbyScreenProps = {
   publicRooms: PublicRoom[];
   playerProfile: PlayerProfile | null;
   googleAccount: GoogleAccount | null;
-  message: string;
   isLoading: boolean;
   isSinglePlayerMode?: boolean;
-  onClearMessage: () => void;
   onBack: () => void;
   onGameChange: (value: GameType) => void;
   onPlayModeChange: (mode: GameMode) => void;
@@ -68,10 +66,8 @@ export function LobbyScreen({
   publicRooms,
   playerProfile,
   googleAccount,
-  message,
   isLoading,
   isSinglePlayerMode = false,
-  onClearMessage,
   onBack,
   onGameChange,
   onPlayModeChange,
@@ -240,6 +236,62 @@ export function LobbyScreen({
     }
     onCreatePrivate();
   };
+  const playLaunchConfig = useMemo(() => {
+    if (playMode === 'cpu') {
+      return {
+        icon: <AiOutlineRobot />,
+        title: `Play ${selectedGameName} vs CPU`,
+        hint: supportsCpu
+          ? isSinglePlayerMode
+            ? 'Solo challenge run'
+            : 'Head-to-head training match'
+          : `${selectedGameName} does not support CPU mode.`,
+        disabled: !supportsCpu,
+        onClick: onPlayCpu,
+        modeLabel: 'CPU Mode',
+        detailLabel: `${cpuDifficulty.toUpperCase()} AI`,
+      };
+    }
+
+    if (playMode === 'offline') {
+      return {
+        icon: <AiOutlineTeam />,
+        title: 'Start Local Match',
+        hint: supportsOffline
+          ? 'Local shared-device turn play'
+          : `${selectedGameName} is single-player only.`,
+        disabled: !supportsOffline,
+        onClick: onPlayOffline,
+        modeLabel: 'Local Mode',
+        detailLabel: `${offlinePlayerCount} Players`,
+      };
+    }
+
+    return {
+      icon: <AiOutlineGlobal />,
+      title: supportsOnline ? 'Refresh Room Discovery' : 'Online Room Matchmaking',
+      hint: supportsOnline
+        ? 'Update the room list and find your next match.'
+        : `${selectedGameName} does not support online rooms.`,
+      disabled: !supportsOnline || isLoading || !onRefreshRooms,
+      onClick: onRefreshRooms || null,
+      modeLabel: 'Online Mode',
+      detailLabel: supportsOnline ? 'Room Browser' : 'Unavailable',
+    };
+  }, [
+    cpuDifficulty,
+    isLoading,
+    isSinglePlayerMode,
+    offlinePlayerCount,
+    onPlayCpu,
+    onPlayOffline,
+    onRefreshRooms,
+    playMode,
+    selectedGameName,
+    supportsCpu,
+    supportsOffline,
+    supportsOnline,
+  ]);
 
   return (
     <section className="title-screen-content">
@@ -322,44 +374,25 @@ export function LobbyScreen({
               ) : null}
             </div>
 
-            {playMode === 'cpu' ? (
+            <aside className="lobby-launch-panel">
+              <span className="lobby-select-caption">Quick Launch</span>
+              <div className="lobby-launch-pills">
+                <span className="lobby-launch-pill">{selectedGameName}</span>
+                <span className="lobby-launch-pill">{playLaunchConfig.modeLabel}</span>
+                <span className="lobby-launch-pill">{playLaunchConfig.detailLabel}</span>
+              </div>
               <button
-                className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
+                className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta', 'lobby-play-cta-side')}
                 type="button"
-                disabled={!supportsCpu}
-                onClick={onPlayCpu}
+                disabled={playLaunchConfig.disabled}
+                onClick={playLaunchConfig.onClick || undefined}
               >
                 <span className="lobby-cpu-cta-main">
-                  <AiOutlineRobot /> Play {selectedGameName} vs CPU
+                  {playLaunchConfig.icon} {playLaunchConfig.title}
                 </span>
-                <small>
-                  {supportsCpu
-                    ? isSinglePlayerMode
-                      ? 'Solo challenge run'
-                      : 'Head-to-head training match'
-                    : ''}
-                </small>
+                <small>{playLaunchConfig.hint}</small>
               </button>
-            ) : playMode === 'offline' ? (
-              <button
-                className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')}
-                type="button"
-                disabled={!supportsOffline}
-                onClick={onPlayOffline}
-              >
-                <span className="lobby-cpu-cta-main">
-                  <AiOutlineTeam /> Start Local Match
-                </span>
-                <small>{supportsOffline ? 'Local shared-device turn play' : ''}</small>
-              </button>
-            ) : (
-              <button className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')} type="button" disabled>
-                <span className="lobby-cpu-cta-main">
-                  <AiOutlineGlobal /> Online Room Matchmaking
-                </span>
-                <small>Create or join the room below.</small>
-              </button>
-            )}
+            </aside>
           </div>
         </div>
 
@@ -714,7 +747,7 @@ export function LobbyScreen({
                       <div className="public-room-meta">
                         {roomItem.players.map((joinedPlayer) => (
                           <span key={`${roomItem.code}-${joinedPlayer.playerId}`} className="public-room-meta-pill">
-                            {joinedPlayer.symbol} · {joinedPlayer.name} ({joinedPlayer.wins}-{joinedPlayer.losses}-
+                            {joinedPlayer.symbol} | {joinedPlayer.name} ({joinedPlayer.wins}-{joinedPlayer.losses}-
                             {joinedPlayer.draws})
                           </span>
                         ))}
@@ -741,14 +774,6 @@ export function LobbyScreen({
         ) : null}
       </div>
 
-      {message ? (
-        <div className="lobby-message-row">
-          <p className="lobby-message">{message}</p>
-          <button className="lobby-message-dismiss" type="button" onClick={onClearMessage}>
-            Dismiss
-          </button>
-        </div>
-      ) : null}
     </section>
   );
 }

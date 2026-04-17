@@ -1,7 +1,14 @@
 'use client';
 
 import classnames from 'classnames';
-import { AiOutlineClose, AiOutlineLoading3Quarters, AiOutlineLogout, AiOutlineUser } from 'react-icons/ai';
+import {
+  AiOutlineCheckCircle,
+  AiOutlineClockCircle,
+  AiOutlineClose,
+  AiOutlineLoading3Quarters,
+  AiOutlineLogout,
+  AiOutlineUser,
+} from 'react-icons/ai';
 import { FcGoogle } from 'react-icons/fc';
 import type { PlayerProfile } from '@/types/game';
 
@@ -40,6 +47,41 @@ export function ProfileDock({
   const isConnected = Boolean(account?.sub);
   const displayName = (playerProfile?.name || account?.name || playerName || 'Player').trim() || 'Player';
   const profileAvatar = `https://robohash.org/${encodeURIComponent(displayName)}?size=160x160`;
+  const profileStatus = (() => {
+    if (isSigningIn) {
+      return {
+        tone: 'syncing' as const,
+        label: 'Signing In',
+        detail: 'Completing Google account handshake.',
+        icon: <AiOutlineLoading3Quarters className="animate-spin" />,
+      };
+    }
+
+    if (isConnected) {
+      return {
+        tone: 'online' as const,
+        label: 'Google Profile',
+        detail: 'Online, CPU, and local modes unlocked.',
+        icon: <AiOutlineCheckCircle />,
+      };
+    }
+
+    if (playerProfile) {
+      return {
+        tone: 'guest' as const,
+        label: 'Guest Profile',
+        detail: 'Stats are tracked locally. Google sign-in enables online.',
+        icon: <AiOutlineClockCircle />,
+      };
+    }
+
+    return {
+      tone: 'new' as const,
+      label: 'Quick Guest',
+      detail: 'Set a guest name to start tracking profile stats.',
+      icon: <AiOutlineUser />,
+    };
+  })();
 
   return (
     <div className={classnames('profile-dock', isOpen && 'profile-dock-open')}>
@@ -70,6 +112,22 @@ export function ProfileDock({
           <div className="profile-dock-account">
             <img src={account.picture || profileAvatar} alt={`${displayName} avatar`} className="profile-dock-avatar" />
             <strong>{displayName}</strong>
+            <div className="profile-dock-status-wrap">
+              <span
+                className={classnames(
+                  'profile-dock-status-pill',
+                  `profile-dock-status-pill-${profileStatus.tone}`
+                )}
+              >
+                {profileStatus.icon} {profileStatus.label}
+              </span>
+              <span className="profile-dock-status-note">{profileStatus.detail}</span>
+            </div>
+            <div className="profile-dock-status-grid">
+              <span className="public-room-pill">Google Linked</span>
+              <span className="public-room-pill">Stats Tracking On</span>
+              <span className="public-room-pill">Online Ready</span>
+            </div>
             <span>{account.email || 'Google account connected'}</span>
             {playerProfile ? <span>Player ID: {playerProfile.playerId}</span> : <span>Online profile ready</span>}
             {playerProfile ? (
@@ -93,6 +151,22 @@ export function ProfileDock({
               </div>
             )}
             <strong>{playerProfile ? displayName : 'Guest mode'}</strong>
+            <div className="profile-dock-status-wrap">
+              <span
+                className={classnames(
+                  'profile-dock-status-pill',
+                  `profile-dock-status-pill-${profileStatus.tone}`
+                )}
+              >
+                {profileStatus.icon} {profileStatus.label}
+              </span>
+              <span className="profile-dock-status-note">{profileStatus.detail}</span>
+            </div>
+            <div className="profile-dock-status-grid">
+              <span className="public-room-pill">{playerProfile ? 'Guest Profile Saved' : 'Guest Profile Pending'}</span>
+              <span className="public-room-pill">{playerProfile ? 'Stats Tracking On' : 'Stats Tracking Off'}</span>
+              <span className="public-room-pill">Offline Ready</span>
+            </div>
             <span>Google sign-in is required only for online multiplayer.</span>
             <input
               className="profile-dock-input"
