@@ -1,16 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import classnames from 'classnames';
 import {
   AiOutlineArrowLeft,
   AiOutlineArrowRight,
   AiOutlineCheckCircle,
+  AiOutlineDown,
   AiOutlineGlobal,
   AiOutlineLeft,
   AiOutlineRight,
   AiOutlineRobot,
   AiOutlineTeam,
+  AiOutlineUp,
 } from 'react-icons/ai';
 import type { GameDefinition, GameType } from '@/types/game';
 
@@ -42,22 +44,22 @@ export function GameSelectScreen({
   onBack,
   onContinue,
 }: GameSelectScreenProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const selectedIndex = games.length === 0 ? -1 : Math.max(0, games.findIndex((game) => game.id === selectedGame));
   const selectedOrder = selectedIndex >= 0 ? selectedIndex + 1 : 0;
   const selectedDefinition = selectedIndex >= 0 ? games[selectedIndex] : null;
   const selectedGameName = selectedDefinition?.name || 'No game selected';
   const totalGames = games.length;
 
+
   const moveSelection = useCallback(
     (direction: -1 | 1) => {
-      if (games.length === 0) {
-        return;
-      }
-
+      if (!games.length) return;
       const nextIndex = (selectedIndex + direction + games.length) % games.length;
       onSelectGame(games[nextIndex].id);
     },
-    [games, onSelectGame, selectedIndex]
+    [games, selectedIndex, onSelectGame]
   );
 
   useEffect(() => {
@@ -89,10 +91,7 @@ export function GameSelectScreen({
   }, [moveSelection, onContinue]);
 
   const carouselTrackStyle = useMemo<CSSProperties>(() => {
-    if (selectedIndex < 0) {
-      return {};
-    }
-
+    if (selectedIndex < 0) return {};
     return {
       transform: `translateX(calc(50% - (var(--choose-carousel-card-size) / 2) - ${selectedIndex} * (var(--choose-carousel-card-size) + var(--choose-carousel-gap))))`,
     };
@@ -116,7 +115,34 @@ export function GameSelectScreen({
               <span className="choose-game-position">
                 {selectedOrder} of {totalGames}
               </span>
-              <span className="choose-game-name">{selectedGameName}</span>
+              <div
+                className="choose-game-name flex items-center relative cursor-pointer"
+                onClick={() => setIsDropdownOpen((p) => !p)}
+              >
+                {isDropdownOpen ? <AiOutlineUp /> : <AiOutlineDown />}
+                {selectedGameName}
+
+                {isDropdownOpen && (
+                  <div className="choose-game-dropdown">
+                    {games.map((game) => (
+                      <button
+                        key={game.id}
+                        className={classnames(
+                          'choose-game-dropdown-item',
+                          game.id === selectedGame && 'active'
+                        )}
+                        onClick={() => {
+                          onSelectGame(game.id);
+                          setIsDropdownOpen(false);
+                        }}
+                      >
+                        {game.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
             <button
               className="choose-game-step-btn choose-game-play-now-btn"
@@ -166,15 +192,6 @@ export function GameSelectScreen({
                       <div className={classnames('choose-game-thumb', `choose-game-thumb-${game.id}`)}>
                         <span>{THUMBNAIL_LABELS[game.id]}</span>
                       </div>
-                      <strong>{game.name}</strong>
-                      <span>{game.description}</span>
-                      <small>
-                        <AiOutlineTeam /> {game.minPlayers}-{game.maxPlayers} players
-                      </small>
-                      <div className="choose-game-card-chip-row">
-                        <span>{game.supportsOnline ? 'Online' : 'Solo'}</span>
-                        <span>{game.supportsCpu ? 'CPU' : 'No CPU'}</span>
-                      </div>
                     </button>
 
                     {isSelected ? (
@@ -222,7 +239,7 @@ export function GameSelectScreen({
             <div className="choose-game-spotlight-head">
               <strong>{selectedDefinition.name}</strong>
               <span>
-                Card {selectedOrder} / {totalGames}
+                {selectedOrder} / {totalGames}
               </span>
             </div>
             <p>{selectedDefinition.description}</p>

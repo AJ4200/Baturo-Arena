@@ -87,7 +87,7 @@ export function GoogleNoticeDock({
         className={classnames('profile-dock-panel', 'google-notice-dock-panel', `google-notice-dock-panel-${tone}`)}
         aria-hidden={!isOpen}
       >
-        <header className="music-dock-head">
+        <header className="profile-dock-head">
           <h3>{title || noticeCopy.heading}</h3>
           <button className="music-dock-head-btn" type="button" onClick={onToggleOpen} aria-label="Close notice panel">
             <AiOutlineClose />

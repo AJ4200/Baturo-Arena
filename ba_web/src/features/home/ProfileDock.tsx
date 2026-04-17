@@ -101,7 +101,7 @@ export function ProfileDock({
       </button>
 
       <section className="profile-dock-panel" aria-hidden={!isOpen}>
-        <header className="music-dock-head">
+        <header className="profile-dock-head">
           <h3>Profile</h3>
           <button className="music-dock-head-btn" type="button" onClick={onToggleOpen} aria-label="Close profile panel">
             <AiOutlineClose />

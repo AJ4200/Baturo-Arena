@@ -387,10 +387,13 @@ export function LobbyScreen({
                 disabled={playLaunchConfig.disabled}
                 onClick={playLaunchConfig.onClick || undefined}
               >
-                <span className="lobby-cpu-cta-main">
-                  {playLaunchConfig.icon} {playLaunchConfig.title}
-                </span>
-                <small>{playLaunchConfig.hint}</small>
+<div className="lobby-cta-content">
+  <div className="lobby-cta-row">
+    <span className="lobby-cta-icon">{playLaunchConfig.icon}</span>
+    <span className="lobby-cta-title">{playLaunchConfig.title}</span>
+  </div>
+  <span className="lobby-cta-sub">{playLaunchConfig.hint}</span>
+</div>
               </button>
             </aside>
           </div>
