@@ -126,7 +126,7 @@ export function LobbyScreen({
       {
         id: 'offline' as const,
         icon: <AiOutlineTeam />,
-        label: 'Offline Multiplayer',
+        label: 'Local Multiplayer',
         description: supportsOffline
           ? 'Play locally with shared turns on one device.'
           : `${selectedGameName} is single-player only.`,
@@ -135,10 +135,6 @@ export function LobbyScreen({
     ],
     [isSinglePlayerMode, selectedGameName, supportsCpu, supportsOffline, supportsOnline]
   );
-  const selectedModeIndex = Math.max(0, modeOptions.findIndex((option) => option.id === playMode));
-  const activeModeOption = modeOptions.find((option) => option.id === playMode) || modeOptions[0];
-  const activeModeThumbWidth = `${100 / Math.max(1, modeOptions.length)}%`;
-  const activeModeThumbTransform = `translateX(${selectedModeIndex * 100}%)`;
   const offlineSeats = useMemo(
     () => getOfflineSeats(selectedGame, offlinePlayerCount),
     [offlinePlayerCount, selectedGame]
@@ -279,13 +275,6 @@ export function LobbyScreen({
               <div className="lobby-play-mode-stack">
                 <span className="lobby-select-caption">Play Mode</span>
                 <div className="lobby-play-mode-slider" role="tablist" aria-label="Play mode selector">
-                  <span
-                    className="lobby-play-mode-slider-thumb"
-                    style={{
-                      width: activeModeThumbWidth,
-                      transform: activeModeThumbTransform,
-                    }}
-                  />
                   {modeOptions.map((modeOption) => (
                     <button
                       key={modeOption.id}
@@ -301,13 +290,11 @@ export function LobbyScreen({
                       disabled={modeOption.disabled}
                       onClick={() => onPlayModeChange(modeOption.id)}
                     >
-                      {modeOption.icon}
+                      <span className="lobby-play-mode-btn-icon">{modeOption.icon}</span>
+                      <span className="lobby-play-mode-btn-label">{modeOption.label}</span>
+                      <small className="lobby-play-mode-btn-copy">{modeOption.description}</small>
                     </button>
                   ))}
-                </div>
-                <div className="lobby-play-mode-meta">
-                  <strong>{activeModeOption.label}</strong>
-                  <span>{activeModeOption.description}</span>
                 </div>
               </div>
 
@@ -345,7 +332,13 @@ export function LobbyScreen({
                 <span className="lobby-cpu-cta-main">
                   <AiOutlineRobot /> Play {selectedGameName} vs CPU
                 </span>
-                <small>{supportsCpu ? 'Quick practice run' : ''}</small>
+                <small>
+                  {supportsCpu
+                    ? isSinglePlayerMode
+                      ? 'Solo challenge run'
+                      : 'Head-to-head training match'
+                    : ''}
+                </small>
               </button>
             ) : playMode === 'offline' ? (
               <button
@@ -355,14 +348,17 @@ export function LobbyScreen({
                 onClick={onPlayOffline}
               >
                 <span className="lobby-cpu-cta-main">
-                  <AiOutlineTeam /> Start Offline Match
+                  <AiOutlineTeam /> Start Local Match
                 </span>
                 <small>{supportsOffline ? 'Local shared-device turn play' : ''}</small>
               </button>
             ) : (
-              <div className="lobby-online-cta-tip">
-                <AiOutlineGlobal /> Create or join an online room below.
-              </div>
+              <button className={classnames('lobby-btn', 'custome-shadow', 'lobby-cpu-cta')} type="button" disabled>
+                <span className="lobby-cpu-cta-main">
+                  <AiOutlineGlobal /> Online Room Matchmaking
+                </span>
+                <small>Create or join the room below.</small>
+              </button>
             )}
           </div>
         </div>
@@ -381,7 +377,7 @@ export function LobbyScreen({
                 CPU {supportsCpu ? 'On' : 'Off'}
               </span>
               <span className={classnames('lobby-flag', supportsOffline ? 'lobby-flag-on' : 'lobby-flag-off')}>
-                Offline {supportsOffline ? 'On' : 'Off'}
+                Local {supportsOffline ? 'On' : 'Off'}
               </span>
             </div>
           </div>
@@ -530,7 +526,7 @@ export function LobbyScreen({
             <section className="lobby-panel lobby-panel-create">
               <div className="lobby-panel-head lobby-panel-head-static">
                 <div>
-                  <p className="lobby-panel-title">Offline Setup</p>
+                  <p className="lobby-panel-title">Local Setup</p>
                   <p className="lobby-panel-subtitle">
                     Configure local players. Turns rotate per team on one device.
                   </p>

@@ -228,7 +228,7 @@ const APP_MUSIC_TRACKS: MusicTrack[] = [
 ];
 
 const GOOGLE_ONLINE_NOTICE_MESSAGE =
-  'Sign in with Google to access online multiplayer. CPU and offline play do not need an account.';
+  'Sign in with Google to access online multiplayer. CPU and local play do not need an account.';
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -1022,7 +1022,7 @@ export default function Home() {
       beginMatch('offline', null, selectedGame);
       setMessage('');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not start offline match');
+      setMessage(error instanceof Error ? error.message : 'Could not start local match');
     } finally {
       setIsLoading(false);
     }

@@ -9,7 +9,7 @@ import {
   AiOutlinePlayCircle,
   AiOutlineCheckCircle,
   AiOutlineArrowDown,
-  AiOutlineArrowUp,
+  AiOutlineInfoCircle,
   AiOutlineUser,
   AiOutlineCrown,
   AiOutlineDrag,
@@ -207,7 +207,7 @@ export function CpuArenaGame({
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
             {isRoomCardCollapsed ? (
               <button className="room-float-collapsed-center" type="button" onClick={() => setIsRoomCardCollapsed(false)} aria-label="Expand room info" title="Expand room info">
-                <AiOutlineArrowUp />
+                <AiOutlineInfoCircle />
               </button>
             ) : (
               <>
@@ -215,7 +215,7 @@ export function CpuArenaGame({
                   <span className="room-float-anchor">
                     <AiOutlineDrag /> drag
                   </span>
-                  <span className="room-float-title">{gameLabel} CPU Match ({difficulty})</span>
+                  <span className="room-float-title"><AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} CPU Match ({difficulty})</span>
                   <button className="room-float-toggle-btn" type="button" onClick={() => setIsRoomCardCollapsed(true)} aria-label="Collapse room info" title="Collapse room info">
                     <AiOutlineArrowDown />
                   </button>

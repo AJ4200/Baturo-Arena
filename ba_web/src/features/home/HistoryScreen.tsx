@@ -89,7 +89,7 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
               <li key={entry.id} className="settings-history-item">
                 <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
                 <span className="settings-history-opponent">
-                  {formatGameName(entry.gameType, games)} | {entry.mode.toUpperCase()} vs {entry.opponent}
+                  {formatGameName(entry.gameType, games)} | {(entry.mode === 'offline' ? 'LOCAL' : entry.mode.toUpperCase())} vs {entry.opponent}
                 </span>
                 <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
               </li>

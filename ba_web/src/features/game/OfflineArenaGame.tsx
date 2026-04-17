@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
-  AiOutlineArrowUp,
+  AiOutlineInfoCircle,
   AiOutlineCheckCircle,
   AiOutlineClockCircle,
   AiOutlineCrown,
@@ -130,18 +130,18 @@ export function OfflineArenaGame({
 
   const status = useMemo(() => {
     if (winner === 'draw') {
-      return `${gameLabel} | Offline Match | Draw`;
+      return `${gameLabel} | Local Match | Draw`;
     }
     if (winner === 'X') {
-      return `${gameLabel} | Offline Match | ${playerLabels.x} win`;
+      return `${gameLabel} | Local Match | ${playerLabels.x} win`;
     }
     if (winner === 'O') {
-      return `${gameLabel} | Offline Match | ${playerLabels.o} win`;
+      return `${gameLabel} | Local Match | ${playerLabels.o} win`;
     }
     if (!activeTurnParticipant) {
-      return `${gameLabel} | Offline Match | ${playerLabels[turn.toLowerCase() as 'x' | 'o']} to move`;
+      return `${gameLabel} | Local Match | ${playerLabels[turn.toLowerCase() as 'x' | 'o']} to move`;
     }
-    return `${gameLabel} | Offline Match | ${formatParticipantLabel(activeTurnParticipant)} turn`;
+    return `${gameLabel} | Local Match | ${formatParticipantLabel(activeTurnParticipant)} turn`;
   }, [activeTurnParticipant, gameLabel, playerLabels, turn, winner]);
 
   const roomStatusIcon = winner
@@ -219,7 +219,7 @@ export function OfflineArenaGame({
       mode: 'offline',
       gameType,
       outcome: winner === 'draw' ? 'draw' : winner === primarySymbol ? 'win' : 'loss',
-      opponent: opponent || 'Offline Opponent',
+      opponent: opponent || 'Local Opponent',
     });
   }, [gameType, onMatchComplete, participants, winner]);
 
@@ -231,7 +231,7 @@ export function OfflineArenaGame({
 
       {showAdaptiveController ? (
         <AdaptiveControllerOverlay
-          title="Offline Match"
+          title="Local Match"
           subtitle="Local turn-based controls"
           buttons={controllerButtons}
         />
@@ -248,7 +248,7 @@ export function OfflineArenaGame({
                 aria-label="Expand room info"
                 title="Expand room info"
               >
-                <AiOutlineArrowUp />
+                <AiOutlineInfoCircle />
               </button>
             ) : (
               <>
@@ -256,7 +256,7 @@ export function OfflineArenaGame({
                   <span className="room-float-anchor">
                     <AiOutlineDrag /> drag
                   </span>
-                  <span className="room-float-title">{gameLabel} Offline Match</span>
+                  <span className="room-float-title"><AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} Local Match</span>
                   <button
                     className="room-float-toggle-btn"
                     type="button"
@@ -326,7 +326,7 @@ export function OfflineArenaGame({
       <PlayerX
         pieceLabel={playerLabels.x}
         alias={xParticipants.map((entry) => `${entry.token}:${entry.name}`).join(' | ') || 'Team X'}
-        picture={`https://robohash.org/offline-x-${gameType}`}
+        picture={`https://robohash.org/local-x-${gameType}`}
         wins={player.wins}
         losses={player.losses}
         draws={player.draws}
@@ -350,7 +350,7 @@ export function OfflineArenaGame({
       <PlayerO
         pieceLabel={playerLabels.o}
         alias={oParticipants.map((entry) => `${entry.token}:${entry.name}`).join(' | ') || 'Team O'}
-        picture={`https://robohash.org/offline-o-${gameType}`}
+        picture={`https://robohash.org/local-o-${gameType}`}
         wins={0}
         losses={0}
         draws={0}

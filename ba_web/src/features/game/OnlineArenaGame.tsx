@@ -9,7 +9,7 @@ import {
   AiOutlinePlayCircle,
   AiOutlineCheckCircle,
   AiOutlineArrowDown,
-  AiOutlineArrowUp,
+  AiOutlineInfoCircle,
   AiOutlineUser,
   AiOutlineCrown,
   AiOutlineDrag,
@@ -347,7 +347,7 @@ export function OnlineArenaGame({
                 aria-label="Expand room info"
                 title="Expand room info"
               >
-                <AiOutlineArrowUp />
+                <AiOutlineInfoCircle />
               </button>
             ) : (
               <>
@@ -355,7 +355,7 @@ export function OnlineArenaGame({
                   <span className="room-float-anchor">
                     <AiOutlineDrag /> drag
                   </span>
-                  <span className="room-float-title">
+                  <span className="room-float-title"><AiOutlineInfoCircle className="room-float-title-icon" /> 
                     {room ? `${room.name} (${room.code}) | ${gameLabel}` : 'Loading room'}
                   </span>
                   <button

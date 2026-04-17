@@ -6,7 +6,6 @@ import {
   AiOutlineArrowLeft,
   AiOutlineAppstore,
   AiOutlineCheckCircle,
-  AiOutlineCompass,
   AiOutlineRobot,
   AiOutlineTeam,
   AiOutlineThunderbolt,
@@ -77,17 +76,38 @@ export function GameTypeSelectScreen({
       icon: <AiOutlineRobot />,
     },
   ];
-  const selectedOption =
-    gameTypeOptions.find((option) => option.id === selectedCategory) || gameTypeOptions[0];
-  const selectedGames = games.filter((game) => {
-    if (selectedCategory === 'online-multiplayer') {
-      return game.supportsOnline && game.minPlayers >= 2;
+  const getGamesForCategory = useCallback(
+    (category: GameTypeCategory) =>
+      games.filter((game) => {
+        if (category === 'online-multiplayer') {
+          return game.supportsOnline && game.minPlayers >= 2;
+        }
+        if (category === 'single-player') {
+          return !game.supportsOnline || game.maxPlayers === 1;
+        }
+        return true;
+      }),
+    [games]
+  );
+  const getCategoryActionLabel = useCallback((category: GameTypeCategory) => {
+    if (category === 'single-player') {
+      return 'Start Solo Run';
     }
-    if (selectedCategory === 'single-player') {
-      return !game.supportsOnline || game.maxPlayers === 1;
+    if (category === 'online-multiplayer') {
+      return 'Start Multiplayer Queue';
     }
-    return true;
-  });
+    return 'Continue';
+  }, []);
+
+  const getCategoryActionHint = useCallback((category: GameTypeCategory) => {
+    if (category === 'single-player') {
+      return 'Jump into solo challenges and practice sessions.';
+    }
+    if (category === 'online-multiplayer') {
+      return 'Create or join a room from the next screen.';
+    }
+    return 'Browse and pick any available game.';
+  }, []);
 
   return (
     <section className="title-screen-content">
@@ -106,19 +126,21 @@ export function GameTypeSelectScreen({
 
         <div className="game-type-banner">
           <strong>Choose Your Arena Focus</strong>
-          <span>Pick a mode lane first, then lock in the exact game on the next screen.</span>
+          <span>Pick the lane you want, then continue with that mode.</span>
         </div>
 
-        <div className="game-type-layout">
-          <div className="game-type-grid">
-            {gameTypeOptions.map((option) => (
+        <div className="game-type-grid">
+          {gameTypeOptions.map((option) => {
+            const optionGames = getGamesForCategory(option.id);
+            const isSelected = selectedCategory === option.id;
+            return (
               <div
                 key={option.id}
                 className={classnames(
                   'game-type-card',
                   'flex',
                   'flex-col',
-                  selectedCategory === option.id && 'game-type-card-active'
+                  isSelected && 'game-type-card-active'
                 )}
               >
                 <button
@@ -134,47 +156,33 @@ export function GameTypeSelectScreen({
                   <span>{option.detail}</span>
                 </button>
 
-                {selectedCategory === option.id ? (
-                  <button className="game-type-play-btn" type="button" onClick={onContinue}>
-                    <AiOutlineCheckCircle /> Continue
-                  </button>
+                {isSelected ? (
+                  <div className="game-type-card-preview">
+                    <div className="game-type-card-preview-head">
+                      <span className="game-type-preview-pill">
+                        <AiOutlineThunderbolt /> {optionGames.length} Available
+                      </span>
+                      <p>{getCategoryActionHint(option.id)}</p>
+                    </div>
+                    <ul className="game-type-preview-list">
+                      {optionGames.slice(0, 3).map((game) => (
+                        <li key={game.id}>
+                          <span>{game.name}</span>
+                          <small>
+                            {game.minPlayers}-{game.maxPlayers} players
+                          </small>
+                        </li>
+                      ))}
+                      {optionGames.length > 3 ? <li>+ {optionGames.length - 3} more</li> : null}
+                    </ul>
+                    <button className="game-type-play-btn" type="button" onClick={onContinue}>
+                      <AiOutlineCheckCircle /> {getCategoryActionLabel(option.id)}
+                    </button>
+                  </div>
                 ) : null}
               </div>
-            ))}
-          </div>
-
-          <aside className="game-type-preview">
-            <div className="game-type-preview-head">
-              <p className="game-type-preview-label">Selected Lane</p>
-              <strong>{selectedOption.label}</strong>
-              <span>{selectedOption.detail}</span>
-            </div>
-
-            <div className="game-type-preview-stats">
-              <span className="game-type-preview-pill">
-                <AiOutlineCompass /> {selectedGames.length} Available
-              </span>
-              <span className="game-type-preview-pill">
-                <AiOutlineThunderbolt /> Ready to Queue
-              </span>
-            </div>
-
-            <ul className="game-type-preview-list">
-              {selectedGames.slice(0, 5).map((game) => (
-                <li key={game.id}>
-                  <span>{game.name}</span>
-                  <small>
-                    {game.minPlayers}-{game.maxPlayers} players
-                  </small>
-                </li>
-              ))}
-              {selectedGames.length > 5 ? <li>+ {selectedGames.length - 5} more</li> : null}
-            </ul>
-
-            <button className="game-type-preview-cta" type="button" onClick={onContinue}>
-              <AiOutlineCheckCircle /> Continue With {selectedOption.label}
-            </button>
-          </aside>
+            );
+          })}
         </div>
       </div>
     </section>

@@ -5,7 +5,7 @@ import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
-  AiOutlineArrowUp,
+  AiOutlineInfoCircle,
   AiOutlineDrag,
   AiOutlineFlag,
   AiOutlineReload,
@@ -321,7 +321,7 @@ export function SoloMemoryMatchGame({
               aria-label="Expand game info"
               title="Expand game info"
             >
-              <AiOutlineArrowUp />
+              <AiOutlineInfoCircle />
             </button>
           ) : (
             <>
@@ -329,7 +329,7 @@ export function SoloMemoryMatchGame({
                 <span className="room-float-anchor">
                   <AiOutlineDrag /> drag
                 </span>
-                <span className="room-float-title">{gameLabel} Solo</span>
+                <span className="room-float-title"><AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} Solo</span>
                 <button
                   className="room-float-toggle-btn"
                   type="button"
