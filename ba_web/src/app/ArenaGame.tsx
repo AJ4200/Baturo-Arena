@@ -2,13 +2,15 @@
 
 import React from 'react';
 import { CpuArenaGame } from '@/features/game/CpuArenaGame';
-import { SoloDinoGame } from '@/features/game/SoloDinoGame';
-import { SoloMemoryMatchGame } from '@/features/game/SoloMemoryMatchGame';
-import { SoloMinesweeperGame } from '@/features/game/SoloMinesweeperGame';
+import { LudoArenaGame } from '@/features/game/LudoArenaGame';
+import { OnlineLudoArenaGame } from '@/features/game/OnlineLudoArenaGame';
+import { SoloDinoGame } from '@/features/game/singleplayer/SoloDinoGame';
+import { SoloMemoryMatchGame } from '@/features/game/singleplayer/SoloMemoryMatchGame';
+import { SoloMinesweeperGame } from '@/features/game/singleplayer/SoloMinesweeperGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
-import { Solo2048Game } from '@/features/game/Solo2048Game';
-import { SoloSudokuGame } from '@/features/game/SoloSudokuGame';
+import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
+import { SoloSudokuGame } from '@/features/game/singleplayer/SoloSudokuGame';
 import type {
   CpuDifficulty,
   GameDefinition,
@@ -124,6 +126,44 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
         onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'ludo' && mode === 'online') {
+    if (!roomCode) {
+      return null;
+    }
+    return (
+      <OnlineLudoArenaGame
+        roomCode={roomCode}
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        runWithLoader={runWithLoader}
+        onProfileUpdate={onProfileUpdate}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'ludo') {
+    return (
+      <LudoArenaGame
+        player={player}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        gameDefinitions={gameDefinitions}
+        participantNames={offlineParticipantNames}
+        participantCount={offlineParticipantCount}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />

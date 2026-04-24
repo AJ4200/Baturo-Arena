@@ -1,24 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import X from '@/components/game/tic-tac-two/X';
 import O from '@/components/game/tic-tac-two/O';
+import Y from '@/components/game/tic-tac-two/Y';
+import Z from '@/components/game/tic-tac-two/Z';
 import { getGameDefinition } from '@/lib/games';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
-import type { BoardCell, GameDefinition, GameMove, GameType } from '@/types/game';
+import type { BoardCell, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
 
 type GameBoardProps = {
   gameType: GameType;
   board: BoardCell[];
   gameDefinitions: GameDefinition[];
   disabled?: boolean;
-  interactiveSymbol?: 'X' | 'O' | null;
+  interactiveSymbol?: GameSymbol | null;
   onMove: (move: GameMove) => void;
 };
 
 const isCheckersPiece = (cell: BoardCell): cell is 'XC' | 'XK' | 'OC' | 'OK' =>
   cell === 'XC' || cell === 'XK' || cell === 'OC' || cell === 'OK';
 
-const getCellOwner = (cell: Exclude<BoardCell, null>): 'X' | 'O' => {
+const getCellOwner = (cell: Exclude<BoardCell, null>): GameSymbol => {
+  if (cell === 'Y' || cell === 'Z') {
+    return cell;
+  }
   if (cell.startsWith('O')) {
     return 'O';
   }
@@ -64,7 +69,14 @@ export function GameBoard({
 
   const renderPiece = (cell: Exclude<BoardCell, null>) => {
     const owner = getCellOwner(cell);
-    const ownerClass = owner === 'X' ? 'piece-owner-x' : 'piece-owner-o';
+    const ownerClass =
+      owner === 'X'
+        ? 'piece-owner-x'
+        : owner === 'O'
+          ? 'piece-owner-o'
+          : owner === 'Y'
+            ? 'piece-owner-y'
+            : 'piece-owner-z';
 
     if (gameType === 'checkers' && isCheckersPiece(cell)) {
       return (
@@ -81,6 +93,9 @@ export function GameBoard({
     }
 
     if (gameType === 'connect-all-four') {
+      if (owner === 'Y' || owner === 'Z') {
+        return owner === 'Y' ? <Y /> : <Z />;
+      }
       return (
         <motion.div
           className={classnames('marker', 'marker-connect-piece', ownerClass)}
@@ -94,6 +109,9 @@ export function GameBoard({
     }
 
     if (gameType === 'orbital-flip') {
+      if (owner === 'Y' || owner === 'Z') {
+        return owner === 'Y' ? <Y /> : <Z />;
+      }
       return (
         <motion.div
           className={classnames('marker', 'marker-orbital-piece', ownerClass)}
@@ -108,6 +126,9 @@ export function GameBoard({
     }
 
     if (gameType === 'corner-clash') {
+      if (owner === 'Y' || owner === 'Z') {
+        return owner === 'Y' ? <Y /> : <Z />;
+      }
       return (
         <motion.div
           className={classnames('marker', 'marker-corner-piece', ownerClass)}
@@ -121,7 +142,13 @@ export function GameBoard({
       );
     }
 
-    return owner === 'X' ? <X /> : <O />;
+    if (owner === 'X') {
+      return <X />;
+    }
+    if (owner === 'O') {
+      return <O />;
+    }
+    return owner === 'Y' ? <Y /> : <Z />;
   };
 
   const renderCell = (cell: BoardCell, cellIndex: number, moveIndex: number) => {
@@ -208,7 +235,8 @@ export function GameBoard({
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
-    game.moveMode === 'solo-dino'
+    game.moveMode === 'solo-dino' ||
+    game.moveMode === 'ludo'
   ) {
     return null;
   }

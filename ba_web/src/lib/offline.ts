@@ -37,6 +37,21 @@ export const getOfflineSeatLabel = (gameType: GameType, token: OfflineSeatToken)
     }
   }
 
+  if (gameType === 'ludo') {
+    if (token === 'P1') {
+      return 'Player 1 (Red)';
+    }
+    if (token === 'P2') {
+      return 'Player 2 (Blue)';
+    }
+    if (token === 'P3') {
+      return 'Player 3 (Yellow)';
+    }
+    if (token === 'P4') {
+      return 'Player 4 (Green)';
+    }
+  }
+
   return token.startsWith('P')
     ? `Player ${token.replace('P', '')}`
     : `Player ${token}`;

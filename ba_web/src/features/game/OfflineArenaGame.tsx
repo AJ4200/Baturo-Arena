@@ -21,7 +21,14 @@ import { GameBoard } from '@/features/game/GameBoard';
 import { evaluateBoard } from '@/lib/cpu';
 import { applyMove, createEmptyBoard, formatGameName } from '@/lib/games';
 import { getOfflineSeats, type OfflineSeatToken } from '@/lib/offline';
-import type { BoardCell, GameDefinition, GameMove, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
+import type {
+  BoardCell,
+  GameDefinition,
+  GameMove,
+  GameType,
+  MatchResultEvent,
+  PlayerProfile,
+} from '@/types/game';
 
 type OfflineArenaGameProps = {
   player: PlayerProfile;
@@ -34,6 +41,13 @@ type OfflineArenaGameProps = {
 };
 
 type Symbol = 'X' | 'O';
+
+const normalizeOfflineWinner = (value: ReturnType<typeof evaluateBoard>): Symbol | 'draw' | null => {
+  if (value === 'X' || value === 'O' || value === 'draw') {
+    return value;
+  }
+  return null;
+};
 
 type OfflineParticipant = {
   name: string;
@@ -153,7 +167,6 @@ export function OfflineArenaGame({
 
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
-    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: onLeave },
   ];
 
   const canPlay = winner === null;
@@ -180,7 +193,7 @@ export function OfflineArenaGame({
       return;
     }
 
-    const result = evaluateBoard(gameType, appliedBoard, gameDefinitions);
+    const result = normalizeOfflineWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions));
     if (result) {
       setBoard(appliedBoard);
       setWinner(result);

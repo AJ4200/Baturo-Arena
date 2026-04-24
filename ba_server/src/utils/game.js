@@ -7,7 +7,7 @@ const GAME_RULES = {
     connect: 3,
     minPlayers: 2,
     maxPlayers: 4,
-    description: 'Classic tic-tac-toe for teams X and O. Up to 4 players can join (2 per side).',
+    description: 'Classic tic-tac-toe with turn order X, O, Y, and Z for up to 4 players.',
     moveMode: 'cell',
     winCondition: 'connect',
     supportsOnline: true,
@@ -68,6 +68,20 @@ const GAME_RULES = {
     winCondition: 'elimination',
     supportsOnline: true,
     supportsCpu: true,
+  },
+  ludo: {
+    id: 'ludo',
+    name: 'Ludo',
+    rows: 15,
+    columns: 15,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Classic 4-token race game. Roll, spawn on six, capture rivals, and get all tokens home first.',
+    moveMode: 'ludo',
+    winCondition: 'ludo-home',
+    supportsOnline: true,
+    supportsCpu: false,
   },
   '2048': {
     id: '2048',
@@ -209,6 +223,12 @@ function getBoardDimensions(gameType) {
 
 function getCellIndex(row, column, columns) {
   return row * columns + column;
+}
+
+const COMPETITIVE_SYMBOLS = ['X', 'O', 'Y', 'Z'];
+
+function isCompetitiveSymbol(cell) {
+  return cell === 'X' || cell === 'O' || cell === 'Y' || cell === 'Z';
 }
 
 function isCheckersPiece(cell) {
@@ -365,6 +385,7 @@ function checkWinner(gameType, board) {
   }
 
   if (
+    rules.winCondition === 'ludo-home' ||
     rules.winCondition === 'target-2048' ||
     rules.winCondition === 'sudoku-complete' ||
     rules.winCondition === 'minesweeper-clear' ||
@@ -375,22 +396,23 @@ function checkWinner(gameType, board) {
   }
 
   if (rules.winCondition === 'majority') {
-    const xCount = board.filter((cell) => cell === 'X').length;
-    const oCount = board.filter((cell) => cell === 'O').length;
-
-    if (xCount === 0) {
-      return 'O';
-    }
-
-    if (oCount === 0) {
-      return 'X';
-    }
+    const counts = new Map();
+    COMPETITIVE_SYMBOLS.forEach((symbol) => counts.set(symbol, 0));
+    board.forEach((cell) => {
+      if (isCompetitiveSymbol(cell)) {
+        counts.set(cell, (counts.get(cell) || 0) + 1);
+      }
+    });
 
     if (isBoardFull(board)) {
-      if (xCount === oCount) {
+      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+      if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }
-      return xCount > oCount ? 'X' : 'O';
+      if (sorted[1] && sorted[0][1] === sorted[1][1]) {
+        return 'draw';
+      }
+      return sorted[0][0];
     }
 
     return null;
@@ -403,24 +425,38 @@ function checkWinner(gameType, board) {
       getCellIndex(rules.rows - 1, 0, rules.columns),
       getCellIndex(rules.rows - 1, rules.columns - 1, rules.columns),
     ];
-    const xCorners = corners.filter((index) => board[index] === 'X').length;
-    const oCorners = corners.filter((index) => board[index] === 'O').length;
+    const cornerCounts = new Map();
+    COMPETITIVE_SYMBOLS.forEach((symbol) => cornerCounts.set(symbol, 0));
+    corners.forEach((index) => {
+      const cell = board[index];
+      if (isCompetitiveSymbol(cell)) {
+        cornerCounts.set(cell, (cornerCounts.get(cell) || 0) + 1);
+      }
+    });
 
-    if (xCorners >= 3) {
-      return 'X';
-    }
-
-    if (oCorners >= 3) {
-      return 'O';
+    const symbolsWithThreeCorners = COMPETITIVE_SYMBOLS.filter(
+      (symbol) => (cornerCounts.get(symbol) || 0) >= 3
+    );
+    if (symbolsWithThreeCorners.length === 1) {
+      return symbolsWithThreeCorners[0];
     }
 
     if (isBoardFull(board)) {
-      const xCount = board.filter((cell) => cell === 'X').length;
-      const oCount = board.filter((cell) => cell === 'O').length;
-      if (xCount === oCount) {
+      const counts = new Map();
+      COMPETITIVE_SYMBOLS.forEach((symbol) => counts.set(symbol, 0));
+      board.forEach((cell) => {
+        if (isCompetitiveSymbol(cell)) {
+          counts.set(cell, (counts.get(cell) || 0) + 1);
+        }
+      });
+      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+      if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }
-      return xCount > oCount ? 'X' : 'O';
+      if (sorted[1] && sorted[0][1] === sorted[1][1]) {
+        return 'draw';
+      }
+      return sorted[0][0];
     }
 
     return null;
@@ -438,7 +474,7 @@ function checkWinner(gameType, board) {
       const startIndex = getCellIndex(row, column, rules.columns);
       const symbol = board[startIndex];
 
-      if (!symbol) {
+      if (!symbol || isCheckersPiece(symbol)) {
         continue;
       }
 
@@ -491,7 +527,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
     rules.moveMode === 'solo-memory' ||
-    rules.moveMode === 'solo-dino'
+    rules.moveMode === 'solo-dino' ||
+    rules.moveMode === 'ludo'
   ) {
     return [];
   }
@@ -553,7 +590,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
     rules.moveMode === 'solo-memory' ||
-    rules.moveMode === 'solo-dino'
+    rules.moveMode === 'solo-dino' ||
+    rules.moveMode === 'ludo'
   ) {
     return [...board];
   }

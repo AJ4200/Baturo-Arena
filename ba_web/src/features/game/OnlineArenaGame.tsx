@@ -17,11 +17,15 @@ import {
 } from 'react-icons/ai';
 import PlayerO from '@/components/game/player/PlayerO';
 import PlayerX from '@/components/game/player/PlayerX';
+import PlayerY from '@/components/game/player/PlayerY';
+import PlayerZ from '@/components/game/player/PlayerZ';
 import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { API_BASE_URL, STORAGE_KEYS } from '@/lib/constants';
 import { formatGameName } from '@/lib/games';
 import { GameBoard } from '@/features/game/GameBoard';
 import type {
+  BoardCell,
+  GameSymbol,
   GameMove,
   GameDefinition,
   MatchResultEvent,
@@ -99,28 +103,38 @@ export function OnlineArenaGame({
   onLeave,
 }: OnlineArenaGameProps) {
   const [room, setRoom] = useState<RoomState | null>(null);
-  const [yourSymbol, setYourSymbol] = useState<'X' | 'O' | null>(null);
+  const [yourSymbol, setYourSymbol] = useState<GameSymbol | null>(null);
   const [message, setMessage] = useState('');
   const [isRoomCardCollapsed, setIsRoomCardCollapsed] = useState(false);
   const lastReportedResultRef = useRef<string | null>(null);
 
   const xPlayers = room?.players.filter((entry) => entry.symbol === 'X') || [];
   const oPlayers = room?.players.filter((entry) => entry.symbol === 'O') || [];
+  const yPlayers = room?.players.filter((entry) => entry.symbol === 'Y') || [];
+  const zPlayers = room?.players.filter((entry) => entry.symbol === 'Z') || [];
   const xPlayer = xPlayers[0] || null;
   const oPlayer = oPlayers[0] || null;
+  const yPlayer = yPlayers[0] || null;
+  const zPlayer = zPlayers[0] || null;
   const gameLabel = room ? formatGameName(room.gameType, gameDefinitions) : 'Loading game';
   const playerLabels = useMemo(() => getPlayerLabels(room?.gameType), [room?.gameType]);
   const getSymbolLabel = useCallback(
-    (symbol: 'X' | 'O' | null | undefined) => {
+    (symbol: GameSymbol | null | undefined) => {
       if (symbol === 'X') {
         return playerLabels.x;
       }
       if (symbol === 'O') {
         return playerLabels.o;
       }
+      if (symbol === 'Y') {
+        return playerLabels.y;
+      }
+      if (symbol === 'Z') {
+        return playerLabels.z;
+      }
       return 'Player';
     },
-    [playerLabels.o, playerLabels.x]
+    [playerLabels.o, playerLabels.x, playerLabels.y, playerLabels.z]
   );
 
   const status = useMemo(() => {
@@ -153,8 +167,10 @@ export function OnlineArenaGame({
   }, [gameLabel, getSymbolLabel, room, yourSymbol]);
 
   const canPlayTurn = Boolean(room && yourSymbol && room.status === 'playing' && room.turn === yourSymbol);
-  const xResult = room?.winner === 'X' ? 'winner' : room?.winner === 'O' ? 'loser' : 'neutral';
-  const oResult = room?.winner === 'O' ? 'winner' : room?.winner === 'X' ? 'loser' : 'neutral';
+  const xResult = room?.winner === 'X' ? 'winner' : room?.winner && room.winner !== 'draw' ? 'loser' : 'neutral';
+  const oResult = room?.winner === 'O' ? 'winner' : room?.winner && room.winner !== 'draw' ? 'loser' : 'neutral';
+  const yResult = room?.winner === 'Y' ? 'winner' : room?.winner && room.winner !== 'draw' ? 'loser' : 'neutral';
+  const zResult = room?.winner === 'Z' ? 'winner' : room?.winner && room.winner !== 'draw' ? 'loser' : 'neutral';
 
   const callApi = async <T,>(path: string, init?: RequestInit, showLoader = true): Promise<T> => {
     return runWithLoader(async () => {
@@ -321,7 +337,6 @@ export function OnlineArenaGame({
 
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
-    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: handleLeave },
   ];
 
   return (
@@ -382,7 +397,7 @@ export function OnlineArenaGame({
                   {room?.players && room.players.length > 0 ? (
                     room.players.map((joinedPlayer) => (
                       <p key={joinedPlayer.playerId} className="room-joined-line">
-                        {joinedPlayer.symbol === 'X' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
+                        {room.turn === joinedPlayer.symbol ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
                         {joinedPlayer.name} ({getSymbolLabel(joinedPlayer.symbol)})
                       </p>
                     ))
@@ -444,7 +459,7 @@ export function OnlineArenaGame({
         <div className="board-stage-card">
           <GameBoard
             gameType={room?.gameType || 'tic-tac-two'}
-            board={room?.board || []}
+            board={(Array.isArray(room?.board) ? room?.board : []) as BoardCell[]}
             gameDefinitions={gameDefinitions}
             disabled={!canPlayTurn}
             interactiveSymbol={yourSymbol}
@@ -501,6 +516,58 @@ export function OnlineArenaGame({
           )
         }
       />
+      {yPlayers.length > 0 ? (
+        <PlayerY
+          pieceLabel={playerLabels.y}
+          alias={yPlayers.map((entry) => entry.name).join(' & ') || 'Waiting...'}
+          picture={`https://robohash.org/${yPlayer?.name || 'Y'}`}
+          wins={yPlayer?.wins || 0}
+          losses={yPlayer?.losses || 0}
+          draws={yPlayer?.draws || 0}
+          result={yResult}
+          mood={
+            room?.winner === 'Y' ? (
+              <span className="player-state winner">
+                <AiOutlineCrown /> Winner
+              </span>
+            ) : yourSymbol === 'Y' ? (
+              <span className="player-state you">
+                <AiOutlineUser /> You
+              </span>
+            ) : (
+              <span className="player-state ready">
+                <AiOutlineCheckCircle /> Ready
+              </span>
+            )
+          }
+        />
+      ) : null}
+      {zPlayers.length > 0 ? (
+        <PlayerZ
+          pieceLabel={playerLabels.z}
+          alias={zPlayers.map((entry) => entry.name).join(' & ') || 'Waiting...'}
+          picture={`https://robohash.org/${zPlayer?.name || 'Z'}`}
+          wins={zPlayer?.wins || 0}
+          losses={zPlayer?.losses || 0}
+          draws={zPlayer?.draws || 0}
+          result={zResult}
+          mood={
+            room?.winner === 'Z' ? (
+              <span className="player-state winner">
+                <AiOutlineCrown /> Winner
+              </span>
+            ) : yourSymbol === 'Z' ? (
+              <span className="player-state you">
+                <AiOutlineUser /> You
+              </span>
+            ) : (
+              <span className="player-state ready">
+                <AiOutlineCheckCircle /> Ready
+              </span>
+            )
+          }
+        />
+      ) : null}
     </>
   );
 }

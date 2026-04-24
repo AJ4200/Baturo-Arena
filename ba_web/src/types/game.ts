@@ -10,6 +10,7 @@ export type GameType =
   | 'orbital-flip'
   | 'corner-clash'
   | 'checkers'
+  | 'ludo'
   | '2048'
   | 'sudoku'
   | 'minesweeper'
@@ -31,6 +32,7 @@ export type GameDefinition = {
     | 'flip'
     | 'corner-flip'
     | 'checkers'
+    | 'ludo'
     | 'solo-2048'
     | 'solo-sudoku'
     | 'solo-minesweeper'
@@ -41,6 +43,7 @@ export type GameDefinition = {
     | 'majority'
     | 'corners'
     | 'elimination'
+    | 'ludo-home'
     | 'target-2048'
     | 'sudoku-complete'
     | 'minesweeper-clear'
@@ -66,6 +69,8 @@ export type MatchHistoryEntry = MatchResultEvent & {
   finishedAt: string;
 };
 
+export type GameSymbol = 'X' | 'O' | 'Y' | 'Z';
+
 export type PlayerProfile = {
   playerId: string;
   name: string;
@@ -87,7 +92,7 @@ export type PublicRoom = {
   players: Array<{
     playerId: string;
     name: string;
-    symbol: 'X' | 'O';
+    symbol: GameSymbol;
     wins: number;
     losses: number;
     draws: number;
@@ -116,7 +121,7 @@ export type LeaderboardPayload = {
 export type RoomPlayer = {
   playerId: string;
   name: string;
-  symbol: 'X' | 'O';
+  symbol: GameSymbol;
   wins: number;
   losses: number;
   draws: number;
@@ -124,7 +129,13 @@ export type RoomPlayer = {
 
 export type CheckersPiece = 'XC' | 'XK' | 'OC' | 'OK';
 
-export type BoardCell = 'X' | 'O' | CheckersPiece | null;
+export type BoardCell = GameSymbol | CheckersPiece | null;
+
+export type LudoBoardState = {
+  mode: 'ludo';
+  diceValue: number | null;
+  tokens: Partial<Record<GameSymbol, number[]>>;
+};
 
 export type GameMove = number | { from: number; to: number };
 
@@ -134,10 +145,10 @@ export type RoomState = {
   gameType: GameType;
   maxPlayers: number;
   isPublic: boolean;
-  board: BoardCell[];
-  turn: 'X' | 'O';
+  board: BoardCell[] | LudoBoardState;
+  turn: GameSymbol;
   status: 'waiting' | 'playing' | 'finished';
-  winner: 'X' | 'O' | 'draw' | null;
+  winner: GameSymbol | 'draw' | null;
   playersCount: number;
   players: RoomPlayer[];
 };
@@ -152,6 +163,6 @@ export type RoomPayload = {
 
 export type RoomStatePayload = {
   room: RoomState;
-  yourSymbol: 'X' | 'O' | null;
+  yourSymbol: GameSymbol | null;
   you: PlayerProfile | null;
 };

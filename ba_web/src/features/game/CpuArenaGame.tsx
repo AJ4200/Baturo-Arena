@@ -22,7 +22,15 @@ import PlayerX from '@/components/game/player/PlayerX';
 import { GameBoard } from '@/features/game/GameBoard';
 import { evaluateBoard, getCpuMove } from '@/lib/cpu';
 import { applyMove, createEmptyBoard, formatGameName } from '@/lib/games';
-import type { BoardCell, CpuDifficulty, GameDefinition, GameMove, GameType, MatchResultEvent, PlayerProfile } from '@/types/game';
+import type {
+  BoardCell,
+  CpuDifficulty,
+  GameDefinition,
+  GameMove,
+  GameType,
+  MatchResultEvent,
+  PlayerProfile,
+} from '@/types/game';
 
 type CpuArenaGameProps = {
   player: PlayerProfile;
@@ -38,6 +46,13 @@ type CpuArenaGameProps = {
 };
 
 type Symbol = 'X' | 'O';
+
+const normalizeCpuWinner = (value: ReturnType<typeof evaluateBoard>): Symbol | 'draw' | null => {
+  if (value === 'X' || value === 'O' || value === 'draw') {
+    return value;
+  }
+  return null;
+};
 
 const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } => {
   if (currentGameType === 'tic-tac-two') {
@@ -110,7 +125,7 @@ export function CpuArenaGame({
   const showAdaptiveController = gameType !== 'checkers';
 
   const applyBoardState = (nextBoard: BoardCell[], nextTurn: Symbol) => {
-    const result = evaluateBoard(gameType, nextBoard, gameDefinitions);
+    const result = normalizeCpuWinner(evaluateBoard(gameType, nextBoard, gameDefinitions));
     setBoard(nextBoard);
     setTurn(nextTurn);
     setWinner(result);
@@ -126,7 +141,7 @@ export function CpuArenaGame({
       return;
     }
 
-    const result = evaluateBoard(gameType, appliedBoard, gameDefinitions);
+    const result = normalizeCpuWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions));
     if (result) {
       setBoard(appliedBoard);
       setWinner(result);
@@ -145,7 +160,6 @@ export function CpuArenaGame({
 
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
-    { key: 'leave', label: 'Leave', icon: <AiOutlineArrowDown />, onClick: onLeave },
   ];
 
   useEffect(() => {
@@ -174,7 +188,7 @@ export function CpuArenaGame({
     const timeoutId = window.setTimeout(() => {
       const move = getCpuMove(gameType, board, difficulty);
       if (move === null) {
-        const stalledResult = evaluateBoard(gameType, board, gameDefinitions);
+        const stalledResult = normalizeCpuWinner(evaluateBoard(gameType, board, gameDefinitions));
         if (stalledResult) {
           setWinner(stalledResult);
         }

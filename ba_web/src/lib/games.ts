@@ -1,4 +1,4 @@
-import type { BoardCell, GameDefinition, GameMove, GameType } from '@/types/game';
+import type { BoardCell, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
 
 export const FALLBACK_GAMES: GameDefinition[] = [
   {
@@ -6,7 +6,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     name: 'Tic-Tac-Two',
     minPlayers: 2,
     maxPlayers: 4,
-    description: 'Classic tic-tac-toe for teams X and O. Up to 4 players can join (2 per side).',
+    description: 'Classic tic-tac-toe with turn order X, O, Y, and Z for up to 4 players.',
     rows: 3,
     columns: 3,
     connect: 3,
@@ -70,6 +70,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     winCondition: 'elimination',
     supportsOnline: true,
     supportsCpu: true,
+  },
+  {
+    id: 'ludo',
+    name: 'Ludo',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Classic 4-token race game. Roll, spawn on six, capture rivals, and get all tokens home first.',
+    rows: 15,
+    columns: 15,
+    connect: 0,
+    moveMode: 'ludo',
+    winCondition: 'ludo-home',
+    supportsOnline: true,
+    supportsCpu: false,
   },
   {
     id: '2048',
@@ -184,9 +198,13 @@ export const createEmptyBoard = (gameType: GameType, games = FALLBACK_GAMES): Bo
 };
 
 const getCellIndex = (row: number, column: number, columns: number) => row * columns + column;
+const COMPETITIVE_SYMBOLS: GameSymbol[] = ['X', 'O', 'Y', 'Z'];
 
 const isCheckersPiece = (cell: BoardCell): cell is 'XC' | 'XK' | 'OC' | 'OK' =>
   cell === 'XC' || cell === 'XK' || cell === 'OC' || cell === 'OK';
+
+const isCompetitiveSymbol = (cell: BoardCell): cell is GameSymbol =>
+  cell === 'X' || cell === 'O' || cell === 'Y' || cell === 'Z';
 
 const getCheckersOwner = (cell: BoardCell): 'X' | 'O' | null => {
   if (!isCheckersPiece(cell)) {
@@ -310,7 +328,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
-    game.moveMode === 'solo-dino'
+    game.moveMode === 'solo-dino' ||
+    game.moveMode === 'ludo'
   ) {
     return [];
   }
@@ -351,7 +370,8 @@ export const applyMove = (
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
-    game.moveMode === 'solo-dino'
+    game.moveMode === 'solo-dino' ||
+    game.moveMode === 'ludo'
   ) {
     return [...board];
   }
@@ -481,10 +501,11 @@ export const evaluateBoard = (
   gameType: GameType,
   board: BoardCell[],
   games = FALLBACK_GAMES
-): 'X' | 'O' | 'draw' | null => {
+): GameSymbol | 'draw' | null => {
   const game = getGameDefinition(gameType, games);
   if (
     game.winCondition === 'elimination' ||
+    game.winCondition === 'ludo-home' ||
     game.winCondition === 'target-2048' ||
     game.winCondition === 'sudoku-complete' ||
     game.winCondition === 'minesweeper-clear' ||
@@ -527,22 +548,23 @@ export const evaluateBoard = (
   }
 
   if (game.winCondition === 'majority') {
-    const xCount = board.filter((cell) => cell === 'X').length;
-    const oCount = board.filter((cell) => cell === 'O').length;
-
-    if (xCount === 0) {
-      return 'O';
-    }
-
-    if (oCount === 0) {
-      return 'X';
-    }
+    const counts = new Map<GameSymbol, number>();
+    COMPETITIVE_SYMBOLS.forEach((symbol) => counts.set(symbol, 0));
+    board.forEach((cell) => {
+      if (isCompetitiveSymbol(cell)) {
+        counts.set(cell, (counts.get(cell) || 0) + 1);
+      }
+    });
 
     if (board.every((cell) => cell !== null)) {
-      if (xCount === oCount) {
+      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+      if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }
-      return xCount > oCount ? 'X' : 'O';
+      if (sorted[1] && sorted[0][1] === sorted[1][1]) {
+        return 'draw';
+      }
+      return sorted[0][0];
     }
 
     return null;
@@ -555,24 +577,39 @@ export const evaluateBoard = (
       getCellIndex(game.rows - 1, 0, game.columns),
       getCellIndex(game.rows - 1, game.columns - 1, game.columns),
     ];
-    const xCorners = corners.filter((index) => board[index] === 'X').length;
-    const oCorners = corners.filter((index) => board[index] === 'O').length;
+    const cornerCounts = new Map<GameSymbol, number>();
+    COMPETITIVE_SYMBOLS.forEach((symbol) => cornerCounts.set(symbol, 0));
 
-    if (xCorners >= 3) {
-      return 'X';
-    }
+    corners.forEach((index) => {
+      const cell = board[index];
+      if (isCompetitiveSymbol(cell)) {
+        cornerCounts.set(cell, (cornerCounts.get(cell) || 0) + 1);
+      }
+    });
 
-    if (oCorners >= 3) {
-      return 'O';
+    const symbolsWithThreeCorners = COMPETITIVE_SYMBOLS.filter(
+      (symbol) => (cornerCounts.get(symbol) || 0) >= 3
+    );
+    if (symbolsWithThreeCorners.length === 1) {
+      return symbolsWithThreeCorners[0];
     }
 
     if (board.every((cell) => cell !== null)) {
-      const xCount = board.filter((cell) => cell === 'X').length;
-      const oCount = board.filter((cell) => cell === 'O').length;
-      if (xCount === oCount) {
+      const counts = new Map<GameSymbol, number>();
+      COMPETITIVE_SYMBOLS.forEach((symbol) => counts.set(symbol, 0));
+      board.forEach((cell) => {
+        if (isCompetitiveSymbol(cell)) {
+          counts.set(cell, (counts.get(cell) || 0) + 1);
+        }
+      });
+      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+      if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }
-      return xCount > oCount ? 'X' : 'O';
+      if (sorted[1] && sorted[0][1] === sorted[1][1]) {
+        return 'draw';
+      }
+      return sorted[0][0];
     }
 
     return null;
@@ -589,10 +626,10 @@ export const evaluateBoard = (
     for (let column = 0; column < game.columns; column += 1) {
       const startIndex = getCellIndex(row, column, game.columns);
       const symbol = board[startIndex];
-      if (!symbol) {
+      if (!symbol || isCheckersPiece(symbol)) {
         continue;
       }
-      const owner = symbol.startsWith('O') ? 'O' : 'X';
+      const owner = symbol;
 
       for (const [rowStep, columnStep] of directions) {
         let connected = 1;

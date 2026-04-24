@@ -30,6 +30,7 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'orbital-flip': 'ORBIT',
   'corner-clash': 'CORNERS',
   checkers: 'CHECKERS',
+  ludo: 'LUDO',
   '2048': 'MERGE',
   sudoku: '9 x 9',
   minesweeper: 'MINES',
