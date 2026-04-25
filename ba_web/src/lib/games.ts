@@ -557,7 +557,7 @@ export const evaluateBoard = (
     });
 
     if (board.every((cell) => cell !== null)) {
-      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+  const sorted = Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
       if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }
@@ -602,7 +602,7 @@ export const evaluateBoard = (
           counts.set(cell, (counts.get(cell) || 0) + 1);
         }
       });
-      const sorted = [...counts.entries()].sort((left, right) => right[1] - left[1]);
+  const sorted = Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
       if (sorted.length === 0 || sorted[0][1] <= 0) {
         return 'draw';
       }

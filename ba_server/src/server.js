@@ -27,12 +27,19 @@ async function initializeDatabaseWithRetry() {
   }
 }
 
+const http = require('http');
+const notifications = require('./notifications');
+
 async function startServer() {
   await initializeDatabaseWithRetry();
-  app.listen(port, () => {
+  const server = http.createServer(app);
+  server.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`baturo-arena api listening on http://localhost:${port}`);
   });
+
+  // Initialize WebSocket notifications on the same server
+  notifications.init(server);
 }
 
 startServer().catch((error) => {

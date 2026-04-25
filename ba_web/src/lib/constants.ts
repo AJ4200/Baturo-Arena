@@ -18,4 +18,5 @@ export const STORAGE_KEYS = {
   matchHistory: 'baruto_match_history_v2',
   hideSaveTip: 'baruto_hide_save_tip',
   googleAccount: 'baruto_google_account_v1',
+  inviteOnly: 'baruto_invite_only_raibarus',
 };

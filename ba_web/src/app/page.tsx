@@ -14,6 +14,7 @@ import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
+import { ChatDock } from '@/features/home/ChatDock';
 import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
 import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
@@ -268,8 +269,13 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
+  const [isChatDockOpen, setIsChatDockOpen] = useState(false);
+  const [friendsList, setFriendsList] = useState<Array<{ playerId: string; name: string; picture?: string | null }>>([]);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+  const [inviteOnlyRaibarus, setInviteOnlyRaibarus] = useState(false);
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
+  const [pageReady, setPageReady] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
 
@@ -870,6 +876,60 @@ export default function Home() {
     ]);
   };
 
+  const searchPlayers = async (query: string) => {
+    if (!query.trim()) return [];
+    try {
+      const payload = await callApi<{ players: Array<{ playerId: string; name: string; picture?: string }> }>(`/api/chat/search?q=${encodeURIComponent(query)}`, {
+        method: 'GET',
+      });
+      return Array.isArray(payload?.players) ? payload.players : [];
+    } catch (error) {
+      console.error('Search players error:', error);
+      return [];
+    }
+  };
+
+  const invitePlayer = async (toPlayerId: string | null, toEmail: string | null, message?: string, roomCode?: string) => {
+    try {
+      await callApi('/api/chat/invite', {
+        method: 'POST',
+        body: JSON.stringify({
+          toPlayerId,
+          toEmail,
+          message,
+          roomCode,
+        }),
+      });
+      setMessage('Invitation sent!');
+      return true;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Failed to send invitation');
+      return false;
+    }
+  };
+
+  const refreshFriends = async () => {
+    try {
+      const payload = await callApi<{ friends: Array<{ playerId: string; name: string; picture?: string }> }>('/api/chat/friends', {
+        method: 'GET',
+      });
+      setFriendsList(Array.isArray(payload?.friends) ? payload.friends : []);
+    } catch (error) {
+      console.error('Refresh friends error:', error);
+    }
+  };
+
+  const refreshPendingInvites = async () => {
+    try {
+      const payload = await callApi<{ invites: Array<{ id: string; fromPlayerId: string; fromPlayerName: string; message?: string }> }>('/api/chat/invites', {
+        method: 'GET',
+      });
+      setPendingInvites(Array.isArray(payload?.invites) ? payload.invites : []);
+    } catch (error) {
+      console.error('Refresh pending invites error:', error);
+    }
+  };
+
   const findGameDefinition = useCallback(
     (gameType: GameType): GameDefinition => {
       return (
@@ -1211,6 +1271,8 @@ export default function Home() {
     refreshLeaderboard().catch(() => {
       // Ignore initial leaderboard load failures.
     });
+
+    setPageReady(true);
   }, []);
 
   useEffect(() => {
@@ -1684,7 +1746,7 @@ export default function Home() {
     >
       {!isInMatch ? renderTopBar() : null}
       {renderScreen()}
-      <AppLoader active={activeRequests > 0} subtle={isInMatch} />
+      <AppLoader active={!pageReady || activeRequests > 0} subtle={isInMatch} />
       {saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
       {showSaveTip ? (
         <div className="save-tip-card">
@@ -1757,6 +1819,30 @@ export default function Home() {
           onVolumeChange={(volume) => {
             setMusicVolume(volume);
             window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+          }}
+        />
+        <ChatDock
+          isOpen={isChatDockOpen}
+          friends={friendsList}
+          pendingInvites={pendingInvites}
+          inviteOnlyRaibarus={inviteOnlyRaibarus}
+          showLauncher={!isProfileDockOpen}
+          onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
+          onSearch={searchPlayers}
+          onInvite={invitePlayer}
+          onRefreshFriends={refreshFriends}
+          onRefreshPendingInvites={refreshPendingInvites}
+          onToggleInviteOnly={async (enabled: boolean) => {
+            try {
+              await callApi('/api/chat/invite-preference', {
+                method: 'POST',
+                body: JSON.stringify({ inviteOnly: enabled }),
+              });
+              setInviteOnlyRaibarus(enabled);
+              window.localStorage.setItem(STORAGE_KEYS.inviteOnly, String(enabled));
+            } catch (error) {
+              setMessage(error instanceof Error ? error.message : 'Failed to update invite preference');
+            }
           }}
         />
       </div>

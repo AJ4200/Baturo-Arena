@@ -25,6 +25,7 @@ async function runMigrations() {
       wins INTEGER NOT NULL DEFAULT 0,
       losses INTEGER NOT NULL DEFAULT 0,
       draws INTEGER NOT NULL DEFAULT 0,
+      invite_only_raibarus BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
@@ -120,6 +121,46 @@ async function runMigrations() {
   await run(`
     DELETE FROM auth_sessions
     WHERE expires_at <= CURRENT_TIMESTAMP
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS friends (
+      player_id TEXT NOT NULL,
+      friend_player_id TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (player_id, friend_player_id),
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+      FOREIGN KEY (friend_player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS invites (
+      id BIGSERIAL PRIMARY KEY,
+      from_player_id TEXT NOT NULL,
+      to_player_id TEXT,
+      to_email TEXT,
+      room_code TEXT,
+      message TEXT,
+      email_status TEXT,
+      email_attempts INTEGER NOT NULL DEFAULT 0,
+      last_email_attempt TIMESTAMPTZ,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (from_player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS friend_requests (
+      id BIGSERIAL PRIMARY KEY,
+      from_player_id TEXT NOT NULL,
+      to_player_id TEXT NOT NULL,
+      message TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (from_player_id) REFERENCES players(id) ON DELETE CASCADE,
+      FOREIGN KEY (to_player_id) REFERENCES players(id) ON DELETE CASCADE
+    )
   `);
 }
 

@@ -403,6 +403,44 @@ h1 span:last-child {
   text-shadow: none;
 }
 
+/* Chat dock launcher & animation to match profile/music docks */
+.music-dock-toggle.chat-dock-launcher,
+.music-dock-toggle-profile.chat-dock-launcher {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.chat-dock {
+  transition: transform 220ms ease, opacity 220ms ease;
+  transform-origin: bottom right;
+}
+
+.chat-dock.chat-dock-open {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.chat-dock:not(.chat-dock-open) {
+  transform: translateY(8px);
+  opacity: 0.0;
+}
+
+.music-dock-toggle-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: red;
+  color: white;
+  border-radius: 10px;
+  padding: 0 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
 .lobby-offline-count {
   width: min(240px, 100%);
 }
