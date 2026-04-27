@@ -113,13 +113,15 @@ export function ChatDock({
               className={classnames('chat-tab', tab === 'friends' && 'chat-tab-active')}
               onClick={() => setTab('friends')}
             >
-              Your Raibarus ({friendList.length})
+              <span>Your Raibarus</span>
+              <span className="chat-tab-count">{friendList.length}</span>
             </button>
             <button
               className={classnames('chat-tab', tab === 'requests' && 'chat-tab-active')}
               onClick={() => setTab('requests')}
             >
-              Requests ({pendingCount})
+              <span>Requests</span>
+              <span className="chat-tab-count">{pendingCount}</span>
             </button>
           </div>
 
@@ -129,16 +131,16 @@ export function ChatDock({
                 <strong>Find & Add Raibarus</strong>
                 <p className="chat-section-hint">Search for players to send them a friend request.</p>
                 
-                <div className="chat-invite-row">
+                <div className="chat-search-bar">
                   <input
-                    className="profile-dock-input"
+                    className="profile-dock-input chat-search-input"
                     placeholder="Search by name, email, or player ID"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && search()}
                   />
-                  <button className="lobby-btn" type="button" onClick={search}>
-                    <AiOutlineUserAdd /> Search
+                  <button className="chat-search-btn" type="button" onClick={search} title="Search">
+                    <AiOutlineUserAdd />
                   </button>
                 </div>
 
@@ -148,57 +150,25 @@ export function ChatDock({
                       <li key={r.playerId}>
                         <button
                           type="button"
-                          className={classnames('music-dock-track-btn', selected?.playerId === r.playerId && 'chat-result-selected')}
+                          className={classnames('chat-result-item', selected?.playerId === r.playerId && 'chat-result-selected')}
                           onClick={() => setSelected(r)}
                         >
-                          <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
-                          <strong>{r.name}</strong>
+                          <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=48x48`} alt="avatar" className="chat-result-avatar" />
+                          <span className="chat-result-name">{r.name}</span>
                         </button>
                       </li>
                     ))}
                   </ul>
-                ) : null}
-
-                {selected ? (
-                  <div className="chat-selected-player">
-                    <img src={selected.picture || `https://robohash.org/${encodeURIComponent(selected.name)}?size=64x64`} alt="avatar" />
-                    <div>
-                      <strong>{selected.name}</strong>
-                      <textarea
-                        className="profile-dock-input"
-                        placeholder="Optional message (e.g., 'Let's play some games!')"
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                        maxLength={200}
-                      />
-                      <div className="chat-invite-actions">
-                        <button
-                          className="lobby-btn custome-shadow"
-                          type="button"
-                          onClick={sendRequest}
-                        >
-                          <AiOutlineSend /> Send Friend Request
-                        </button>
-                        <button
-                          className="lobby-btn"
-                          type="button"
-                          onClick={() => {
-                            setSelected(null);
-                            setNote('');
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
                 ) : null}
               </div>
 
               <hr />
 
               <div className="chat-section">
-                <strong>Your Raibarus ({friendList.length})</strong>
+                <div className="chat-section-header">
+                  <strong>Your Raibarus</strong>
+                  <span className="chat-count-badge">{friendList.length}</span>
+                </div>
                 <div className="chat-friends-list">
                   {friendList.length === 0 ? (
                     <p className="music-dock-empty">No raibarus yet. Search above to add friends!</p>
@@ -206,8 +176,8 @@ export function ChatDock({
                     <ul>
                       {friendList.map((f) => (
                         <li key={f.playerId} className="chat-friend-item">
-                          <img src={f.picture || `https://robohash.org/${encodeURIComponent(f.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
-                          <strong>{f.name}</strong>
+                          <img src={f.picture || `https://robohash.org/${encodeURIComponent(f.name)}?size=40x40`} alt="avatar" className="chat-friend-avatar" />
+                          <strong className="chat-friend-name">{f.name}</strong>
                         </li>
                       ))}
                     </ul>
@@ -217,7 +187,10 @@ export function ChatDock({
             </>
           ) : (
             <div className="chat-section">
-              <strong>Friend Requests ({pendingCount})</strong>
+              <div className="chat-section-header">
+                <strong>Friend Requests</strong>
+                <span className="chat-count-badge">{pendingCount}</span>
+              </div>
               <div className="chat-requests-list">
                 {pendingCount === 0 ? (
                   <p className="music-dock-empty">No pending requests.</p>
@@ -260,6 +233,63 @@ export function ChatDock({
           )}
         </div>
       </section>
+
+      {/* Message Popup Panel - appears on the left when a player is selected */}
+      {selected ? (
+        <div className={classnames('chat-message-popup', selected && 'chat-message-popup-open')}>
+          <div className="chat-popup-content">
+            <button
+              className="chat-popup-close"
+              type="button"
+              onClick={() => {
+                setSelected(null);
+                setNote('');
+              }}
+              title="Close"
+            >
+              <AiOutlineClose />
+            </button>
+
+            <div className="chat-popup-header">
+              <img src={selected.picture || `https://robohash.org/${encodeURIComponent(selected.name)}?size=48x48`} alt="avatar" className="chat-popup-avatar" />
+              <div className="chat-popup-info">
+                <strong>{selected.name}</strong>
+                <small>Send a friend request</small>
+              </div>
+            </div>
+
+            <textarea
+              className="profile-dock-input chat-popup-message-input"
+              placeholder="Optional message (e.g., 'Let's play some games!')"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              maxLength={200}
+            />
+            <small className="chat-popup-char-count">{note.length}/200</small>
+
+            <div className="chat-popup-actions">
+              <button
+                className="lobby-btn custome-shadow chat-popup-send"
+                type="button"
+                onClick={sendRequest}
+              >
+                <AiOutlineSend /> Send
+              </button>
+              <button
+                className="lobby-btn chat-popup-cancel"
+                type="button"
+                onClick={() => {
+                  setSelected(null);
+                  setNote('');
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
+
