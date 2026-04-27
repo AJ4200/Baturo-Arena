@@ -34,6 +34,7 @@ type LobbyScreenProps = {
   googleAccount: GoogleAccount | null;
   isLoading: boolean;
   isSinglePlayerMode?: boolean;
+  friends?: Array<{ playerId: string; name: string; picture?: string | null }>;
   onBack: () => void;
   onGameChange: (value: GameType) => void;
   onPlayModeChange: (mode: GameMode) => void;
@@ -44,6 +45,7 @@ type LobbyScreenProps = {
   onRoomNameChange: (value: string) => void;
   onJoinCodeChange: (value: string) => void;
   onSaveName: () => void;
+  onInviteFriends?: (roomCode: string) => void;
   onCreatePublic?: () => void;
   onCreatePrivate?: () => void;
   onJoinByCode?: () => void;
@@ -78,6 +80,8 @@ export function LobbyScreen({
   onRoomNameChange,
   onJoinCodeChange,
   onSaveName,
+  friends = [],
+  onInviteFriends,
   onCreatePublic,
   onCreatePrivate,
   onJoinByCode,
@@ -555,6 +559,27 @@ export function LobbyScreen({
                   ? `${roomName.trim().length} characters`
                   : 'Leave blank to use default room naming.'}
               </p>
+            </section>
+          ) : null}
+
+          {playMode === 'online' && !isSinglePlayerMode && onInviteFriends && friends && friends.length > 0 ? (
+            <section className="lobby-panel lobby-panel-invite">
+              <div className="lobby-panel-head lobby-panel-head-static">
+                <div>
+                  <p className="lobby-panel-title">Invite Raibarus</p>
+                  <p className="lobby-panel-subtitle">
+                    Quickly invite your friends to join your match.
+                  </p>
+                </div>
+              </div>
+              <button
+                className={classnames('lobby-btn', 'custome-shadow', 'lobby-btn-invite-primary')}
+                type="button"
+                disabled={!supportsOnline}
+                onClick={() => onInviteFriends(joinCode)}
+              >
+                Invite {friends.length} Friend{friends.length !== 1 ? 's' : ''}
+              </button>
             </section>
           ) : null}
 

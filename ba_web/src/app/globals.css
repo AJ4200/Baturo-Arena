@@ -412,21 +412,31 @@ h1 span:last-child {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
+  pointer-events: auto;
 }
 
 .chat-dock {
-  transition: transform 220ms ease, opacity 220ms ease;
-  transform-origin: bottom right;
+  position: relative;
+  pointer-events: none;
 }
 
-.chat-dock.chat-dock-open {
+.chat-dock-open .profile-dock-panel {
   transform: translateY(0);
   opacity: 1;
+  pointer-events: auto;
 }
 
-.chat-dock:not(.chat-dock-open) {
+.chat-dock:not(.chat-dock-open) .profile-dock-panel {
   transform: translateY(8px);
-  opacity: 0.0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Position chat dock panel at top like profile/music to avoid bottom cutoff */
+.chat-dock .profile-dock-panel {
+  top: auto;
+  bottom: 0;
+  max-height: min(84vh, 680px);
 }
 
 .music-dock-toggle-badge {

@@ -272,7 +272,6 @@ export default function Home() {
   const [isChatDockOpen, setIsChatDockOpen] = useState(false);
   const [friendsList, setFriendsList] = useState<Array<{ playerId: string; name: string; picture?: string | null }>>([]);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
-  const [inviteOnlyRaibarus, setInviteOnlyRaibarus] = useState(false);
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const [pageReady, setPageReady] = useState(false);
@@ -930,6 +929,24 @@ export default function Home() {
     }
   };
 
+  const inviteFriendsToRoom = async (roomCode: string) => {
+    const codeToUse = roomCode || activeRoomCode;
+    if (!codeToUse || friendsList.length === 0) {
+      setMessage('No friends to invite or no active room');
+      return;
+    }
+    let successCount = 0;
+    for (const friend of friendsList) {
+      try {
+        await invitePlayer(friend.playerId, null, `Join me in a match!`, codeToUse);
+        successCount++;
+      } catch (_error) {
+        // continue with next friend
+      }
+    }
+    setMessage(`Invited ${successCount} friend${successCount !== 1 ? 's' : ''} to room ${codeToUse}`);
+  };
+
   const findGameDefinition = useCallback(
     (gameType: GameType): GameDefinition => {
       return (
@@ -1250,6 +1267,12 @@ export default function Home() {
       callApi<AuthSessionPayload>('/api/auth/session', undefined, false)
         .then((payload) => {
           applyAuthenticatedSession(payload);
+          refreshFriends().catch(() => {
+            // Ignore initial friends load failures.
+          });
+          refreshPendingInvites().catch(() => {
+            // Ignore initial pending invites load failures.
+          });
         })
         .catch(() => {
           clearStoredAuthSession();
@@ -1540,6 +1563,7 @@ export default function Home() {
           playerProfile={player}
           googleAccount={googleAccount}
           isLoading={isLoading}
+          friends={friendsList}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
@@ -1562,6 +1586,7 @@ export default function Home() {
           onCreatePublic={() => void createRoom(true)}
           onCreatePrivate={() => void createRoom(false)}
           onJoinByCode={() => void joinRoom(joinCode)}
+          onInviteFriends={(roomCode: string) => void inviteFriendsToRoom(roomCode)}
           onRefreshRooms={() => {
             refreshPublicRooms().catch(() => {
               setMessage('Could not refresh public rooms');
@@ -1591,6 +1616,7 @@ export default function Home() {
           googleAccount={googleAccount}
           isLoading={isLoading}
           isSinglePlayerMode={true}
+          friends={friendsList}
           onBack={() => setScreen('game-select')}
           onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
@@ -1751,7 +1777,7 @@ export default function Home() {
       {showSaveTip ? (
         <div className="save-tip-card">
           <p>
-            Backups are local-only right now. Use Settings to save or load this device backup for your Baturo Arena lineup.
+            Your settings and preferences are automatically saved locally on this device. You can export or import them from Settings.
           </p>
           <label className="save-tip-check custome-shadow-invert">
             <input type="checkbox" checked={dontShowSaveTipAgain} onChange={(event) => setDontShowSaveTipAgain(event.target.checked)} />
@@ -1825,25 +1851,12 @@ export default function Home() {
           isOpen={isChatDockOpen}
           friends={friendsList}
           pendingInvites={pendingInvites}
-          inviteOnlyRaibarus={inviteOnlyRaibarus}
           showLauncher={!isProfileDockOpen}
           onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
           onSearch={searchPlayers}
-          onInvite={invitePlayer}
+          onSendFriendRequest={invitePlayer}
           onRefreshFriends={refreshFriends}
           onRefreshPendingInvites={refreshPendingInvites}
-          onToggleInviteOnly={async (enabled: boolean) => {
-            try {
-              await callApi('/api/chat/invite-preference', {
-                method: 'POST',
-                body: JSON.stringify({ inviteOnly: enabled }),
-              });
-              setInviteOnlyRaibarus(enabled);
-              window.localStorage.setItem(STORAGE_KEYS.inviteOnly, String(enabled));
-            } catch (error) {
-              setMessage(error instanceof Error ? error.message : 'Failed to update invite preference');
-            }
-          }}
         />
       </div>
       {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}

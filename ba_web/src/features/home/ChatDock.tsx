@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import classnames from 'classnames';
-import { AiOutlineClose, AiOutlineSend } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineSend, AiOutlineUserAdd, AiOutlineCheck, AiOutlineDelete } from 'react-icons/ai';
 import { IoMdChatbubbles } from 'react-icons/io';
 
 type Friend = {
@@ -22,12 +22,12 @@ type ChatDockProps = {
   isOpen: boolean;
   friends: Friend[];
   pendingInvites: PendingInvite[];
-  inviteOnlyRaibarus: boolean;
   showLauncher?: boolean;
   onToggleOpen: () => void;
-  onInvite: (toPlayerId: string | null, toEmail: string | null, message?: string) => Promise<boolean>;
   onSearch: (query: string) => Promise<Friend[]>;
-  onToggleInviteOnly: (enabled: boolean) => Promise<void>;
+  onSendFriendRequest: (toPlayerId: string | null, toEmail: string | null, message?: string) => Promise<boolean>;
+  onAcceptFriendRequest?: (requestId: string) => Promise<void>;
+  onRejectFriendRequest?: (requestId: string) => Promise<void>;
   onRefreshFriends: () => Promise<void>;
   onRefreshPendingInvites: () => Promise<void>;
 };
@@ -36,12 +36,12 @@ export function ChatDock({
   isOpen,
   friends,
   pendingInvites,
-  inviteOnlyRaibarus,
   showLauncher = true,
   onToggleOpen,
-  onInvite,
   onSearch,
-  onToggleInviteOnly,
+  onSendFriendRequest,
+  onAcceptFriendRequest,
+  onRejectFriendRequest,
   onRefreshFriends,
   onRefreshPendingInvites,
 }: ChatDockProps) {
@@ -50,6 +50,7 @@ export function ChatDock({
   const [selected, setSelected] = useState<Friend | null>(null);
   const [emailOrId, setEmailOrId] = useState('');
   const [note, setNote] = useState('');
+  const [tab, setTab] = useState<'friends' | 'requests'>('friends');
 
   const search = useCallback(async () => {
     if (!query || query.trim().length < 1) {
@@ -64,13 +65,13 @@ export function ChatDock({
     }
   }, [query, onSearch]);
 
-  const invite = useCallback(async () => {
+  const sendRequest = useCallback(async () => {
     const toPlayerId = selected?.playerId || null;
     const toEmail = emailOrId.trim() || null;
     if (!toPlayerId && !toEmail) {
       return;
     }
-    const success = await onInvite(toPlayerId, toEmail, note.trim() || undefined);
+    const success = await onSendFriendRequest(toPlayerId, toEmail, note.trim() || undefined);
     if (success) {
       setNote('');
       setEmailOrId('');
@@ -78,7 +79,7 @@ export function ChatDock({
       setResults([]);
       setQuery('');
     }
-  }, [selected, emailOrId, note, onInvite]);
+  }, [selected, emailOrId, note, onSendFriendRequest]);
 
   const friendList = useMemo(() => friends || [], [friends]);
   const pendingCount = (pendingInvites || []).length;
@@ -91,7 +92,7 @@ export function ChatDock({
           type="button"
           onClick={onToggleOpen}
           aria-label={isOpen ? 'Hide chat panel' : 'Show chat panel'}
-          title="Chat"
+          title="Raibarus & Chat"
         >
           <IoMdChatbubbles />
           {pendingCount > 0 ? <span className="music-dock-toggle-badge">{pendingCount}</span> : null}
@@ -100,81 +101,163 @@ export function ChatDock({
 
       <section className="profile-dock-panel" aria-hidden={!isOpen}>
         <header className="profile-dock-head">
-          <h3>Chat & Invites</h3>
+          <h3>Raibarus & Chat</h3>
           <button className="music-dock-head-btn" type="button" onClick={onToggleOpen} aria-label="Close chat panel">
             <AiOutlineClose />
           </button>
         </header>
 
         <div className="profile-dock-account">
-          <div className="profile-dock-status-note">Invite friends (Raibarus) or anyone by email/ID</div>
-
-          <label className="profile-dock-input-label">Invite preference</label>
-          <div className="profile-dock-status-grid">
-            <label className="public-room-pill custome-shadow-invert">
-              <input type="checkbox" checked={inviteOnlyRaibarus} onChange={(e) => onToggleInviteOnly(e.target.checked)} />
-              Only allow invites from Raibarus (friends)
-            </label>
+          <div className="chat-tabs">
+            <button
+              className={classnames('chat-tab', tab === 'friends' && 'chat-tab-active')}
+              onClick={() => setTab('friends')}
+            >
+              Your Raibarus ({friendList.length})
+            </button>
+            <button
+              className={classnames('chat-tab', tab === 'requests' && 'chat-tab-active')}
+              onClick={() => setTab('requests')}
+            >
+              Requests ({pendingCount})
+            </button>
           </div>
 
-          <hr />
+          {tab === 'friends' ? (
+            <>
+              <div className="chat-section">
+                <strong>Find & Add Raibarus</strong>
+                <p className="chat-section-hint">Search for players to send them a friend request.</p>
+                
+                <div className="chat-invite-row">
+                  <input
+                    className="profile-dock-input"
+                    placeholder="Search by name, email, or player ID"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && search()}
+                  />
+                  <button className="lobby-btn" type="button" onClick={search}>
+                    <AiOutlineUserAdd /> Search
+                  </button>
+                </div>
 
-          <div className="chat-invite-section">
-            <strong>Invite to room</strong>
-            <div className="chat-invite-row">
-              <input
-                className="profile-dock-input"
-                placeholder="Search users by name"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <button className="lobby-btn" type="button" onClick={search}>
-                Search
-              </button>
+                {results.length > 0 ? (
+                  <ul className="chat-search-results">
+                    {results.map((r) => (
+                      <li key={r.playerId}>
+                        <button
+                          type="button"
+                          className={classnames('music-dock-track-btn', selected?.playerId === r.playerId && 'chat-result-selected')}
+                          onClick={() => setSelected(r)}
+                        >
+                          <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
+                          <strong>{r.name}</strong>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {selected ? (
+                  <div className="chat-selected-player">
+                    <img src={selected.picture || `https://robohash.org/${encodeURIComponent(selected.name)}?size=64x64`} alt="avatar" />
+                    <div>
+                      <strong>{selected.name}</strong>
+                      <textarea
+                        className="profile-dock-input"
+                        placeholder="Optional message (e.g., 'Let's play some games!')"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        maxLength={200}
+                      />
+                      <div className="chat-invite-actions">
+                        <button
+                          className="lobby-btn custome-shadow"
+                          type="button"
+                          onClick={sendRequest}
+                        >
+                          <AiOutlineSend /> Send Friend Request
+                        </button>
+                        <button
+                          className="lobby-btn"
+                          type="button"
+                          onClick={() => {
+                            setSelected(null);
+                            setNote('');
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <hr />
+
+              <div className="chat-section">
+                <strong>Your Raibarus ({friendList.length})</strong>
+                <div className="chat-friends-list">
+                  {friendList.length === 0 ? (
+                    <p className="music-dock-empty">No raibarus yet. Search above to add friends!</p>
+                  ) : (
+                    <ul>
+                      {friendList.map((f) => (
+                        <li key={f.playerId} className="chat-friend-item">
+                          <img src={f.picture || `https://robohash.org/${encodeURIComponent(f.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
+                          <strong>{f.name}</strong>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="chat-section">
+              <strong>Friend Requests ({pendingCount})</strong>
+              <div className="chat-requests-list">
+                {pendingCount === 0 ? (
+                  <p className="music-dock-empty">No pending requests.</p>
+                ) : (
+                  <ul>
+                    {pendingInvites.map((invite) => (
+                      <li key={invite.id} className="chat-request-item">
+                        <div className="chat-request-info">
+                          <strong>{invite.fromPlayerName}</strong>
+                          {invite.message && <small className="chat-request-message">{invite.message}</small>}
+                        </div>
+                        <div className="chat-request-actions">
+                          {onAcceptFriendRequest && (
+                            <button
+                              className="chat-request-btn chat-request-accept"
+                              type="button"
+                              onClick={() => onAcceptFriendRequest(invite.id)}
+                              title="Accept"
+                            >
+                              <AiOutlineCheck />
+                            </button>
+                          )}
+                          {onRejectFriendRequest && (
+                            <button
+                              className="chat-request-btn chat-request-reject"
+                              type="button"
+                              onClick={() => onRejectFriendRequest(invite.id)}
+                              title="Reject"
+                            >
+                              <AiOutlineDelete />
+                            </button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
-            {results.length > 0 ? (
-              <ul className="chat-search-results">
-                {results.map((r) => (
-                  <li key={r.playerId}>
-                    <button type="button" className="music-dock-track-btn" onClick={() => setSelected(r)}>
-                      <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
-                      <strong>{r.name}</strong>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-
-            <div className="chat-invite-row">
-              <input
-                className="profile-dock-input"
-                placeholder="Or enter email or player id"
-                value={emailOrId}
-                onChange={(e) => setEmailOrId(e.target.value)}
-              />
-            </div>
-
-            <textarea className="profile-dock-input" placeholder="Optional message" value={note} onChange={(e) => setNote(e.target.value)} />
-            <div className="chat-invite-actions">
-              <button className="lobby-btn custome-shadow" type="button" onClick={invite}>
-                <AiOutlineSend /> Send Invite
-              </button>
-            </div>
-          </div>
-
-          <hr />
-          <strong>Your Raibarus</strong>
-          <div className="chat-friends-list">
-            {friendList.length === 0 ? <p className="music-dock-empty">No raibarus yet. Use search to find players.</p> : null}
-            <ul>
-              {friendList.map((f) => (
-                <li key={f.playerId} className="chat-friend-item">
-                  <img src={f.picture || `https://robohash.org/${encodeURIComponent(f.name)}?size=64x64`} alt="avatar" className="mini-avatar" />
-                  <strong>{f.name}</strong>
-                </li>
-              ))}
-            </ul>
-          </div>
+          )}
         </div>
       </section>
     </div>

@@ -601,6 +601,55 @@ export function LudoArenaGame({
         buttons={controllerButtons}
       />
 
+      {/* Player Cards */}
+      {participants.map((participant, index) => {
+        const stats = tokenStats.get(participant.color);
+        const isActiveTurn = winnerColor === null && participant.color === currentTurnColor;
+        const hasWonMatch = winnerColor === participant.color;
+        const positions = ['left-10', 'right-10', 'left-1/3 bottom-10', 'right-1/3 bottom-10'];
+        const positionClass = positions[index] || positions[0];
+
+        return (
+          <div
+            key={participant.color}
+            className={classnames(
+              'fixed flex-col',
+              positionClass,
+              'player',
+              `ludo-player-${participant.color}`,
+              hasWonMatch && 'player-result-winner',
+              isActiveTurn && 'player-result-active'
+            )}
+          >
+            <div className="player-top">
+              <div className="player-color-badge" style={{ backgroundColor: participant.color }} />
+              <div className="player-identity">
+                <p className="player-piece-label">{COLOR_META[participant.color].label}</p>
+                <p className="player-alias">{participant.name}</p>
+                <p className="player-mood">
+                  {hasWonMatch ? <AiOutlineCrown /> : isActiveTurn ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}
+                </p>
+              </div>
+            </div>
+
+            <div className="player-stats">
+              <div className="player-stat">
+                <span>Home</span>
+                <strong>{stats?.home ?? 0}/{TOKENS_PER_PLAYER}</strong>
+              </div>
+              <div className="player-stat">
+                <span>Track</span>
+                <strong>{stats?.track ?? 0}</strong>
+              </div>
+              <div className="player-stat">
+                <span>Lane</span>
+                <strong>{stats?.homeLane ?? 0}</strong>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
           <div className={`room-float-card${isRoomCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
@@ -638,31 +687,6 @@ export function LudoArenaGame({
                   <span className="room-float-line">
                     {roomStatusIcon} {statusMessage}
                   </span>
-                </div>
-
-                <div className="room-joined">
-                  <p className="room-joined-title">
-                    <AiOutlineTeam /> Players ({participants.length})
-                  </p>
-                  {participants.map((participant) => {
-                    const stats = tokenStats.get(participant.color);
-                    const isActiveTurn = winnerColor === null && participant.color === currentTurnColor;
-                    const hasWonMatch = winnerColor === participant.color;
-                    return (
-                      <p
-                        key={participant.color}
-                        className={classnames(
-                          'room-joined-line',
-                          'ludo-roster-line',
-                          `ludo-roster-line-${participant.color}`
-                        )}
-                      >
-                        {hasWonMatch ? <AiOutlineCrown /> : isActiveTurn ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
-                        {participant.name} | {COLOR_META[participant.color].label} | Home {stats?.home ?? 0}/
-                        {TOKENS_PER_PLAYER}
-                      </p>
-                    );
-                  })}
                 </div>
 
                 <div className="room-float-actions">
