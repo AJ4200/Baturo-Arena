@@ -59,7 +59,7 @@ router.post(
       if (pref && pref.invite_only_raibarus) {
         // check whether recipient considers sender a raibaru (friend)
         const friends = await listFriends(toPlayerId);
-        const allowed = friends.some((f) => f.id === fromPlayerId) || friends.some((f) => f.id === fromPlayerId);
+        const allowed = friends.some((f) => f.playerId === fromPlayerId) || friends.some((f) => f.playerId === fromPlayerId);
         if (!allowed) {
           return res.status(403).json({ error: 'Recipient only accepts invites from Raibarus' });
         }

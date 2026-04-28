@@ -889,8 +889,9 @@ export default function Home() {
   };
 
   const invitePlayer = async (toPlayerId: string | null, toEmail: string | null, message?: string, roomCode?: string) => {
+    console.log('invitePlayer called with:', { toPlayerId, toEmail, message, roomCode });
     try {
-      await callApi('/api/chat/invite', {
+      const response = await callApi('/api/chat/invite', {
         method: 'POST',
         body: JSON.stringify({
           toPlayerId,
@@ -899,9 +900,11 @@ export default function Home() {
           roomCode,
         }),
       });
+      console.log('invitePlayer: API response', response);
       setMessage('Invitation sent!');
       return true;
     } catch (error) {
+      console.error('invitePlayer: API error', error);
       setMessage(error instanceof Error ? error.message : 'Failed to send invitation');
       return false;
     }

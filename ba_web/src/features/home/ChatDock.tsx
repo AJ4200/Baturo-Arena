@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef, useEffect } from 'react';
 import classnames from 'classnames';
 import { AiOutlineClose, AiOutlineSend, AiOutlineUserAdd, AiOutlineCheck, AiOutlineDelete } from 'react-icons/ai';
 import { IoMdChatbubbles } from 'react-icons/io';
@@ -51,6 +51,11 @@ export function ChatDock({
   const [emailOrId, setEmailOrId] = useState('');
   const [note, setNote] = useState('');
   const [tab, setTab] = useState<'friends' | 'requests'>('friends');
+  const [isSending, setIsSending] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const popupRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback(async () => {
     if (!query || query.trim().length < 1) {
@@ -68,18 +73,55 @@ export function ChatDock({
   const sendRequest = useCallback(async () => {
     const toPlayerId = selected?.playerId || null;
     const toEmail = emailOrId.trim() || null;
+    console.log('sendRequest called with:', { toPlayerId, toEmail, note, selected });
     if (!toPlayerId && !toEmail) {
+      console.log('sendRequest: no playerId or email, returning');
       return;
     }
-    const success = await onSendFriendRequest(toPlayerId, toEmail, note.trim() || undefined);
-    if (success) {
-      setNote('');
-      setEmailOrId('');
-      setSelected(null);
-      setResults([]);
-      setQuery('');
+    setIsSending(true);
+    try {
+      console.log('sendRequest: calling onSendFriendRequest');
+      const success = await onSendFriendRequest(toPlayerId, toEmail, note.trim() || undefined);
+      console.log('sendRequest: onSendFriendRequest returned', success);
+      if (success) {
+        setNote('');
+        setEmailOrId('');
+        setSelected(null);
+        setResults([]);
+        setQuery('');
+        setDragOffset({ x: 0, y: 0 });
+      }
+    } finally {
+      setIsSending(false);
     }
   }, [selected, emailOrId, note, onSendFriendRequest]);
+
+  const handleMouseDownDrag = useCallback((e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+  }, [dragOffset]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    setDragOffset({ x: newX, y: newY });
+  }, [isDragging, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const friendList = useMemo(() => friends || [], [friends]);
   const pendingCount = (pendingInvites || []).length;
@@ -147,15 +189,33 @@ export function ChatDock({
                 {results.length > 0 ? (
                   <ul className="chat-search-results">
                     {results.map((r) => (
-                      <li key={r.playerId}>
-                        <button
-                          type="button"
-                          className={classnames('chat-result-item', selected?.playerId === r.playerId && 'chat-result-selected')}
-                          onClick={() => setSelected(r)}
-                        >
-                          <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=48x48`} alt="avatar" className="chat-result-avatar" />
-                          <span className="chat-result-name">{r.name}</span>
-                        </button>
+                      <li key={r.playerId} className="chat-result-item-wrapper">
+                        <div className="chat-result-item-outer">
+                          <button
+                            type="button"
+                            className={classnames('chat-result-item', selected?.playerId === r.playerId && 'chat-result-selected')}
+                            onClick={() => setSelected(r)}
+                            tabIndex={-1}
+                          >
+                            <img src={r.picture || `https://robohash.org/${encodeURIComponent(r.name)}?size=48x48`} alt="avatar" className="chat-result-avatar" />
+                            <span className="chat-result-name">{r.name}</span>
+                            <span className="chat-result-meta">
+                              <span className="chat-result-wdl">
+                                <span title="Wins" className="chat-result-w"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#4ade80"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">W</text></svg> {r.wins}</span>
+                                <span title="Draws" className="chat-result-d"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#fbbf24"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">D</text></svg> {r.draws}</span>
+                                <span title="Losses" className="chat-result-l"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#f87171"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">L</text></svg> {r.losses}</span>
+                              </span>
+                            </span>
+                          </button>
+                          <button
+                            className="chat-result-request-btn"
+                            type="button"
+                            onClick={() => setSelected(r)}
+                            title={`Send friend request to ${r.name}`}
+                          >
+                            <AiOutlineUserAdd /> Request
+                          </button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -236,7 +296,14 @@ export function ChatDock({
 
       {/* Message Popup Panel - appears on the left when a player is selected */}
       {selected ? (
-        <div className={classnames('chat-message-popup', selected && 'chat-message-popup-open')}>
+        <div 
+          ref={popupRef}
+          className={classnames('chat-message-popup', selected && 'chat-message-popup-open')}
+          style={{ 
+            transform: `translateY(-50%) translateX(-100%) translate(${dragOffset.x}px, ${dragOffset.y}px)`,
+            pointerEvents: 'auto',
+          }}
+        >
           <div className="chat-popup-content">
             <button
               className="chat-popup-close"
@@ -244,16 +311,28 @@ export function ChatDock({
               onClick={() => {
                 setSelected(null);
                 setNote('');
+                setDragOffset({ x: 0, y: 0 });
               }}
               title="Close"
             >
               <AiOutlineClose />
             </button>
 
-            <div className="chat-popup-header">
+
+            <div 
+              className="chat-popup-header chat-popup-header-modern"
+              onMouseDown={handleMouseDownDrag}
+            >
               <img src={selected.picture || `https://robohash.org/${encodeURIComponent(selected.name)}?size=48x48`} alt="avatar" className="chat-popup-avatar" />
               <div className="chat-popup-info">
                 <strong>{selected.name}</strong>
+                <div className="chat-popup-meta">
+                  <span className="chat-popup-wdl">
+                    <span title="Wins" className="chat-popup-w"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#4ade80"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">W</text></svg> {selected.wins}</span>
+                    <span title="Draws" className="chat-popup-d"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#fbbf24"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">D</text></svg> {selected.draws}</span>
+                    <span title="Losses" className="chat-popup-l"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#f87171"/><text x="10" y="15" textAnchor="middle" fontSize="12" fill="#fff">L</text></svg> {selected.losses}</span>
+                  </span>
+                </div>
                 <small>Send a friend request</small>
               </div>
             </div>
@@ -272,8 +351,9 @@ export function ChatDock({
                 className="lobby-btn custome-shadow chat-popup-send"
                 type="button"
                 onClick={sendRequest}
+                disabled={isSending}
               >
-                <AiOutlineSend /> Send
+                <AiOutlineSend /> {isSending ? 'Sending...' : 'Send'}
               </button>
               <button
                 className="lobby-btn chat-popup-cancel"
@@ -281,7 +361,9 @@ export function ChatDock({
                 onClick={() => {
                   setSelected(null);
                   setNote('');
+                  setDragOffset({ x: 0, y: 0 });
                 }}
+                disabled={isSending}
               >
                 Cancel
               </button>

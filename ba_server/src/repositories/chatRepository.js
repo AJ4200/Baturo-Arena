@@ -9,7 +9,7 @@ async function ensureFriendship(playerId, friendPlayerId) {
 
 async function listFriends(playerId) {
   return all(
-    `SELECT p.id, p.name, ga.picture
+    `SELECT p.id as playerId, p.name, ga.picture
      FROM friends f
      INNER JOIN players p ON p.id = f.friend_player_id
      LEFT JOIN google_accounts ga ON ga.player_id = p.id
@@ -22,10 +22,15 @@ async function listFriends(playerId) {
 async function searchPlayers(query) {
   const like = `%${String(query).trim()}%`;
   return all(
-    `SELECT p.id, p.name, ga.picture
+    `SELECT p.id as playerId, p.name, ga.picture,
+            COALESCE(SUM(s.wins), 0) as wins,
+            COALESCE(SUM(s.draws), 0) as draws,
+            COALESCE(SUM(s.losses), 0) as losses
      FROM players p
      LEFT JOIN google_accounts ga ON ga.player_id = p.id
+     LEFT JOIN player_game_stats s ON s.player_id = p.id
      WHERE p.name ILIKE ?
+     GROUP BY p.id, p.name, ga.picture
      ORDER BY p.name ASC
      LIMIT 20`,
     [like]
@@ -104,6 +109,10 @@ async function setInvitePreference(playerId, inviteOnly) {
   await run('UPDATE players SET invite_only_raibarus = ? WHERE id = ?', [inviteOnly ? 1 : 0, playerId]);
 }
 
+async function getPlayerInvitePreference(playerId) {
+  return get('SELECT id, invite_only_raibarus FROM players WHERE id = ?', [playerId]);
+}
+
 module.exports = {
   ensureFriendship,
   listFriends,
@@ -117,27 +126,4 @@ module.exports = {
   acceptFriendRequest,
   updateFriendRequestStatus,
   setInvitePreference,
-};
-
-async function getPlayerInvitePreference(playerId) {
-  return get('SELECT id, invite_only_raibarus FROM players WHERE id = ?', [playerId]);
-}
-
-async function listInvitesForPlayer(playerId) {
-  return all(
-    `SELECT i.id, i.from_player_id, i.to_player_id, i.to_email, i.room_code, i.message, i.created_at, p.name AS from_name, ga.picture AS from_picture
-     FROM invites i
-     LEFT JOIN players p ON p.id = i.from_player_id
-     LEFT JOIN google_accounts ga ON ga.player_id = p.id
-     WHERE i.to_player_id = ?
-     ORDER BY i.created_at DESC`,
-    [playerId]
-  );
-}
-
-module.exports = {
-  ensureFriendship,
-  listFriends,
-  searchPlayers,
-  createInvite,
 };
