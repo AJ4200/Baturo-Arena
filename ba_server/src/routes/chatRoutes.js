@@ -131,4 +131,44 @@ router.post(
   })
 );
 
+
+
+router.get(
+  '/friend-requests',
+  asyncHandler(async (req, res) => {
+    const playerId = req.auth.playerId;
+    const requests = await listFriendRequestsFor(playerId);
+    const normalized = requests.map((request) => ({
+      id: String(request.id),
+      fromPlayerId: request.from_player_id,
+      fromPlayerName: request.from_name,
+      fromPicture: request.from_picture,
+      message: request.message,
+      status: request.status,
+      createdAt: request.created_at,
+    }));
+    res.json({ requests: normalized });
+  })
+);
+
+router.post(
+  '/friend-requests/:id/accept',
+  asyncHandler(async (req, res) => {
+    const accepted = await acceptFriendRequest(req.params.id);
+    if (!accepted) {
+      return res.status(404).json({ error: 'Friend request not found' });
+    }
+    notifications.notifyPlayer(accepted.from_player_id, { type: 'friend-accepted', by: accepted.to_player_id });
+    res.json({ ok: true });
+  })
+);
+
+router.post(
+  '/friend-requests/:id/reject',
+  asyncHandler(async (req, res) => {
+    await updateFriendRequestStatus(req.params.id, 'rejected');
+    res.json({ ok: true });
+  })
+);
+
 module.exports = router;

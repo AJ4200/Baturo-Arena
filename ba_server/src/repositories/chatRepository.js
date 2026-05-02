@@ -29,11 +29,11 @@ async function searchPlayers(query) {
      FROM players p
      LEFT JOIN google_accounts ga ON ga.player_id = p.id
      LEFT JOIN player_game_stats s ON s.player_id = p.id
-     WHERE p.name ILIKE ?
+     WHERE p.name ILIKE ? OR p.id ILIKE ?
      GROUP BY p.id, p.name, ga.picture
      ORDER BY p.name ASC
      LIMIT 20`,
-    [like]
+    [like, like]
   );
 }
 
@@ -67,7 +67,8 @@ async function listInvitesForPlayer(playerId) {
 async function createFriendRequest({ fromPlayerId, toPlayerId, message }) {
   await run(
     `INSERT INTO friend_requests (from_player_id, to_player_id, message, status, created_at)
-     VALUES (?, ?, ?, 'pending', CURRENT_TIMESTAMP)`,
+     VALUES (?, ?, ?, 'pending', CURRENT_TIMESTAMP)
+     ON CONFLICT DO NOTHING`,
     [fromPlayerId, toPlayerId, message || null]
   );
 }

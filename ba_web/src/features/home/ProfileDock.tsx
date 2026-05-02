@@ -30,6 +30,7 @@ type ProfileDockProps = {
   onSignOut: () => void;
   onPlayerNameChange: (value: string) => void;
   onSaveName: () => void;
+  showLauncher?: boolean;
 };
 
 export function ProfileDock({
@@ -43,6 +44,7 @@ export function ProfileDock({
   onSignOut,
   onPlayerNameChange,
   onSaveName,
+  showLauncher = true,
 }: ProfileDockProps) {
   const isConnected = Boolean(account?.sub);
   const displayName = (playerProfile?.name || account?.name || playerName || 'Player').trim() || 'Player';
@@ -85,7 +87,7 @@ export function ProfileDock({
 
   return (
     <div className={classnames('profile-dock', isOpen && 'profile-dock-open')}>
-      <button
+      {showLauncher ? <button
         className={classnames(
           'music-dock-toggle',
           'music-dock-toggle-profile',
@@ -98,7 +100,7 @@ export function ProfileDock({
       >
         <AiOutlineUser />
         {isConnected ? <span className="profile-dock-live-dot" aria-hidden="true" /> : null}
-      </button>
+      </button> : null}
 
       <section className="profile-dock-panel" aria-hidden={!isOpen}>
         <header className="profile-dock-head">
