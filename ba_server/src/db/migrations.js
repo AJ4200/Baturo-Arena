@@ -118,6 +118,61 @@ async function runMigrations() {
   `);
 
   await run(`
+    CREATE TABLE IF NOT EXISTS raiburu_requests (
+      id BIGSERIAL PRIMARY KEY,
+      requester_player_id TEXT NOT NULL,
+      recipient_player_id TEXT NOT NULL,
+      message TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (requester_player_id) REFERENCES players(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipient_player_id) REFERENCES players(id) ON DELETE CASCADE,
+      CHECK (requester_player_id <> recipient_player_id)
+    )
+  `);
+
+  await run(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_raiburu_requests_pending_pair
+    ON raiburu_requests (
+      LEAST(requester_player_id, recipient_player_id),
+      GREATEST(requester_player_id, recipient_player_id)
+    )
+    WHERE status = 'pending'
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_raiburu_requests_recipient
+    ON raiburu_requests(recipient_player_id, status, updated_at DESC)
+  `);
+
+  await run(`
+    CREATE TABLE IF NOT EXISTS raiburu_messages (
+      id BIGSERIAL PRIMARY KEY,
+      sender_player_id TEXT NOT NULL,
+      recipient_player_id TEXT NOT NULL,
+      body TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'chat',
+      room_code TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      read_at TIMESTAMPTZ,
+      FOREIGN KEY (sender_player_id) REFERENCES players(id) ON DELETE CASCADE,
+      FOREIGN KEY (recipient_player_id) REFERENCES players(id) ON DELETE CASCADE,
+      CHECK (sender_player_id <> recipient_player_id)
+    )
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_raiburu_messages_pair
+    ON raiburu_messages(sender_player_id, recipient_player_id, created_at DESC)
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_raiburu_messages_recipient
+    ON raiburu_messages(recipient_player_id, read_at, created_at DESC)
+  `);
+
+  await run(`
     DELETE FROM auth_sessions
     WHERE expires_at <= CURRENT_TIMESTAMP
   `);

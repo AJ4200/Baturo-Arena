@@ -13,6 +13,7 @@ import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
+import { ChatDock } from '@/features/home/ChatDock';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
 import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
 import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
@@ -268,6 +269,7 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
+  const [isChatDockOpen, setIsChatDockOpen] = useState(false);
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
@@ -1758,6 +1760,23 @@ export default function Home() {
             setMusicVolume(volume);
             window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
           }}
+        />
+        <ChatDock
+          isOpen={isChatDockOpen}
+          playerProfile={player}
+          isOnlineReady={Boolean(googleAccount)}
+          currentRoomCode={activeRoomCode}
+          currentRoomName={roomName}
+          callApi={callApi}
+          onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
+          onRequireSignIn={() => {
+            setIsProfileDockOpen(true);
+            if (!googleAccount) {
+              startGoogleSignIn();
+            }
+          }}
+          onJoinRoom={(code) => void joinRoom(code)}
+          onStatusMessage={setMessage}
         />
       </div>
       {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}

@@ -4,6 +4,7 @@ const healthRoutes = require("./routes/healthRoutes");
 const playerRoutes = require("./routes/playerRoutes");
 const roomRoutes = require("./routes/roomRoutes");
 const gameRoutes = require("./routes/gameRoutes");
+const socialRoutes = require("./routes/socialRoutes");
 const HttpError = require("./errors/HttpError");
 const { corsOrigin } = require("./config/env");
 
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/players", playerRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/games", gameRoutes);
+app.use("/api/social", socialRoutes);
 
 app.use((req, _res, next) => {
   next(new HttpError(404, "Route not found"));
