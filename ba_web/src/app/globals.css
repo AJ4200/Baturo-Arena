@@ -6765,3 +6765,5 @@ h1 span:last-child {
 .chat-popup-w svg, .chat-popup-d svg, .chat-popup-l svg {
   margin-right: 0.1rem;
 }
+
+.dock-hub{position:fixed;right:1rem;bottom:1rem;z-index:95;display:flex;flex-direction:column;gap:.35rem;align-items:flex-end}.dock-hub-actions{display:flex;gap:.35rem}.dock-hub .music-dock-toggle{width:2.5rem;height:2.5rem}.chat-dock .profile-dock-panel{border-color:rgba(15,15,15,.85);background:linear-gradient(145deg,rgba(9,38,66,.9),rgba(13,78,61,.82));box-shadow:0 14px 36px rgba(0,0,0,.45)}

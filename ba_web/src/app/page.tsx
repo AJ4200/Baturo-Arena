@@ -273,6 +273,7 @@ export default function Home() {
   const [friendsList, setFriendsList] = useState<Array<{ playerId: string; name: string; picture?: string | null }>>([]);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
+  const [isDockHubOpen, setIsDockHubOpen] = useState(true);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const [pageReady, setPageReady] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
@@ -923,13 +924,27 @@ export default function Home() {
 
   const refreshPendingInvites = async () => {
     try {
-      const payload = await callApi<{ invites: Array<{ id: string; fromPlayerId: string; fromPlayerName: string; message?: string }> }>('/api/chat/invites', {
+      const payload = await callApi<{ requests: Array<{ id: string; fromPlayerId: string; fromPlayerName: string; message?: string }> }>('/api/chat/friend-requests', {
         method: 'GET',
       });
-      setPendingInvites(Array.isArray(payload?.invites) ? payload.invites : []);
+      setPendingInvites(Array.isArray(payload?.requests) ? payload.requests : []);
     } catch (error) {
       console.error('Refresh pending invites error:', error);
     }
+  };
+
+
+
+  const acceptFriendRequest = async (requestId: string) => {
+    await callApi(`/api/chat/friend-requests/${requestId}/accept`, { method: 'POST' });
+    await Promise.all([refreshPendingInvites(), refreshFriends()]);
+    setMessage('Friend request accepted.');
+  };
+
+  const rejectFriendRequest = async (requestId: string) => {
+    await callApi(`/api/chat/friend-requests/${requestId}/reject`, { method: 'POST' });
+    await refreshPendingInvites();
+    setMessage('Friend request rejected.');
   };
 
   const inviteFriendsToRoom = async (roomCode: string) => {
@@ -1807,6 +1822,7 @@ export default function Home() {
           playerProfile={player}
           playerName={playerName}
           isSigningIn={isGoogleSignInLoading}
+          showLauncher={false}
           onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
           onSignIn={startGoogleSignIn}
           onSignOut={signOutGoogle}
@@ -1839,7 +1855,7 @@ export default function Home() {
           tracks={APP_MUSIC_TRACKS}
           isMuted={isMusicMuted}
           volume={musicVolume}
-          showLauncher={!isProfileDockOpen}
+showLauncher={false}
           onToggleMute={() => {
             const nextValue = !isMusicMuted;
             setIsMusicMuted(nextValue);
@@ -1854,13 +1870,26 @@ export default function Home() {
           isOpen={isChatDockOpen}
           friends={friendsList}
           pendingInvites={pendingInvites}
-          showLauncher={!isProfileDockOpen}
+showLauncher={false}
           onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
           onSearch={searchPlayers}
           onSendFriendRequest={invitePlayer}
           onRefreshFriends={refreshFriends}
           onRefreshPendingInvites={refreshPendingInvites}
+          onAcceptFriendRequest={acceptFriendRequest}
+          onRejectFriendRequest={rejectFriendRequest}
         />
+
+        <div className={classnames('dock-hub', isDockHubOpen && 'dock-hub-open')}>
+          <button className="music-dock-toggle dock-hub-toggle" type="button" onClick={() => setIsDockHubOpen((v) => !v)}>{isDockHubOpen ? '−' : '+'}</button>
+          {isDockHubOpen ? (
+            <div className="dock-hub-actions">
+              <button className="music-dock-toggle" type="button" onClick={() => setIsProfileDockOpen((v) => !v)}>P</button>
+              <button className="music-dock-toggle" type="button" onClick={() => setIsChatDockOpen((v) => !v)}>C</button>
+              <button className="music-dock-toggle" type="button" onClick={() => document.dispatchEvent(new CustomEvent('toggle-music-dock'))}>M</button>
+            </div>
+          ) : null}
+        </div>
       </div>
       {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}
     </main>

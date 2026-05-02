@@ -106,6 +106,12 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
   }, [hasTracks, tracks.length]);
 
   useEffect(() => {
+    const toggle = () => setIsOpen((v) => !v);
+    document.addEventListener('toggle-music-dock', toggle);
+    return () => document.removeEventListener('toggle-music-dock', toggle);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       return;
     }
