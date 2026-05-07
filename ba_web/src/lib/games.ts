@@ -155,6 +155,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'snake',
+    name: 'Snake',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Navigate your growing snake, eat food, and survive without hitting walls or yourself.',
+    rows: 20,
+    columns: 20,
+    connect: 0,
+    moveMode: 'solo-snake',
+    winCondition: 'snake-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {

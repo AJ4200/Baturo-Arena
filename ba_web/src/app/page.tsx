@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import { IconContext } from 'react-icons';
 import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
+import { FaAngleDown, FaAngleUp } from "react-icons/fa";
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
@@ -38,6 +39,8 @@ import type {
   RoomPayload,
   Screen,
 } from '@/types/game';
+import { BiHeart } from 'react-icons/bi';
+import { FaCircleXmark } from 'react-icons/fa6';
 
 type LocalBackupPayload = {
   version: 2;
@@ -274,6 +277,7 @@ export default function Home() {
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
+  const [toggleFooter, setToggleFooter] = useState(false);
 
   const { activeRequests, runWithLoader, callApi } = useApiClient();
 
@@ -350,9 +354,9 @@ export default function Home() {
       const fallbackAccount =
         !payload.account && payload.player?.playerId?.startsWith('google:')
           ? {
-              sub: payload.player.playerId.replace(/^google:/, ''),
-              name: payload.player.name,
-            }
+            sub: payload.player.playerId.replace(/^google:/, ''),
+            name: payload.player.name,
+          }
           : null;
 
       saveGoogleAccount(payload.account || fallbackAccount);
@@ -652,16 +656,16 @@ export default function Home() {
         preferredGame: normalizeGameType(parsed.preferredGame),
         player:
           parsed.player &&
-          typeof parsed.player.name === 'string' &&
-          typeof parsed.player.wins === 'number' &&
-          typeof parsed.player.losses === 'number' &&
-          typeof parsed.player.draws === 'number'
+            typeof parsed.player.name === 'string' &&
+            typeof parsed.player.wins === 'number' &&
+            typeof parsed.player.losses === 'number' &&
+            typeof parsed.player.draws === 'number'
             ? {
-                name: parsed.player.name,
-                wins: parsed.player.wins,
-                losses: parsed.player.losses,
-                draws: parsed.player.draws,
-              }
+              name: parsed.player.name,
+              wins: parsed.player.wins,
+              losses: parsed.player.losses,
+              draws: parsed.player.draws,
+            }
             : null,
         isMusicMuted: parsed.isMusicMuted,
         musicVolume: Math.min(100, Math.max(0, parsed.musicVolume)),
@@ -719,11 +723,11 @@ export default function Home() {
         preferredGame: selectedGame,
         player: player
           ? {
-              name: player.name,
-              wins: player.wins,
-              losses: player.losses,
-              draws: player.draws,
-            }
+            name: player.name,
+            wins: player.wins,
+            losses: player.losses,
+            draws: player.draws,
+          }
           : null,
         isMusicMuted,
         musicVolume,
@@ -1374,34 +1378,136 @@ export default function Home() {
   const matchThemeStyle = isInMatch ? createMatchThemeStyle(matchBackgroundColor) : undefined;
 
   const renderTopBar = () => (
-    <header className="title-topbar">
-      <IconContext.Provider value={{ size: '2rem' }}>
-        <div className="flex items-center justify-center space-x-2">
-          <motion.a
-            whileHover={{ opacity: 0.5, scale: 0.9, cursor: 'pointer' }}
-            transition={{ duration: 0.4 }}
-            whileTap={{ scale: 1.2 }}
-            href="https://github.com/AJ4200"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <AiFillGithub />
-          </motion.a>
-          <motion.a
-            whileHover={{ opacity: 0.5, scale: 0.9, cursor: 'pointer' }}
-            transition={{ duration: 0.4 }}
-            whileTap={{ scale: 1.2 }}
-            href="https://www.linkedin.com/in/abel-majadibodu-5a0583193/"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <AiFillLinkedin />
-          </motion.a>
-        </div>
-      </IconContext.Provider>
-    </header>
-  );
+<header className="title-topbar">
+  <IconContext.Provider value={{ size: '1.8rem' }}>
+    <div className="flex items-center justify-center gap-3 py-2">
 
+      <a
+        href="https://github.com/AJ4200"
+        target="_blank"
+        rel="noreferrer"
+        className="
+          group
+          relative
+          overflow-hidden
+          rounded-full
+          border
+          border-white/20
+          bg-white/10
+          p-2
+          backdrop-blur-md
+          transition-all
+          duration-300
+          hover:scale-95
+          hover:opacity-90
+          active:scale-110
+        "
+      >
+        <div
+          className="
+            absolute
+            inset-0
+            bg-white/20
+            opacity-0
+            transition-opacity
+            duration-300
+            group-hover:opacity-100
+          "
+          style={{ mixBlendMode: 'difference' }}
+        />
+
+        <AiFillGithub
+          className="
+            relative
+            z-10
+            text-white
+            transition-colors
+            duration-300
+            group-hover:text-black
+          "
+        />
+      </a>
+
+      <a
+        href="https://www.linkedin.com/in/abel-majadibodu-5a0583193/"
+        target="_blank"
+        rel="noreferrer"
+        className="
+          group
+          relative
+          overflow-hidden
+          rounded-full
+          border
+          border-white/20
+          bg-white/10
+          p-2
+          backdrop-blur-md
+          transition-all
+          duration-300
+          hover:scale-95
+          hover:opacity-90
+          active:scale-110
+        "
+      >
+        <div
+          className="
+            absolute
+            inset-0
+            bg-white/20
+            opacity-0
+            transition-opacity
+            duration-300
+            group-hover:opacity-100
+          "
+          style={{ mixBlendMode: 'difference' }}
+        />
+
+        <AiFillLinkedin
+          className="
+            relative
+            z-10
+            text-white
+            transition-colors
+            duration-300
+            group-hover:text-black
+          "
+        />
+      </a>
+
+    </div>
+  </IconContext.Provider>
+</header>
+  );
+const renderBottomBar = () => (
+      <footer className="fixed bottom-1 main-menu-btn footerfun text-sm wide flex items-center justify-center gap-2">
+        {toggleFooter ? (
+          !isInMatch ? <motion.span
+            initial={{ opacity: 0, y: 20 }}
+            animate={{
+              opacity: 1, y: 0, 
+              transition: {
+                duration: 0.4
+              }
+            }}
+            exit={{ opacity: 0, y: 20 }}
+            className='flex items-center justify-center space-x-2'><a className='flex space-x-2 items-center' >Made With <div><BiHeart className='size-4' /></div> By AJ4200 © 2023</a><FaCircleXmark
+              onClick={() => setToggleFooter(false)} />
+          </motion.span> : null
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: 1
+            }}
+            exit={{ opacity: 0 }}
+          >
+            <FaAngleDown
+              className=''
+              onClick={() => setToggleFooter(!toggleFooter)} />
+          </motion.div>
+        )}
+      </footer>
+);
   const renderScreen = () => {
     if (screen === 'home') {
       return (
@@ -1779,7 +1885,7 @@ export default function Home() {
           onStatusMessage={setMessage}
         />
       </div>
-      {!isInMatch ? <span className="fixed bottom-1 text-sm">Project By AJ4200 c 2023</span> : null}
+     {renderBottomBar()}
     </main>
   );
 }

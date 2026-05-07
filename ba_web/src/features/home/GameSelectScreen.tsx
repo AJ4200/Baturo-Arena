@@ -36,6 +36,7 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   minesweeper: 'MINES',
   'memory-match': 'PAIRS',
   'dino-run': 'DODGE',
+  snake: 'SNAKE',
 };
 
 export function GameSelectScreen({
@@ -134,7 +135,7 @@ export function GameSelectScreen({
                         )}
                         onClick={() => {
                           onSelectGame(game.id);
-                          setIsDropdownOpen(false);
+                          setTimeout(() => setIsDropdownOpen(false), 100);
                         }}
                       >
                         {game.name}

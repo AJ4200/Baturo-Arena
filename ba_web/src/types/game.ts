@@ -15,7 +15,8 @@ export type GameType =
   | 'sudoku'
   | 'minesweeper'
   | 'memory-match'
-  | 'dino-run';
+  | 'dino-run'
+  | 'snake';
 
 export type GameDefinition = {
   id: GameType;
@@ -37,7 +38,8 @@ export type GameDefinition = {
     | 'solo-sudoku'
     | 'solo-minesweeper'
     | 'solo-memory'
-    | 'solo-dino';
+    | 'solo-dino'
+    | 'solo-snake';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -48,7 +50,8 @@ export type GameDefinition = {
     | 'sudoku-complete'
     | 'minesweeper-clear'
     | 'memory-complete'
-    | 'dino-survive';
+    | 'dino-survive'
+    | 'snake-survive';
   supportsOnline: boolean;
   supportsCpu: boolean;
 };

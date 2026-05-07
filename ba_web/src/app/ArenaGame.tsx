@@ -7,6 +7,7 @@ import { OnlineLudoArenaGame } from '@/features/game/OnlineLudoArenaGame';
 import { SoloDinoGame } from '@/features/game/singleplayer/SoloDinoGame';
 import { SoloMemoryMatchGame } from '@/features/game/singleplayer/SoloMemoryMatchGame';
 import { SoloMinesweeperGame } from '@/features/game/singleplayer/SoloMinesweeperGame';
+import { SoloSnakeGame } from '@/features/game/singleplayer/SoloSnakeGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -120,6 +121,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'dino-run') {
     return (
       <SoloDinoGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'snake') {
+    return (
+      <SoloSnakeGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
