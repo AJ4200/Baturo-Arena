@@ -175,7 +175,7 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
     lastToastTrackIdRef.current = activeTrack.id;
     setNowPlayingToast(activeTrack);
 
-    const timeoutId = window.setTimeout(() => setNowPlayingToast(null), 3000);
+    const timeoutId = window.setTimeout(() => setNowPlayingToast(null), 5000);
     return () => window.clearTimeout(timeoutId);
   }, [activeTrack]);
 
@@ -572,7 +572,7 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
 
       {isClient && nowPlayingToast
         ? createPortal(
-            <div className="music-now-playing-toast" role="status" aria-live="polite">
+            <div className="music-now-playing-toast music-now-playing-toast.exit" role="status" aria-live="polite">
               <img src={nowPlayingToast.artSrc || GENERIC_ART_SRC} alt={`${nowPlayingToast.title} art`} />
               <div>
                 <strong>Now Playing</strong>
