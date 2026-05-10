@@ -3,17 +3,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
-import { IconContext } from 'react-icons';
-import { AiFillGithub, AiFillLinkedin } from 'react-icons/ai';
-import { FaAngleDown, FaAngleUp } from "react-icons/fa";
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
+import { FooterBar } from '@/features/home/FooterBar';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
 import { GameTypeSelectScreen } from '@/features/home/GameTypeSelectScreen';
 import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
+import { TopBar } from '@/features/home/TopBar';
 import { ChatDock } from '@/features/home/ChatDock';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
 import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
@@ -39,8 +38,6 @@ import type {
   RoomPayload,
   Screen,
 } from '@/types/game';
-import { BiHeart } from 'react-icons/bi';
-import { FaCircleXmark } from 'react-icons/fa6';
 
 type LocalBackupPayload = {
   version: 2;
@@ -277,7 +274,6 @@ export default function Home() {
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
-  const [toggleFooter, setToggleFooter] = useState(false);
 
   const { activeRequests, runWithLoader, callApi } = useApiClient();
 
@@ -1377,137 +1373,6 @@ export default function Home() {
   const isInMatch = screen === 'game' && Boolean(player);
   const matchThemeStyle = isInMatch ? createMatchThemeStyle(matchBackgroundColor) : undefined;
 
-  const renderTopBar = () => (
-<header className="title-topbar">
-  <IconContext.Provider value={{ size: '1.8rem' }}>
-    <div className="flex items-center justify-center gap-3 py-2">
-
-      <a
-        href="https://github.com/AJ4200"
-        target="_blank"
-        rel="noreferrer"
-        className="
-          group
-          relative
-          overflow-hidden
-          rounded-full
-          border
-          border-white/20
-          bg-white/10
-          p-2
-          backdrop-blur-md
-          transition-all
-          duration-300
-          hover:scale-95
-          hover:opacity-90
-          active:scale-110
-        "
-      >
-        <div
-          className="
-            absolute
-            inset-0
-            bg-white/20
-            opacity-0
-            transition-opacity
-            duration-300
-            group-hover:opacity-100
-          "
-          style={{ mixBlendMode: 'difference' }}
-        />
-
-        <AiFillGithub
-          className="
-            relative
-            z-10
-            text-white
-            transition-colors
-            duration-300
-            group-hover:text-black
-          "
-        />
-      </a>
-
-      <a
-        href="https://www.linkedin.com/in/abel-majadibodu-5a0583193/"
-        target="_blank"
-        rel="noreferrer"
-        className="
-          group
-          relative
-          overflow-hidden
-          rounded-full
-          border
-          border-white/20
-          bg-white/10
-          p-2
-          backdrop-blur-md
-          transition-all
-          duration-300
-          hover:scale-95
-          hover:opacity-90
-          active:scale-110
-        "
-      >
-        <div
-          className="
-            absolute
-            inset-0
-            bg-white/20
-            opacity-0
-            transition-opacity
-            duration-300
-            group-hover:opacity-100
-          "
-          style={{ mixBlendMode: 'difference' }}
-        />
-
-        <AiFillLinkedin
-          className="
-            relative
-            z-10
-            text-white
-            transition-colors
-            duration-300
-            group-hover:text-black
-          "
-        />
-      </a>
-
-    </div>
-  </IconContext.Provider>
-</header>
-  );
-const renderBottomBar = () => (
-      <footer className="fixed bottom-1 main-menu-btn footerfun text-sm wide flex items-center justify-center gap-2">
-        {toggleFooter ? (
-          !isInMatch ? <motion.span
-            initial={{ opacity: 0, y: 20 }}
-            animate={{
-              opacity: 1, y: 0, 
-              transition: {
-                duration: 0.4
-              }
-            }}
-            exit={{ opacity: 0, y: 20 }}
-            className='flex items-center justify-center space-x-2'><a className='flex space-x-2 items-center' >Made With <div><BiHeart className='size-4' /></div> By AJ4200 © 2023</a><FaCircleXmark
-              onClick={() => setToggleFooter(false)} />
-          </motion.span> : null
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: 1
-            }}
-            exit={{ opacity: 0 }}
-          >
-            <FaAngleDown
-              className=''
-              onClick={() => setToggleFooter(!toggleFooter)} />
-          </motion.div>
-        )}
-      </footer>
-);
   const renderScreen = () => {
     if (screen === 'home') {
       return (
@@ -1790,7 +1655,7 @@ const renderBottomBar = () => (
       className={classnames(isInMatch ? 'match-screen-root' : 'title-screen-root', !enableAnimations && 'motion-off')}
       style={matchThemeStyle}
     >
-      {!isInMatch ? renderTopBar() : null}
+      {!isInMatch ? <TopBar /> : null}
       {renderScreen()}
       <AppLoader active={activeRequests > 0} subtle={isInMatch} />
       {saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
@@ -1885,7 +1750,14 @@ const renderBottomBar = () => (
           onStatusMessage={setMessage}
         />
       </div>
-     {renderBottomBar()}
+      <FooterBar
+        isInMatch={isInMatch}
+        hasGoogleAccount={Boolean(googleAccount)}
+        googleProfileLabel={googleAccount?.email || googleAccount?.name || null}
+        hasLocalBackup={hasLocalSave}
+        hasSavedGuestProfile={Boolean(player)}
+      />
     </main>
   );
 }
+

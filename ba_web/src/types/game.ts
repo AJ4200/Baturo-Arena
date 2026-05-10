@@ -16,7 +16,8 @@ export type GameType =
   | 'minesweeper'
   | 'memory-match'
   | 'dino-run'
-  | 'snake';
+  | 'snake'
+  | 'space-invaders';
 
 export type GameDefinition = {
   id: GameType;
@@ -39,7 +40,8 @@ export type GameDefinition = {
     | 'solo-minesweeper'
     | 'solo-memory'
     | 'solo-dino'
-    | 'solo-snake';
+    | 'solo-snake'
+    | 'solo-space-invaders';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -51,7 +53,8 @@ export type GameDefinition = {
     | 'minesweeper-clear'
     | 'memory-complete'
     | 'dino-survive'
-    | 'snake-survive';
+    | 'snake-survive'
+    | 'space-invaders-clear';
   supportsOnline: boolean;
   supportsCpu: boolean;
 };

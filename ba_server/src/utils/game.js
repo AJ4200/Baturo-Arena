@@ -153,6 +153,34 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  snake: {
+    id: 'snake',
+    name: 'Snake',
+    rows: 20,
+    columns: 20,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Navigate your growing snake, eat food, and survive without hitting walls or yourself.',
+    moveMode: 'solo-snake',
+    winCondition: 'snake-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'space-invaders': {
+    id: 'space-invaders',
+    name: 'Space Invaders',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Defend the arena, blast invading fleets, and survive the final wave with your shields intact.',
+    moveMode: 'solo-space-invaders',
+    winCondition: 'space-invaders-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -390,7 +418,9 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'sudoku-complete' ||
     rules.winCondition === 'minesweeper-clear' ||
     rules.winCondition === 'memory-complete' ||
-    rules.winCondition === 'dino-survive'
+    rules.winCondition === 'dino-survive' ||
+    rules.winCondition === 'snake-survive' ||
+    rules.winCondition === 'space-invaders-clear'
   ) {
     return null;
   }
@@ -528,6 +558,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-minesweeper' ||
     rules.moveMode === 'solo-memory' ||
     rules.moveMode === 'solo-dino' ||
+    rules.moveMode === 'solo-snake' ||
+    rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -591,6 +623,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-minesweeper' ||
     rules.moveMode === 'solo-memory' ||
     rules.moveMode === 'solo-dino' ||
+    rules.moveMode === 'solo-snake' ||
+    rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'ludo'
   ) {
     return [...board];

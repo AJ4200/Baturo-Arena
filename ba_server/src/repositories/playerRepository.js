@@ -45,9 +45,9 @@ async function incrementPlayerGameStats(playerId, gameType, { wins = 0, losses =
      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
      ON CONFLICT(player_id, game_type)
      DO UPDATE SET
-       wins = wins + excluded.wins,
-       losses = losses + excluded.losses,
-       draws = draws + excluded.draws,
+       wins = player_game_stats.wins + excluded.wins,
+       losses = player_game_stats.losses + excluded.losses,
+       draws = player_game_stats.draws + excluded.draws,
        updated_at = CURRENT_TIMESTAMP`,
     [playerId, gameType, wins, losses, draws]
   );

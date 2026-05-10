@@ -119,6 +119,7 @@ export function SoloSnakeGame({
   onLeave,
 }: SoloSnakeGameProps) {
   const [state, setState] = useState<SnakeGameState>(createInitialState);
+  const [bestScore, setBestScore] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const gameLoopRef = useRef<number | null>(null);
@@ -144,12 +145,11 @@ export function SoloSnakeGame({
 
   const handleNewGame = useCallback(() => {
     lastReportedOutcomeRef.current = null;
+    lastMoveTimeRef.current = 0;
     setState(createInitialState());
   }, []);
 
-  const handleGameLoop = useCallback(() => {
-    const now = performance.now();
-
+  const handleGameLoop = useCallback((now: number) => {
     setState((currentState) => {
       if (currentState.status === 'won' || currentState.status === 'lost') {
         return currentState;
@@ -169,9 +169,10 @@ export function SoloSnakeGame({
 
       const head = currentState.snake[0];
       const newHead = getNewHead(head, nextDirection);
+      const eatsFood = newHead.x === currentState.food.x && newHead.y === currentState.food.y;
+      const collisionSnake = eatsFood ? currentState.snake : currentState.snake.slice(0, -1);
 
-      // Check if snake hits itself
-      if (isSnakeOnPosition(currentState.snake, newHead.x, newHead.y)) {
+      if (isSnakeOnPosition(collisionSnake, newHead.x, newHead.y)) {
         return {
           ...currentState,
           direction: nextDirection,
@@ -179,17 +180,20 @@ export function SoloSnakeGame({
         };
       }
 
-      const eatsFood = newHead.x === currentState.food.x && newHead.y === currentState.food.y;
-
       let newSnake = [newHead, ...currentState.snake];
       let newFood = currentState.food;
       let newScore = currentState.score;
+      let nextStatus: GameStatus = 'playing';
 
       if (eatsFood) {
         newScore = currentState.score + 10;
-        newFood = randomPosition();
-        while (isSnakeOnPosition(newSnake, newFood.x, newFood.y)) {
+        if (newSnake.length === GRID_WIDTH * GRID_HEIGHT) {
+          nextStatus = 'won';
+        } else {
           newFood = randomPosition();
+          while (isSnakeOnPosition(newSnake, newFood.x, newFood.y)) {
+            newFood = randomPosition();
+          }
         }
       } else {
         newSnake.pop();
@@ -201,15 +205,19 @@ export function SoloSnakeGame({
         food: newFood,
         direction: nextDirection,
         score: newScore,
-        status: 'playing',
+        status: nextStatus,
         elapsedMs: currentState.elapsedMs + timeSinceLastMove,
       };
     });
   }, [currentSpeed]);
 
-  // Game loop
   useEffect(() => {
-    gameLoopRef.current = window.requestAnimationFrame(handleGameLoop);
+    const step = (now: number) => {
+      handleGameLoop(now);
+      gameLoopRef.current = window.requestAnimationFrame(step);
+    };
+
+    gameLoopRef.current = window.requestAnimationFrame(step);
     return () => {
       if (gameLoopRef.current) {
         cancelAnimationFrame(gameLoopRef.current);
@@ -217,7 +225,6 @@ export function SoloSnakeGame({
     };
   }, [handleGameLoop]);
 
-  // Start game
   useEffect(() => {
     setState((current) => ({
       ...current,
@@ -225,7 +232,25 @@ export function SoloSnakeGame({
     }));
   }, []);
 
-  // Report outcome
+  useEffect(() => {
+    const storedBest =
+      typeof window !== 'undefined'
+        ? Number.parseInt(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY) || '0', 10)
+        : 0;
+    setBestScore(Number.isFinite(storedBest) ? storedBest : 0);
+  }, []);
+
+  useEffect(() => {
+    if (state.score <= bestScore) {
+      return;
+    }
+
+    setBestScore(state.score);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(BEST_SCORE_STORAGE_KEY, String(state.score));
+    }
+  }, [bestScore, state.score]);
+
   useEffect(() => {
     if (state.status === 'lost' && lastReportedOutcomeRef.current !== 'loss') {
       lastReportedOutcomeRef.current = 'loss';
@@ -238,7 +263,18 @@ export function SoloSnakeGame({
     }
   }, [state.status, onMatchComplete]);
 
-  // Keyboard controls
+  useEffect(() => {
+    if (state.status === 'won' && lastReportedOutcomeRef.current !== 'win') {
+      lastReportedOutcomeRef.current = 'win';
+      onMatchComplete({
+        mode: 'cpu',
+        gameType: 'snake',
+        outcome: 'win',
+        opponent: 'Snake',
+      });
+    }
+  }, [state.status, onMatchComplete]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.repeat) return;
@@ -314,14 +350,18 @@ export function SoloSnakeGame({
 
   return (
     <>
+      <div>
+        <h1 className="game-screen-title">{gameLabel}</h1>
+      </div>
+
       <AdaptiveControllerOverlay sections={controllerSections} title={'Snake'} />
 
       <motion.div
         drag
         dragMomentum={false}
         className="room-float-drag-root"
-        animate={{ y: [6, -6, 6] }}
-        transition={{ duration: 4, repeat: Infinity }}
+        animate={enableAnimations ? { y: [6, -6, 6] } : undefined}
+        transition={enableAnimations ? { duration: 4, repeat: Infinity } : undefined}
       >
         <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
           {isInfoCardCollapsed ? (
@@ -376,6 +416,10 @@ export function SoloSnakeGame({
                   <strong>{state.score}</strong>
                 </div>
                 <div className="solo-float-stat">
+                  <span>Best</span>
+                  <strong>{bestScore}</strong>
+                </div>
+                <div className="solo-float-stat">
                   <span>Length</span>
                   <strong>{state.snake.length}</strong>
                 </div>
@@ -427,10 +471,10 @@ export function SoloSnakeGame({
           )}
         </div>
 
-        {state.status === 'lost' && (
+        {(state.status === 'lost' || state.status === 'won') && (
           <div className="solo-snake-overlay">
             <div className="solo-snake-message">
-              <h2>Game Over!</h2>
+              <h2>{state.status === 'won' ? 'Arena Cleared!' : 'Game Over!'}</h2>
               <p>Final Score: {state.score}</p>
               <p>Length: {state.snake.length}</p>
               <button className="solo-snake-restart-btn" onClick={handleNewGame}>
@@ -439,127 +483,15 @@ export function SoloSnakeGame({
             </div>
           </div>
         )}
+
+        <p className="solo-snake-message-inline">
+          {state.status === 'won'
+            ? 'Full board captured. Clean run.'
+            : state.status === 'lost'
+              ? 'Wall-safe movement is on, so only your own trail can end the run.'
+              : 'Use arrow keys or the adaptive D-pad to guide the snake and stack a higher score.'}
+        </p>
       </section>
-
-      <style jsx>{`
-        .solo-snake-shell {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
-          overflow: hidden;
-        }
-
-        .solo-snake-board {
-          display: grid;
-          grid-template-columns: repeat(${GRID_WIDTH}, 1fr);
-          grid-template-rows: repeat(${GRID_HEIGHT}, 1fr);
-          width: min(90vh, 600px);
-          aspect-ratio: 1;
-          gap: 1px;
-          background: #0a0a14;
-          padding: 4px;
-          border-radius: 12px;
-          box-shadow: 0 0 40px rgba(0, 255, 200, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-
-        .solo-snake-cell {
-          background: #16213e;
-          border-radius: 2px;
-          transition: all 0.05s ease-out;
-          border: 1px solid rgba(0, 255, 200, 0.1);
-        }
-
-        .solo-snake-head {
-          background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-          box-shadow: 0 0 12px rgba(0, 255, 136, 0.8), inset 0 0 4px rgba(255, 255, 255, 0.3);
-          border: 1px solid #00ff88;
-        }
-
-        .solo-snake-body {
-          background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-          opacity: 0.7;
-          box-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
-          border: 1px solid rgba(0, 255, 136, 0.5);
-        }
-
-        .solo-snake-food {
-          background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%);
-          animation: pulse 0.8s ease-in-out infinite;
-          box-shadow: 0 0 12px rgba(255, 107, 107, 0.8);
-          border: 1px solid #ff6b6b;
-        }
-
-        @keyframes pulse {
-          0%,
-          100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.1);
-            opacity: 0.9;
-          }
-        }
-
-        .solo-snake-overlay {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          backdrop-filter: blur(4px);
-        }
-
-        .solo-snake-message {
-          text-align: center;
-          background: rgba(10, 10, 20, 0.9);
-          padding: 32px;
-          border-radius: 12px;
-          border: 2px solid #00ff88;
-          box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
-          color: #00ff88;
-        }
-
-        .solo-snake-message h2 {
-          font-size: 32px;
-          font-weight: bold;
-          margin-bottom: 16px;
-          text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-
-        .solo-snake-message p {
-          font-size: 18px;
-          margin-bottom: 8px;
-          color: #00ccff;
-        }
-
-        .solo-snake-restart-btn {
-          background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
-          color: #0a0a14;
-          padding: 12px 24px;
-          border: none;
-          border-radius: 6px;
-          font-weight: bold;
-          cursor: pointer;
-          margin-top: 16px;
-          transition: all 0.3s ease;
-          box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
-        }
-
-        .solo-snake-restart-btn:hover {
-          transform: scale(1.05);
-          box-shadow: 0 0 30px rgba(0, 255, 136, 0.6);
-        }
-
-        .solo-snake-restart-btn:active {
-          transform: scale(0.95);
-        }
-      `}</style>
     </>
   );
 }

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Analytics } from '@vercel/analytics/next';
+import { GlobalGameUISounds } from "@/features/home/GlobalGameUISounds";
 
 export const metadata: Metadata = {
   title: "Baturo Arena",
@@ -15,6 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <GlobalGameUISounds
+          clickSoundSrc="/music/ui/ui-click.mp3"
+          volume={0.3}
+        />
         {children}
         <Analytics />
       </body>

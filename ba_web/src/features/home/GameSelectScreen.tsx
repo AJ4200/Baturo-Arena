@@ -37,6 +37,7 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'memory-match': 'PAIRS',
   'dino-run': 'DODGE',
   snake: 'SNAKE',
+  'space-invaders': 'INVADERS',
 };
 
 export function GameSelectScreen({
@@ -121,9 +122,9 @@ export function GameSelectScreen({
                 className="choose-game-name flex items-center relative cursor-pointer"
                 onClick={() => setIsDropdownOpen((p) => !p)}
               >
-                {isDropdownOpen ? <AiOutlineUp /> : <AiOutlineDown />}
-                {selectedGameName}
-
+                <div className="flex items-center gap-2">    
+                  <span>     {isDropdownOpen ? <AiOutlineUp /> : <AiOutlineDown />}{selectedGameName}</span>
+                </div>
                 {isDropdownOpen && (
                   <div className="choose-game-dropdown">
                     {games.map((game) => (

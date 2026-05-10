@@ -169,6 +169,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'space-invaders',
+    name: 'Space Invaders',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Defend the arena, blast invading fleets, and survive the final wave with your shields intact.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-space-invaders',
+    winCondition: 'space-invaders-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -343,6 +357,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
+    game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'ludo'
   ) {
     return [];
@@ -385,6 +401,8 @@ export const applyMove = (
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
+    game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'ludo'
   ) {
     return [...board];
@@ -524,7 +542,9 @@ export const evaluateBoard = (
     game.winCondition === 'sudoku-complete' ||
     game.winCondition === 'minesweeper-clear' ||
     game.winCondition === 'memory-complete' ||
-    game.winCondition === 'dino-survive'
+    game.winCondition === 'dino-survive' ||
+    game.winCondition === 'snake-survive' ||
+    game.winCondition === 'space-invaders-clear'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;
