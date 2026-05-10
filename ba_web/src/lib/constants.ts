@@ -10,6 +10,7 @@ export const STORAGE_KEYS = {
   authToken: 'baruto_auth_token_v1',
   authTokenExpiresAt: 'baruto_auth_token_expires_at_v1',
   musicMuted: 'baruto_music_muted',
+  uisoundsMuted: 'baruto_uisounds_muted',
   musicVolume: 'baruto_music_volume',
   enableAnimations: 'baruto_enable_animations',
   cpuDifficulty: 'baruto_cpu_difficulty',

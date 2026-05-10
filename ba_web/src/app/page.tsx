@@ -2,7 +2,6 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
-import { motion } from 'framer-motion';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { FooterBar } from '@/features/home/FooterBar';
@@ -51,6 +50,7 @@ type LocalBackupPayload = {
     draws: number;
   } | null;
   isMusicMuted: boolean;
+  isUISoundsMuted: boolean;
   musicVolume: number;
   enableAnimations: boolean;
   cpuDifficulty: CpuDifficulty;
@@ -250,6 +250,7 @@ export default function Home() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [isUISoundsMuted, setIsUISoundsMuted] = useState(false);
   const [musicVolume, setMusicVolume] = useState(70);
   const [enableAnimations, setEnableAnimations] = useState(true);
   const [cpuDifficulty, setCpuDifficulty] = useState<CpuDifficulty>('medium');
@@ -639,6 +640,7 @@ export default function Home() {
       if (
         typeof parsed.playerName !== 'string' ||
         typeof parsed.isMusicMuted !== 'boolean' ||
+        typeof parsed.isUISoundsMuted !== 'boolean' ||
         typeof parsed.musicVolume !== 'number' ||
         typeof parsed.enableAnimations !== 'boolean'
       ) {
@@ -664,6 +666,7 @@ export default function Home() {
             }
             : null,
         isMusicMuted: parsed.isMusicMuted,
+        isUISoundsMuted: parsed.isUISoundsMuted,
         musicVolume: Math.min(100, Math.max(0, parsed.musicVolume)),
         enableAnimations: parsed.enableAnimations,
         cpuDifficulty: parsed.cpuDifficulty,
@@ -726,6 +729,7 @@ export default function Home() {
           }
           : null,
         isMusicMuted,
+        isUISoundsMuted,
         musicVolume,
         enableAnimations,
         cpuDifficulty,
@@ -1561,6 +1565,7 @@ export default function Home() {
       return (
         <SettingsScreen
           isMusicMuted={isMusicMuted}
+          isUISoundsMuted={isUISoundsMuted}
           musicVolume={musicVolume}
           enableAnimations={enableAnimations}
           cpuDifficulty={cpuDifficulty}
@@ -1575,6 +1580,18 @@ export default function Home() {
           onMusicVolumeChange={(volume) => {
             setMusicVolume(volume);
             window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+          }}
+          onToggleUISounds={() => {
+            const nextMuted = !isUISoundsMuted;
+            setIsUISoundsMuted(nextMuted);
+            localStorage.setItem(
+              STORAGE_KEYS.uisoundsMuted,
+              String(nextMuted)
+            );
+
+            window.dispatchEvent(
+              new Event('baruto-ui-sound-change')
+            );
           }}
           onToggleAnimations={() => {
             const nextValue = !enableAnimations;

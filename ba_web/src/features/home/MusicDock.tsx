@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom';
 import classnames from 'classnames';
 import {
   AiOutlineClose,
-  AiOutlineAudioMuted,
+  AiOutlineMuted,
   AiOutlineMinus,
   AiOutlinePauseCircle,
   AiOutlinePlayCircle,
@@ -493,7 +493,7 @@ export function MusicDock({ tracks, isMuted, volume, showLauncher = true, onTogg
                   aria-label={isMuted ? 'Unmute' : 'Mute'}
                   title={isMuted ? 'Unmute' : 'Mute'}
                 >
-                  {isMuted ? <AiOutlineAudioMuted /> : <AiOutlineSound />}
+                  {isMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
                 </button>
                 <button className="music-dock-volume-step" type="button" onClick={() => stepVolume(-1)} aria-label="Lower volume">
                   <AiOutlineMinus />

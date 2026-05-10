@@ -7597,3 +7597,45 @@ h1 span:last-child {
     gap: 0.6rem;
   }
 }
+.settings-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+}
+
+.settings-tab {
+  position: relative;
+  outline: none;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: white;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settings-tab:hover {
+  transform: translateY(-2px);
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-tab-active {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25),
+     rgba(255, 255, 255, 0.75)
+    );
+
+
+  color: white;
+}

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { CpuArenaGame } from '@/features/game/CpuArenaGame';
-import { LudoArenaGame } from '@/features/game/LudoArenaGame';
-import { OnlineLudoArenaGame } from '@/features/game/OnlineLudoArenaGame';
+import { LudoArenaGame } from '@/features/game/multiplayer/LudoArenaGame';
+import { OnlineLudoArenaGame } from '@/features/game/multiplayer/OnlineLudoArenaGame';
 import { SoloDinoGame } from '@/features/game/singleplayer/SoloDinoGame';
 import { SoloMemoryMatchGame } from '@/features/game/singleplayer/SoloMemoryMatchGame';
 import { SoloMinesweeperGame } from '@/features/game/singleplayer/SoloMinesweeperGame';

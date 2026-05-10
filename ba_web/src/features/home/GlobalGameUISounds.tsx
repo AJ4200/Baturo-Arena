@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type GlobalGameUISoundsProps = {
   clickSoundSrc?: string;
   hoverSoundSrc?: string;
   volume?: number;
+  muteStorageKey?: string;
 };
 
 const INTERACTION_KEYS = [
@@ -27,22 +28,56 @@ const INTERACTION_KEYS = [
 
 export function GlobalGameUISounds({
   clickSoundSrc = '/sounds/ui-click.mp3',
-  hoverSoundSrc,
+  hoverSoundSrc = '/sounds/ui-hover.mp3',
   volume = 0.35,
+  muteStorageKey = 'baruto_uisounds_muted',
 }: GlobalGameUISoundsProps) {
   const clickAudioRef = useRef<HTMLAudioElement | null>(null);
   const hoverAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     clickAudioRef.current = new Audio(clickSoundSrc);
     clickAudioRef.current.volume = volume;
 
-    if (hoverSoundSrc) {
-      hoverAudioRef.current = new Audio(hoverSoundSrc);
-      hoverAudioRef.current.volume = volume * 0.7;
-    }
+    hoverAudioRef.current = new Audio(hoverSoundSrc);
+    hoverAudioRef.current.volume = volume * 0.7;
 
+    const syncMuteState = () => {
+      const storedValue = localStorage.getItem(muteStorageKey);
+
+      setIsMuted(storedValue === 'true');
+    };
+
+    syncMuteState();
+
+    const handleStorageUpdate = () => {
+      syncMuteState();
+    };
+
+    window.addEventListener('storage', handleStorageUpdate);
+
+    // custom event for same-tab updates
+    window.addEventListener(
+      'baruto-ui-sound-change',
+      handleStorageUpdate as EventListener
+    );
+
+    return () => {
+      window.removeEventListener('storage', handleStorageUpdate);
+
+      window.removeEventListener(
+        'baruto-ui-sound-change',
+        handleStorageUpdate as EventListener
+      );
+    };
+  }, [clickSoundSrc, hoverSoundSrc, volume, muteStorageKey]);
+
+  useEffect(() => {
     const playClick = () => {
+      if (isMuted) return;
+
       try {
         if (!clickAudioRef.current) return;
 
@@ -53,19 +88,7 @@ export function GlobalGameUISounds({
       }
     };
 
-    const playHover = () => {
-      try {
-        if (!hoverAudioRef.current) return;
-
-        hoverAudioRef.current.currentTime = 0;
-        hoverAudioRef.current.play();
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
     const handleMouseDown = (event: MouseEvent) => {
-      // left click only
       if (event.button === 0) {
         playClick();
       }
@@ -73,43 +96,22 @@ export function GlobalGameUISounds({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (INTERACTION_KEYS.includes(event.key)) {
-        // avoid spam while holding key
         if (!event.repeat) {
           playClick();
         }
       }
     };
 
-    const handleMouseOver = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
 
-      if (!target) return;
-
-      const interactiveElement = target.closest(
-        'button, a, input, select, textarea, [role="button"]'
-      );
-
-      if (interactiveElement) {
-        playHover();
-      }
-    };
 
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('keydown', handleKeyDown);
 
-    if (hoverSoundSrc) {
-      window.addEventListener('mouseover', handleMouseOver);
-    }
-
     return () => {
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('keydown', handleKeyDown);
-
-      if (hoverSoundSrc) {
-        window.removeEventListener('mouseover', handleMouseOver);
-      }
     };
-  }, [clickSoundSrc, volume]);
+  }, [isMuted]);
 
   return null;
 }
