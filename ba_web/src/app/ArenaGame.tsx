@@ -173,7 +173,12 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         player={player}
         mode={mode}
         gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
       />
     );
   }

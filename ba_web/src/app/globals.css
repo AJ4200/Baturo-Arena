@@ -5178,6 +5178,36 @@ h1 span:last-child {
     linear-gradient(145deg, #173018, #2b5c2e 55%, #79c86f);
 }
 
+.choose-game-thumb-brickbreaker {
+  background:
+    radial-gradient(circle at 50% 82%, rgba(255, 247, 196, 0.95) 0 11px, transparent 12px),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.18) 0 2px,
+      transparent 2px 42px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.16) 0 2px,
+      transparent 2px 30px
+    ),
+    linear-gradient(155deg, #0f172f, #1e3a8a 48%, #f97316);
+}
+
+.choose-game-thumb-air-hockey {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.88) 0 22px, transparent 23px),
+    linear-gradient(
+      90deg,
+      transparent 49%,
+      rgba(255, 255, 255, 0.76) 49% 51%,
+      transparent 51%
+    ),
+    radial-gradient(circle at 22% 52%, rgba(91, 198, 255, 0.92) 0 13px, transparent 14px),
+    radial-gradient(circle at 78% 48%, rgba(255, 131, 131, 0.92) 0 13px, transparent 14px),
+    linear-gradient(160deg, #042f4f, #0f766e 56%, #b91c1c);
+}
+
 .choose-game-thumb-space-invaders {
   background:
     radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.85) 0 2px, transparent 3px),
@@ -6701,6 +6731,367 @@ h1 span:last-child {
   opacity: 0.84;
 }
 
+.solo-brick-shell,
+.air-hockey-shell {
+  width: min(94vw, 1040px);
+  margin-top: 1rem;
+  border: 4px solid var(--match-outline, #000);
+  border-radius: 18px;
+  background: var(--match-surface, rgba(241, 246, 255, 0.92));
+  padding: 1rem;
+}
+
+.solo-brick-shell,
+.solo-brick-shell *,
+.air-hockey-shell,
+.air-hockey-shell * {
+  text-shadow: none !important;
+  color: var(--match-text, #171717);
+}
+
+.solo-brick-hud,
+.air-hockey-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.solo-brick-hud-item,
+.air-hockey-score-team,
+.air-hockey-score-center {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 2px solid var(--match-outline, rgba(0, 0, 0, 0.33));
+  border-radius: 12px;
+  padding: 0.45rem 0.55rem;
+  background: var(--match-surface-soft, rgba(226, 237, 248, 0.88));
+}
+
+.solo-brick-hud-item span,
+.air-hockey-score-team span,
+.air-hockey-score-center span {
+  font-size: 0.76rem;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.solo-brick-hud-item strong,
+.air-hockey-score-team strong,
+.air-hockey-score-center strong {
+  font-size: 1.08rem;
+}
+
+.air-hockey-score-team-left strong {
+  color: #0e7490;
+}
+
+.air-hockey-score-team-right strong {
+  color: #b91c1c;
+}
+
+.solo-brick-stage-wrap,
+.air-hockey-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  aspect-ratio: 11 / 7;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 16px;
+  padding: 0.85rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.88),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.72)
+    );
+}
+
+.solo-brick-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #081223, #132b52 52%, #0f172f);
+}
+
+.solo-brick-glow {
+  position: absolute;
+  width: 38%;
+  height: 22%;
+  filter: blur(50px);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.solo-brick-glow-top {
+  top: -6%;
+  left: 12%;
+  background: rgba(251, 191, 36, 0.62);
+}
+
+.solo-brick-glow-bottom {
+  right: 8%;
+  bottom: -8%;
+  background: rgba(56, 189, 248, 0.45);
+}
+
+.solo-brick-paddle,
+.solo-brick-ball,
+.solo-brick-brick,
+.air-hockey-paddle,
+.air-hockey-puck,
+.air-hockey-center-line,
+.air-hockey-center-circle,
+.air-hockey-goal,
+.air-hockey-faceoff-dot {
+  position: absolute;
+}
+
+.solo-brick-paddle {
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(250, 250, 250, 0.92), rgba(147, 197, 253, 0.9));
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.18),
+    0 10px 22px rgba(15, 23, 42, 0.35);
+}
+
+.solo-brick-ball {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.62) 35%, transparent 36%),
+    linear-gradient(135deg, rgba(251, 191, 36, 0.96), rgba(249, 115, 22, 0.94));
+  box-shadow: 0 0 18px rgba(251, 146, 60, 0.65);
+}
+
+.solo-brick-brick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.solo-brick-brick-gold {
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+}
+
+.solo-brick-brick-teal {
+  background: linear-gradient(135deg, #2dd4bf, #0f766e);
+}
+
+.solo-brick-brick-violet {
+  background: linear-gradient(135deg, #818cf8, #6d28d9);
+}
+
+.solo-brick-brick-coral {
+  background: linear-gradient(135deg, #fb7185, #ea580c);
+}
+
+.solo-brick-brick-hp-2 {
+  border-style: dashed;
+}
+
+.solo-brick-overlay,
+.air-hockey-overlay {
+  position: absolute;
+  inset: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 18, 18, 18), 0.42);
+  backdrop-filter: blur(6px);
+}
+
+.solo-brick-message,
+.air-hockey-message {
+  width: min(88vw, 420px);
+  padding: 1.5rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+}
+
+.solo-brick-status-pill,
+.air-hockey-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.solo-brick-status-pill-ready,
+.air-hockey-status-pill-ready {
+  background: rgba(125, 211, 252, 0.18);
+  color: #0f5f85;
+}
+
+.solo-brick-status-pill-win,
+.air-hockey-status-pill-win {
+  background: rgba(91, 242, 184, 0.18);
+  color: #1f7a5a;
+}
+
+.solo-brick-status-pill-loss {
+  background: rgba(255, 111, 145, 0.16);
+  color: #a13f5c;
+}
+
+.solo-brick-message h2,
+.air-hockey-message h2 {
+  margin: 0.9rem 0 0.7rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+}
+
+.solo-brick-message p,
+.air-hockey-message p {
+  margin: 0.45rem 0;
+  opacity: 0.84;
+}
+
+.solo-brick-message-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.95rem;
+}
+
+.solo-brick-restart-btn,
+.air-hockey-rematch-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-width: 168px;
+  padding: 0.82rem 1rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.24);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.96),
+      var(--match-tint-medium, rgba(125, 173, 255, 0.34))
+    );
+  font-weight: 700;
+}
+
+.solo-brick-message-inline,
+.air-hockey-message-inline {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.84;
+}
+
+.air-hockey-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 32%),
+    linear-gradient(180deg, #062f4f, #0f766e 52%, #0b2538);
+}
+
+.air-hockey-center-line {
+  top: 0;
+  left: 50%;
+  width: 4px;
+  height: 100%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.air-hockey-center-circle {
+  top: 50%;
+  left: 50%;
+  width: 136px;
+  height: 136px;
+  transform: translate(-50%, -50%);
+  border: 4px solid rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+}
+
+.air-hockey-goal {
+  top: 34%;
+  width: 10px;
+  height: 32%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+}
+
+.air-hockey-goal-left {
+  left: 0.8rem;
+}
+
+.air-hockey-goal-right {
+  right: 0.8rem;
+}
+
+.air-hockey-faceoff-dot {
+  width: 18px;
+  height: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.air-hockey-faceoff-dot-top {
+  top: 18%;
+}
+
+.air-hockey-faceoff-dot-bottom {
+  bottom: 18%;
+}
+
+.air-hockey-paddle,
+.air-hockey-puck {
+  border-radius: 999px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.air-hockey-paddle-left {
+  background: linear-gradient(135deg, #7dd3fc, #0ea5e9);
+}
+
+.air-hockey-paddle-right {
+  background: linear-gradient(135deg, #fda4af, #ef4444);
+}
+
+.air-hockey-paddle-cpu {
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.25),
+    0 0 18px rgba(248, 113, 113, 0.45);
+}
+
+.air-hockey-puck {
+  background:
+    radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.94), rgba(226, 232, 240, 0.72) 36%, transparent 37%),
+    linear-gradient(135deg, #f8fafc, #94a3b8);
+}
+
 .solo-space-shell {
   width: min(94vw, 1040px);
   margin-top: 1rem;
@@ -7019,12 +7410,19 @@ h1 span:last-child {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .solo-brick-hud,
+  .air-hockey-scoreboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .solo-dino-stage-wrap {
     width: 100%;
   }
 
   .solo-snake-shell,
-  .solo-space-shell {
+  .solo-space-shell,
+  .solo-brick-shell,
+  .air-hockey-shell {
     width: min(100%, 96vw);
     padding: 0.85rem;
   }
@@ -7035,6 +7433,12 @@ h1 span:last-child {
   }
 
   .solo-space-stage-wrap {
+    width: 100%;
+    padding: 0.7rem;
+  }
+
+  .solo-brick-stage-wrap,
+  .air-hockey-stage-wrap {
     width: 100%;
     padding: 0.7rem;
   }

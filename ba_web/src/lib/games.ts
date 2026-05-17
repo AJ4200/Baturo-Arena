@@ -172,7 +172,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
 
   {
     id: 'brickbreaker',
-    name: 'BrickBreaker',
+    name: 'Brick Breaker',
     minPlayers: 1,
     maxPlayers: 1,
     description: 'Retro brick-breaking action with score combos and rising ball speed over rounds.',
@@ -387,7 +387,9 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
     game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
+    game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
     return [];
@@ -431,7 +433,9 @@ export const applyMove = (
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
     game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
+    game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
     return [...board];
@@ -573,7 +577,9 @@ export const evaluateBoard = (
     game.winCondition === 'memory-complete' ||
     game.winCondition === 'dino-survive' ||
     game.winCondition === 'snake-survive' ||
-    game.winCondition === 'space-invaders-clear'
+    game.winCondition === 'space-invaders-clear' ||
+    game.winCondition === 'brickbreaker-clear' ||
+    game.winCondition === 'air-hockey-score'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;
