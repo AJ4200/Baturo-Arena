@@ -38,6 +38,8 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'dino-run': 'DODGE',
   snake: 'SNAKE',
   'space-invaders': 'INVADERS',
+  brickbreaker: 'BRICKS',
+  'air-hockey': 'PUCK',
 };
 
 export function GameSelectScreen({
