@@ -20,6 +20,7 @@ import {
   AiOutlineUser,
 } from 'react-icons/ai';
 import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
+import type { ControllerSection } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, GameMode, MatchResultEvent, PlayerProfile } from '@/types/game';
 
@@ -560,7 +561,7 @@ export function AirHockeyArenaGame({
     });
   }, [mode, onMatchComplete, state.leftScore, state.phase, state.rightScore]);
 
-  const controllerSections = useMemo(() => {
+  const controllerSections = useMemo<ControllerSection[]>(() => {
     const leftButtons = [
       {
         key: 'left-up',
@@ -596,7 +597,7 @@ export function AirHockeyArenaGame({
       },
     ];
 
-    const sections = [
+    const sections: ControllerSection[] = [
       {
         key: 'left-paddle',
         title: `${player.name} Paddle`,
