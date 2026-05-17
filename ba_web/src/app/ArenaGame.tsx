@@ -9,6 +9,8 @@ import { SoloMemoryMatchGame } from '@/features/game/singleplayer/SoloMemoryMatc
 import { SoloMinesweeperGame } from '@/features/game/singleplayer/SoloMinesweeperGame';
 import { SoloSnakeGame } from '@/features/game/singleplayer/SoloSnakeGame';
 import { SoloSpaceInvadersGame } from '@/features/game/singleplayer/SoloSpaceInvadersGame';
+import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBreakerGame';
+import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -145,6 +147,33 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
+      />
+    );
+  }
+
+
+  if (gameType === 'brickbreaker') {
+    return (
+      <SoloBrickBreakerGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'air-hockey') {
+    return (
+      <AirHockeyArenaGame
+        player={player}
+        mode={mode}
+        gameDefinitions={gameDefinitions}
+        onMatchComplete={onMatchComplete}
       />
     );
   }
