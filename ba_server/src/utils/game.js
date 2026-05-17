@@ -167,6 +167,35 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+
+  brickbreaker: {
+    id: 'brickbreaker',
+    name: 'BrickBreaker',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Retro brick-breaking action with score combos and rising ball speed over rounds.',
+    moveMode: 'solo-brickbreaker',
+    winCondition: 'brickbreaker-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'air-hockey': {
+    id: 'air-hockey',
+    name: 'Air Hockey',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Fast-paced table duel with real-time puck physics, rounds, and match scoring.',
+    moveMode: 'air-hockey',
+    winCondition: 'air-hockey-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'space-invaders': {
     id: 'space-invaders',
     name: 'Space Invaders',
@@ -420,7 +449,9 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'memory-complete' ||
     rules.winCondition === 'dino-survive' ||
     rules.winCondition === 'snake-survive' ||
-    rules.winCondition === 'space-invaders-clear'
+    rules.winCondition === 'space-invaders-clear' ||
+    rules.winCondition === 'brickbreaker-clear' ||
+    rules.winCondition === 'air-hockey-score'
   ) {
     return null;
   }
@@ -560,6 +591,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-dino' ||
     rules.moveMode === 'solo-snake' ||
     rules.moveMode === 'solo-space-invaders' ||
+    rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -625,6 +658,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-dino' ||
     rules.moveMode === 'solo-snake' ||
     rules.moveMode === 'solo-space-invaders' ||
+    rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {
     return [...board];

@@ -17,7 +17,9 @@ export type GameType =
   | 'memory-match'
   | 'dino-run'
   | 'snake'
-  | 'space-invaders';
+  | 'space-invaders'
+  | 'brickbreaker'
+  | 'air-hockey';
 
 export type GameDefinition = {
   id: GameType;
@@ -41,7 +43,9 @@ export type GameDefinition = {
     | 'solo-memory'
     | 'solo-dino'
     | 'solo-snake'
-    | 'solo-space-invaders';
+    | 'solo-space-invaders'
+    | 'solo-brickbreaker'
+    | 'air-hockey';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -54,7 +58,9 @@ export type GameDefinition = {
     | 'memory-complete'
     | 'dino-survive'
     | 'snake-survive'
-    | 'space-invaders-clear';
+    | 'space-invaders-clear'
+    | 'brickbreaker-clear'
+    | 'air-hockey-score';
   supportsOnline: boolean;
   supportsCpu: boolean;
 };

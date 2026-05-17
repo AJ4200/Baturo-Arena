@@ -158,12 +158,45 @@ const blendRgb = (
 const rgbString = ([red, green, blue]: [number, number, number]): string =>
   `${red}, ${green}, ${blue}`;
 
+const MATCH_SHAPE_CLIPS = [
+  'circle(50% at 50% 50%)',
+  'ellipse(42% 58% at 50% 50%)',
+  'polygon(50% 2%, 97% 35%, 82% 96%, 18% 96%, 3% 35%)',
+  'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+  'polygon(10% 15%, 85% 6%, 98% 47%, 84% 92%, 35% 98%, 4% 60%)',
+] as const;
+
+const MATCH_SHAPE_ANIMATIONS = ['matchShapeDrift', 'matchShapeOrbit', 'matchShapeBob'] as const;
+
+const seededRandom = (seed: number): (() => number) => {
+  let value = seed | 0;
+  return () => {
+    value = (value + 0x6d2b79f5) | 0;
+    let next = Math.imul(value ^ (value >>> 15), 1 | value);
+    next ^= next + Math.imul(next ^ (next >>> 7), 61 | next);
+    return ((next ^ (next >>> 14)) >>> 0) / 4294967296;
+  };
+};
+
 const createMatchThemeStyle = (backgroundHex: string): React.CSSProperties => {
+  const normalizedHex = normalizeHexColor(backgroundHex);
   const baseRgb = hexToRgb(backgroundHex);
   const darkRgb = blendRgb(baseRgb, [0, 0, 0], 0.56);
   const deepRgb = blendRgb(baseRgb, [0, 0, 0], 0.34);
   const lightRgb = blendRgb(baseRgb, [255, 255, 255], 0.72);
   const softLightRgb = blendRgb(baseRgb, [255, 255, 255], 0.48);
+  const seed = Number.parseInt(normalizedHex, 16);
+  const rand = seededRandom(seed);
+  const shapeClip = MATCH_SHAPE_CLIPS[Math.floor(rand() * MATCH_SHAPE_CLIPS.length)];
+  const shapeAnimation = MATCH_SHAPE_ANIMATIONS[Math.floor(rand() * MATCH_SHAPE_ANIMATIONS.length)];
+  const shapeSize = Math.round(120 + rand() * 200);
+  const shapeX = Math.round(8 + rand() * 84);
+  const shapeY = Math.round(8 + rand() * 84);
+  const shapeBlur = (3 + rand() * 8).toFixed(1);
+  const shapeDuration = (7 + rand() * 7).toFixed(2);
+  const patternA = (16 + rand() * 26).toFixed(1);
+  const patternB = (20 + rand() * 32).toFixed(1);
+  const patternRotation = Math.round(rand() * 360);
   const style: React.CSSProperties = {
     backgroundColor: backgroundHex,
   };
@@ -180,6 +213,16 @@ const createMatchThemeStyle = (backgroundHex: string): React.CSSProperties => {
   cssVars['--match-surface-soft'] = `rgba(${rgbString(softLightRgb)}, 0.82)`;
   cssVars['--match-outline'] = `rgba(${rgbString(darkRgb)}, 0.55)`;
   cssVars['--match-text'] = `rgb(${rgbString(blendRgb(darkRgb, [0, 0, 0], 0.18))})`;
+  cssVars['--match-shape-clip'] = shapeClip;
+  cssVars['--match-shape-animation'] = shapeAnimation;
+  cssVars['--match-shape-size'] = `${shapeSize}px`;
+  cssVars['--match-shape-x'] = `${shapeX}%`;
+  cssVars['--match-shape-y'] = `${shapeY}%`;
+  cssVars['--match-shape-blur'] = `${shapeBlur}px`;
+  cssVars['--match-shape-duration'] = `${shapeDuration}s`;
+  cssVars['--match-pattern-size-a'] = `${patternA}px`;
+  cssVars['--match-pattern-size-b'] = `${patternB}px`;
+  cssVars['--match-pattern-rotation'] = `${patternRotation}deg`;
 
   return style;
 };
@@ -1777,4 +1820,3 @@ export default function Home() {
     </main>
   );
 }
-
