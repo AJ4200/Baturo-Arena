@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
+import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { FooterBar } from '@/features/home/FooterBar';
@@ -314,6 +315,7 @@ export default function Home() {
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
   const [isChatDockOpen, setIsChatDockOpen] = useState(false);
+  const [areDockLaunchersVisible, setAreDockLaunchersVisible] = useState(false);
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
@@ -1348,6 +1350,12 @@ export default function Home() {
     setIsNoticeDockOpen(Boolean(message));
   }, [message]);
 
+  useEffect(() => {
+    if (isProfileDockOpen || isChatDockOpen) {
+      setAreDockLaunchersVisible(true);
+    }
+  }, [isChatDockOpen, isProfileDockOpen]);
+
   const noticeTone = useMemo<NoticeTone>(() => {
     const normalizedMessage = message.trim().toLowerCase();
     if (!normalizedMessage) {
@@ -1742,73 +1750,87 @@ export default function Home() {
           </button>
         </div>
       ) : null}
-      <div className="dock-launchers">
-        <ProfileDock
-          isOpen={isProfileDockOpen}
-          account={googleAccount}
-          playerProfile={player}
-          playerName={playerName}
-          isSigningIn={isGoogleSignInLoading}
-          onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
-          onSignIn={startGoogleSignIn}
-          onSignOut={signOutGoogle}
-          onPlayerNameChange={setPlayerName}
-          onSaveName={() => {
-            ensurePlayer()
-              .then((registeredPlayer) => {
-                setPlayer(registeredPlayer);
-                setMessage('Profile saved');
-              })
-              .catch((error) => {
-                setMessage(error instanceof Error ? error.message : 'Could not save profile');
-              });
-          }}
-        />
-        {message ? (
-          <GoogleNoticeDock
-            isOpen={isNoticeDockOpen}
-            title={noticeTitle}
-            tone={noticeTone}
-            message={message}
-            onToggleOpen={() => setIsNoticeDockOpen((currentValue) => !currentValue)}
-            onDismiss={() => {
-              setIsNoticeDockOpen(false);
-              setMessage('');
+      <div className={classnames('dock-launchers-shell', areDockLaunchersVisible && 'dock-launchers-shell-open')}>
+        <button
+          className={classnames('dock-launchers-reveal', areDockLaunchersVisible && 'dock-launchers-reveal-active')}
+          type="button"
+          onClick={() => setAreDockLaunchersVisible((currentValue) => !currentValue)}
+          aria-label={areDockLaunchersVisible ? 'Hide dock launchers' : 'Show dock launchers'}
+          title={areDockLaunchersVisible ? 'Hide dock launchers' : 'Show dock launchers'}
+        >
+          {areDockLaunchersVisible ? <AiOutlineRight /> : <AiOutlineLeft />}
+          <span>{areDockLaunchersVisible ? 'Hide' : 'Docks'}</span>
+        </button>
+
+        <div className={classnames('dock-launchers', areDockLaunchersVisible ? 'dock-launchers-visible' : 'dock-launchers-hidden')}>
+          <ProfileDock
+            isOpen={isProfileDockOpen}
+            account={googleAccount}
+            playerProfile={player}
+            playerName={playerName}
+            isSigningIn={isGoogleSignInLoading}
+            onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
+            onSignIn={startGoogleSignIn}
+            onSignOut={signOutGoogle}
+            onPlayerNameChange={setPlayerName}
+            onSaveName={() => {
+              ensurePlayer()
+                .then((registeredPlayer) => {
+                  setPlayer(registeredPlayer);
+                  setMessage('Profile saved');
+                })
+                .catch((error) => {
+                  setMessage(error instanceof Error ? error.message : 'Could not save profile');
+                });
             }}
           />
-        ) : null}
-        <MusicDock
-          tracks={APP_MUSIC_TRACKS}
-          isMuted={isMusicMuted}
-          volume={musicVolume}
-          showLauncher={!isProfileDockOpen}
-          onToggleMute={() => {
-            const nextValue = !isMusicMuted;
-            setIsMusicMuted(nextValue);
-            window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
-          }}
-          onVolumeChange={(volume) => {
-            setMusicVolume(volume);
-            window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
-          }}
-        />
-        <ChatDock
-          isOpen={isChatDockOpen}
-          playerProfile={player}
-          isOnlineReady={Boolean(googleAccount)}
-          currentRoomCode={activeRoomCode}
-          currentRoomName={roomName}
-          callApi={callApi}
-          onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
-          onRequireSignIn={() => {
-            setIsProfileDockOpen(true);
-            if (!googleAccount) {
-              startGoogleSignIn();
-            }
-          }}
-          onJoinRoom={(code) => void joinRoom(code)}
-          onStatusMessage={setMessage}
-        />
+          {message ? (
+            <GoogleNoticeDock
+              isOpen={isNoticeDockOpen}
+              title={noticeTitle}
+              tone={noticeTone}
+              message={message}
+              onToggleOpen={() => setIsNoticeDockOpen((currentValue) => !currentValue)}
+              onDismiss={() => {
+                setIsNoticeDockOpen(false);
+                setMessage('');
+              }}
+            />
+          ) : null}
+          <MusicDock
+            tracks={APP_MUSIC_TRACKS}
+            isMuted={isMusicMuted}
+            volume={musicVolume}
+            showLauncher={!isProfileDockOpen}
+            onToggleMute={() => {
+              const nextValue = !isMusicMuted;
+              setIsMusicMuted(nextValue);
+              window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
+            }}
+            onVolumeChange={(volume) => {
+              setMusicVolume(volume);
+              window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+            }}
+          />
+          <ChatDock
+            isOpen={isChatDockOpen}
+            playerProfile={player}
+            isOnlineReady={Boolean(googleAccount)}
+            currentRoomCode={activeRoomCode}
+            currentRoomName={roomName}
+            callApi={callApi}
+            onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
+            onRequireSignIn={() => {
+              setAreDockLaunchersVisible(true);
+              setIsProfileDockOpen(true);
+              if (!googleAccount) {
+                startGoogleSignIn();
+              }
+            }}
+            onJoinRoom={(code) => void joinRoom(code)}
+            onStatusMessage={setMessage}
+          />
+        </div>
       </div>
       <FooterBar
         isInMatch={isInMatch}

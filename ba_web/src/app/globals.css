@@ -1694,15 +1694,66 @@ h1 span:last-child {
   margin-bottom: 0.5rem;
 }
 
-.dock-launchers {
+.dock-launchers-shell {
   position: fixed;
   top: 50%;
   right: 0;
   transform: translateY(-50%);
   z-index: 92;
   display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dock-launchers {
+  display: flex;
   flex-direction: column;
   gap: 0.45rem;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.dock-launchers-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(18px) scale(0.96);
+}
+
+.dock-launchers-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+}
+
+.dock-launchers-reveal {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 58px;
+  padding: 0.55rem 0.8rem 0.55rem 0.68rem;
+  border: 3px solid #000;
+  border-right: 0;
+  border-radius: 999px 0 0 999px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.28), transparent 64%),
+    linear-gradient(160deg, rgba(28, 29, 64, 0.96), rgba(12, 88, 74, 0.94));
+  color: #fff;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: -6px 8px 20px rgba(0, 0, 0, 0.35);
+  transition: filter 150ms ease, transform 150ms ease;
+}
+
+.dock-launchers-reveal:hover {
+  filter: brightness(1.06);
+  transform: translateX(-2px);
+}
+
+.dock-launchers-reveal-active {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.32), transparent 62%),
+    linear-gradient(160deg, rgba(14, 60, 52, 0.96), rgba(18, 93, 123, 0.94));
 }
 
 .music-dock,
@@ -3599,7 +3650,9 @@ h1 span:last-child {
 .motion-off .solo-memory-board,
 .motion-off .solo-dino-stage-wrap,
 .motion-off .solo-snake-board,
-.motion-off .solo-space-stage-wrap {
+.motion-off .solo-space-stage-wrap,
+.motion-off .solo-brick-stage-wrap,
+.motion-off .air-hockey-stage-wrap {
   transform: none !important;
 }
 
@@ -4726,6 +4779,35 @@ h1 span:last-child {
   margin-bottom: 0.5rem;
 }
 
+.choose-game-search {
+  flex: 1;
+  min-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  background: rgba(255, 255, 255, 0.85);
+  color: #111;
+  text-shadow: none;
+}
+
+.choose-game-search-input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: 0.82rem;
+  text-shadow: none;
+}
+
+.choose-game-search-input::placeholder {
+  color: rgba(17, 17, 17, 0.68);
+}
+
 .choose-game-toolbar-right {
   margin-left: auto;
   display: flex;
@@ -4737,6 +4819,10 @@ h1 span:last-child {
   display: inline-flex;
   align-items: center;
   gap: 0.36rem;
+}
+
+.choose-game-selector {
+  position: relative;
 }
 
 .choose-game-position,
@@ -4756,6 +4842,14 @@ h1 span:last-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.choose-game-name-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: min(18rem, 40vw);
 }
 
 .choose-game-step-btn {
@@ -4805,6 +4899,23 @@ h1 span:last-child {
   color: rgba(255, 255, 255, 0.93);
   font-size: 0.82rem;
   letter-spacing: 0.03em;
+}
+
+.choose-game-empty-state {
+  width: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  color: #fff;
+  text-align: center;
+}
+
+.choose-game-empty-state strong,
+.choose-game-empty-state span {
+  text-shadow: var(--signature-shadow);
 }
 
 .choose-game-carousel-shell {
@@ -7305,7 +7416,9 @@ h1 span:last-child {
 .solo-memory-board,
 .solo-dino-stage-wrap,
 .solo-snake-board,
-.solo-space-stage-wrap {
+.solo-space-stage-wrap,
+.solo-brick-stage-wrap,
+.air-hockey-stage-wrap {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.38);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -7316,6 +7429,11 @@ h1 span:last-child {
 @media (max-width: 960px) {
   .choose-game-toolbar {
     flex-wrap: wrap;
+  }
+
+  .choose-game-search {
+    order: 3;
+    width: 100%;
   }
 
   .choose-game-toolbar-right {
@@ -7464,7 +7582,7 @@ h1 span:last-child {
 }
 
 @media (max-width: 720px) {
-  .dock-launchers {
+  .dock-launchers-shell {
     gap: 0.34rem;
   }
 
@@ -7601,7 +7719,7 @@ h1 span:last-child {
     height: 26px;
   }
 
-  .match-screen-root .dock-launchers {
+  .match-screen-root .dock-launchers-shell {
     top: auto;
     bottom: 0.75rem;
     transform: none;
