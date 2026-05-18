@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
-import { AiOutlineLeft, AiOutlineRight } from 'react-icons/ai';
+import { AiOutlineLeft, AiOutlineX } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { FooterBar } from '@/features/home/FooterBar';
@@ -1758,8 +1758,7 @@ export default function Home() {
           aria-label={areDockLaunchersVisible ? 'Hide dock launchers' : 'Show dock launchers'}
           title={areDockLaunchersVisible ? 'Hide dock launchers' : 'Show dock launchers'}
         >
-          {areDockLaunchersVisible ? <AiOutlineRight /> : <AiOutlineLeft />}
-          <span>{areDockLaunchersVisible ? 'Hide' : 'Docks'}</span>
+          {areDockLaunchersVisible ? <AiOutlineX /> : <AiOutlineLeft />
         </button>
 
         <div className={classnames('dock-launchers', areDockLaunchersVisible ? 'dock-launchers-visible' : 'dock-launchers-hidden')}>
