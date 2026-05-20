@@ -16,6 +16,7 @@ import {
   AiOutlineUp,
 } from 'react-icons/ai';
 import type { GameDefinition, GameType } from '@/types/game';
+import { getGameCarouselThumbnail } from '@/features/home/gameCarouselThumbnails';
 
 type GameSelectScreenProps = {
   games: GameDefinition[];
@@ -23,25 +24,6 @@ type GameSelectScreenProps = {
   onSelectGame: (gameType: GameType) => void;
   onBack: () => void;
   onContinue: () => void;
-};
-
-const THUMBNAIL_LABELS: Record<GameType, string> = {
-  'tic-tac-two': 'X / O',
-  'connect-all-four': '4 IN A ROW',
-  'orbital-flip': 'ORBIT',
-  'corner-clash': 'CORNERS',
-  checkers: 'CHECKERS',
-  ludo: 'LUDO',
-  '2048': 'MERGE',
-  sudoku: '9 x 9',
-  minesweeper: 'MINES',
-  'memory-match': 'PAIRS',
-  'dino-run': 'DODGE',
-  snake: 'SNAKE',
-  'space-invaders': 'INVADERS',
-  brickbreaker: 'BRICKS',
-  'air-hockey': 'PUCK',
-  'neon-pong': 'PONG',
 };
 
 export function GameSelectScreen({
@@ -253,6 +235,7 @@ export function GameSelectScreen({
               <div className="choose-game-carousel-track" style={carouselTrackStyle}>
                 {filteredGames.map((game) => {
                   const isSelected = selectedGame === game.id;
+                  const thumbnail = getGameCarouselThumbnail(game.id);
 
                   return (
                     <article
@@ -266,8 +249,8 @@ export function GameSelectScreen({
                         onClick={() => onSelectGame(game.id)}
                         aria-label={`Select ${game.name}`}
                       >
-                        <div className={classnames('choose-game-thumb', `choose-game-thumb-${game.id}`)}>
-                          <span>{THUMBNAIL_LABELS[game.id]}</span>
+                        <div className={classnames('choose-game-thumb', thumbnail.className)}>
+                          <span>{thumbnail.label}</span>
                         </div>
                       </button>
 

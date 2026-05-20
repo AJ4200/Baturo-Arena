@@ -3894,8 +3894,19 @@ h1 span:last-child {
 .motion-off .solo-snake-board,
 .motion-off .solo-space-stage-wrap,
 .motion-off .solo-brick-stage-wrap,
+.motion-off .solo-neon-pong-stage-wrap,
 .motion-off .air-hockey-stage-wrap {
   transform: none !important;
+}
+
+.motion-off .solo-neon-pong-shell {
+  animation: none !important;
+  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+    translateX(0) translateY(0) translateZ(0) skewX(0deg) skewY(0deg) !important;
+}
+
+.motion-off .solo-neon-pong-ball-live {
+  animation: none !important;
 }
 
 .app-loader-overlay {
@@ -5576,16 +5587,6 @@ h1 span:last-child {
     linear-gradient(160deg, #090d22, #171d4f 54%, #4d2a73);
 }
 
-.choose-game-thumb-neon-pong {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0 9px, transparent 10px),
-    linear-gradient(90deg, transparent 47%, rgba(255, 255, 255, 0.55) 47% 53%, transparent 53%),
-    linear-gradient(180deg, transparent 47%, rgba(255, 255, 255, 0.4) 47% 53%, transparent 53%),
-    radial-gradient(circle at 18% 50%, rgba(91, 198, 255, 0.95) 0 16px 4px, transparent 18px),
-    radial-gradient(circle at 82% 50%, rgba(255, 131, 200, 0.95) 0 16px 4px, transparent 18px),
-    linear-gradient(160deg, #071a2c, #0f4f63 52%, #6b1f6f);
-}
-
 .choose-game-carousel-card strong {
   font-size: 1.2rem;
 }
@@ -6396,7 +6397,8 @@ h1 span:last-child {
 .solo-memory-shell,
 .solo-dino-shell,
 .solo-snake-shell,
-.solo-space-shell {
+.solo-space-shell,
+.solo-neon-pong-shell {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.32);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -7095,6 +7097,7 @@ h1 span:last-child {
 }
 
 .solo-brick-shell,
+.solo-neon-pong-shell,
 .air-hockey-shell {
   width: min(94vw, 1040px);
   margin-top: 1rem;
@@ -7106,6 +7109,8 @@ h1 span:last-child {
 
 .solo-brick-shell,
 .solo-brick-shell *,
+.solo-neon-pong-shell,
+.solo-neon-pong-shell *,
 .air-hockey-shell,
 .air-hockey-shell * {
   text-shadow: none !important;
@@ -7113,6 +7118,7 @@ h1 span:last-child {
 }
 
 .solo-brick-hud,
+.solo-neon-pong-hud,
 .air-hockey-scoreboard {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -7121,6 +7127,7 @@ h1 span:last-child {
 }
 
 .solo-brick-hud-item,
+.solo-neon-pong-hud-item,
 .air-hockey-score-team,
 .air-hockey-score-center {
   display: flex;
@@ -7133,6 +7140,7 @@ h1 span:last-child {
 }
 
 .solo-brick-hud-item span,
+.solo-neon-pong-hud-item span,
 .air-hockey-score-team span,
 .air-hockey-score-center span {
   font-size: 0.76rem;
@@ -7142,6 +7150,7 @@ h1 span:last-child {
 }
 
 .solo-brick-hud-item strong,
+.solo-neon-pong-hud-item strong,
 .air-hockey-score-team strong,
 .air-hockey-score-center strong {
   font-size: 1.08rem;
@@ -7155,79 +7164,62 @@ h1 span:last-child {
   color: #b91c1c;
 }
 
-.solo-neon-pong-shell {
-  width: min(94vw, 900px);
-  margin-top: 1rem;
-  border: 4px solid var(--match-outline, #000);
-  border-radius: 18px;
-  background: var(--match-surface, rgba(241, 246, 255, 0.92));
-  padding: 1rem;
-}
-
-.solo-neon-pong-shell,
-.solo-neon-pong-shell * {
-  text-shadow: none !important;
-  color: var(--match-text, #171717);
-}
-
-.solo-neon-pong-hud {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 0.75rem;
-}
-
-.solo-neon-pong-score {
-  font-size: 2rem;
-  line-height: 1;
-  border: 3px solid #000;
-  border-radius: 14px;
-  padding: 0.35rem 0.7rem;
-  text-align: center;
-}
-
-.solo-neon-pong-score-player {
-  justify-self: start;
-  background: linear-gradient(160deg, rgba(91, 198, 255, 0.35), rgba(14, 116, 144, 0.2));
+.solo-neon-pong-hud-item strong.solo-neon-pong-score-you {
   color: #0e7490;
 }
 
-.solo-neon-pong-score-cpu {
-  justify-self: end;
-  background: linear-gradient(160deg, rgba(255, 131, 200, 0.35), rgba(190, 24, 93, 0.2));
-  color: #be185d;
+.solo-neon-pong-hud-item strong.solo-neon-pong-score-cpu {
+  color: #b91c1c;
 }
 
-.solo-neon-pong-hud-label {
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  text-align: center;
-  opacity: 0.85;
+.solo-neon-pong-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  aspect-ratio: 11 / 7;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 16px;
+  padding: 0.85rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.88),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.72)
+    );
+  touch-action: none;
 }
 
 .solo-neon-pong-stage {
   position: relative;
-  display: block;
   width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.solo-neon-pong-court {
-  position: relative;
-  margin: 0 auto;
+  height: 100%;
   overflow: hidden;
-  border: 3px solid #000;
-  border-radius: 16px;
+  border-radius: 12px;
   background:
     radial-gradient(circle at 50% 42%, rgba(113, 231, 255, 0.2), transparent 58%),
     linear-gradient(160deg, #071a2c 0%, #0f4f63 48%, #2a1448 100%);
   box-shadow: inset 0 0 40px rgba(113, 231, 255, 0.12);
+}
+
+.solo-neon-pong-glow {
+  position: absolute;
+  width: 38%;
+  height: 22%;
+  filter: blur(50px);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.solo-neon-pong-glow-left {
+  top: 18%;
+  left: -4%;
+  background: rgba(56, 189, 248, 0.55);
+}
+
+.solo-neon-pong-glow-right {
+  right: -4%;
+  bottom: 10%;
+  background: rgba(244, 114, 182, 0.48);
 }
 
 .solo-neon-pong-center-line {
@@ -7244,14 +7236,13 @@ h1 span:last-child {
     transparent 12px 24px
   );
   opacity: 0.75;
+  pointer-events: none;
 }
 
 .solo-neon-pong-paddle,
 .solo-neon-pong-ball {
   position: absolute;
-  top: 0;
-  left: 0;
-  will-change: transform;
+  will-change: top, left;
 }
 
 .solo-neon-pong-paddle {
@@ -7277,7 +7268,6 @@ h1 span:last-child {
   border: 2px solid #000;
   background: radial-gradient(circle at 35% 30%, #fff, #c4f1ff 45%, #38bdf8 100%);
   box-shadow: 0 0 18px rgba(125, 211, 252, 0.95);
-  transition: box-shadow 180ms ease;
 }
 
 .solo-neon-pong-ball-live {
@@ -7291,47 +7281,6 @@ h1 span:last-child {
   to {
     box-shadow: 0 0 24px rgba(255, 255, 255, 0.95);
   }
-}
-
-.solo-neon-pong-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  background: rgba(7, 18, 32, 0.52);
-  color: #fff;
-  text-align: center;
-  pointer-events: none;
-}
-
-.solo-neon-pong-overlay strong {
-  font-size: 1.45rem;
-  letter-spacing: 0.04em;
-}
-
-.solo-neon-pong-overlay span {
-  font-size: 0.86rem;
-  opacity: 0.9;
-}
-
-.solo-neon-pong-restart-btn {
-  pointer-events: auto;
-  margin-top: 0.35rem;
-  border: 3px solid #000;
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  background: linear-gradient(160deg, rgba(28, 29, 64, 0.96), rgba(12, 88, 74, 0.94));
-  color: #fff;
-  cursor: pointer;
-  transition: transform 150ms ease, filter 150ms ease;
-}
-
-.solo-neon-pong-restart-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.08);
 }
 
 .solo-brick-stage-wrap,
@@ -7444,6 +7393,7 @@ h1 span:last-child {
 }
 
 .solo-brick-overlay,
+.solo-neon-pong-overlay,
 .air-hockey-overlay {
   position: absolute;
   inset: 0.85rem;
@@ -7456,6 +7406,7 @@ h1 span:last-child {
 }
 
 .solo-brick-message,
+.solo-neon-pong-message,
 .air-hockey-message {
   width: min(88vw, 420px);
   padding: 1.5rem;
@@ -7467,6 +7418,7 @@ h1 span:last-child {
 }
 
 .solo-brick-status-pill,
+.solo-neon-pong-status-pill,
 .air-hockey-status-pill {
   display: inline-flex;
   align-items: center;
@@ -7480,23 +7432,27 @@ h1 span:last-child {
 }
 
 .solo-brick-status-pill-ready,
+.solo-neon-pong-status-pill-ready,
 .air-hockey-status-pill-ready {
   background: rgba(125, 211, 252, 0.18);
   color: #0f5f85;
 }
 
 .solo-brick-status-pill-win,
+.solo-neon-pong-status-pill-win,
 .air-hockey-status-pill-win {
   background: rgba(91, 242, 184, 0.18);
   color: #1f7a5a;
 }
 
-.solo-brick-status-pill-loss {
+.solo-brick-status-pill-loss,
+.solo-neon-pong-status-pill-loss {
   background: rgba(255, 111, 145, 0.16);
   color: #a13f5c;
 }
 
 .solo-brick-message h2,
+.solo-neon-pong-message h2,
 .air-hockey-message h2 {
   margin: 0.9rem 0 0.7rem;
   font-size: clamp(1.45rem, 3.4vw, 1.95rem);
@@ -7504,12 +7460,14 @@ h1 span:last-child {
 }
 
 .solo-brick-message p,
+.solo-neon-pong-message p,
 .air-hockey-message p {
   margin: 0.45rem 0;
   opacity: 0.84;
 }
 
-.solo-brick-message-actions {
+.solo-brick-message-actions,
+.solo-neon-pong-message-actions {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -7518,6 +7476,7 @@ h1 span:last-child {
 }
 
 .solo-brick-restart-btn,
+.solo-neon-pong-restart-btn,
 .air-hockey-rematch-btn {
   display: inline-flex;
   align-items: center;
@@ -7742,7 +7701,8 @@ h1 span:last-child {
   font-weight: 700;
 }
 
-.solo-space-message-inline {
+.solo-space-message-inline,
+.solo-neon-pong-message-inline {
   margin-top: 0.8rem;
   text-align: center;
   font-size: 0.95rem;
@@ -7849,6 +7809,7 @@ h1 span:last-child {
 .solo-snake-board,
 .solo-space-stage-wrap,
 .solo-brick-stage-wrap,
+.solo-neon-pong-stage-wrap,
 .air-hockey-stage-wrap {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.38);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
@@ -7977,10 +7938,9 @@ h1 span:last-child {
     padding: 0.85rem;
   }
 
-  .solo-neon-pong-court {
-    max-width: 100%;
-    transform: scale(0.92);
-    transform-origin: top center;
+  .solo-neon-pong-stage-wrap {
+    width: 100%;
+    padding: 0.7rem;
   }
 
   .solo-snake-board {
@@ -8300,6 +8260,45 @@ h1 span:last-child {
   border-radius: 16px;
   overflow: hidden;
 }
+
+.choose-game-carousel-card .choose-game-thumb > span {
+  position: relative;
+  z-index: 2;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.18rem 0.48rem;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* Per-game carousel thumbnails — add new games in this block + gameCarouselThumbnails.ts */
+.choose-game-carousel-card .choose-game-thumb-neon-pong {
+  border: 3px solid #000;
+  background:
+    radial-gradient(circle at 50% 50%, #fff 0 8px, rgba(125, 211, 252, 0.95) 9px 11px, transparent 12px),
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.72) 0 7px,
+      transparent 7px 14px
+    ),
+    linear-gradient(90deg, transparent 48.5%, rgba(255, 255, 255, 0.65) 48.5% 51.5%, transparent 51.5%),
+    linear-gradient(12deg, transparent 38%, rgba(125, 211, 252, 0.95) 38% 42%, transparent 42%) 14% 50% / 10px 44px no-repeat,
+    linear-gradient(-12deg, transparent 38%, rgba(249, 168, 212, 0.98) 38% 42%, transparent 42%) 86% 50% / 10px 44px no-repeat,
+    radial-gradient(ellipse at 50% 120%, rgba(113, 231, 255, 0.35), transparent 58%),
+    linear-gradient(165deg, #050f1c 0%, #0c3f52 46%, #35114f 100%);
+  box-shadow:
+    inset 0 0 28px rgba(56, 189, 248, 0.22),
+    0 0 18px rgba(125, 211, 252, 0.18);
+}
+
+.choose-game-carousel-card .choose-game-thumb-neon-pong > span {
+  background: linear-gradient(160deg, rgba(28, 29, 64, 0.94), rgba(12, 88, 74, 0.92));
+}
+
 /* === CAROUSEL VIEWFINDER (MATCH LOBBY CARD STYLE) === */
 
 .choose-game-carousel-mask {

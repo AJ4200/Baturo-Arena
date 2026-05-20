@@ -6,7 +6,6 @@ import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
-  AiOutlineCheckCircle,
   AiOutlineDrag,
   AiOutlineInfoCircle,
   AiOutlineReload,
@@ -44,12 +43,14 @@ type SoloNeonPongGameProps = {
   onLeave: () => void;
 };
 
-const STAGE_WIDTH = 760;
-const STAGE_HEIGHT = 440;
-const PADDLE_WIDTH = 14;
-const PADDLE_HEIGHT = 96;
-const PADDLE_MARGIN = 22;
-const BALL_RADIUS = 9;
+const STAGE_WIDTH = 900;
+const STAGE_HEIGHT = 560;
+const PADDLE_WIDTH = 12;
+const PADDLE_HEIGHT = 88;
+const PADDLE_MARGIN = 20;
+const BALL_RADIUS = 8;
+const PADDLE_MIN_Y = 14;
+const PADDLE_MAX_Y = STAGE_HEIGHT - PADDLE_HEIGHT - 14;
 const WIN_SCORE = 7;
 const PADDLE_SPEED = 420;
 const CPU_SPEED = 340;
@@ -76,6 +77,8 @@ const createInitialState = (): PongState => ({
   elapsedMs: 0,
 });
 
+const toPercent = (value: number, total: number) => `${(value / total) * 100}%`;
+
 const launchBall = (rally: number, towardPlayer = Math.random() < 0.5): Pick<PongState, 'ballVx' | 'ballVy'> => {
   const speed = BALL_BASE_SPEED + rally * 12;
   const angle = (Math.random() * 0.7 - 0.35) * Math.PI;
@@ -100,18 +103,63 @@ export function SoloNeonPongGame({
   const [bestWins, setBestWins] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const movementRef = useRef({ up: false, down: false });
+  const pointerTargetYRef = useRef<number | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
   const lastReportedOutcomeRef = useRef<MatchResultEvent['outcome'] | null>(null);
   const lastFrameRef = useRef<number | null>(null);
   const gameLoopRef = useRef<number | null>(null);
 
   const gameLabel = useMemo(() => formatGameName('neon-pong', gameDefinitions), [gameDefinitions]);
 
-  const statusLabel = useMemo(() => {
-    if (state.status === 'ready') return 'Press Launch to serve';
-    if (state.status === 'won') return 'Arena Champion';
-    if (state.status === 'lost') return 'CPU Takes the Crown';
-    return 'Rally Live';
-  }, [state.status]);
+  const hud = useMemo(
+    () => ({
+      status:
+        state.status === 'ready'
+          ? 'Serve Ready'
+          : state.status === 'won'
+            ? 'Arena Champion'
+            : state.status === 'lost'
+              ? 'CPU Crown'
+              : 'Rally Live',
+      ballSpeed: state.status === 'playing' ? Math.round(Math.hypot(state.ballVx, state.ballVy)) : 0,
+      elapsedSeconds: Math.floor(state.elapsedMs / 1000),
+      serveState: state.status === 'ready' ? 'Waiting' : state.status === 'playing' ? 'Active' : 'Closed',
+    }),
+    [state]
+  );
+
+  const overlayCopy = useMemo(() => {
+    if (state.status === 'won') {
+      return {
+        pill: 'Arena Champion',
+        pillClass: 'solo-neon-pong-status-pill-win',
+        title: 'You claimed the neon crown.',
+        detail: `Final rally ${state.playerScore} - ${state.cpuScore}. Best match wins ${bestWins}.`,
+      };
+    }
+    if (state.status === 'lost') {
+      return {
+        pill: 'CPU Crown',
+        pillClass: 'solo-neon-pong-status-pill-loss',
+        title: 'The CPU held the line.',
+        detail: `Final rally ${state.playerScore} - ${state.cpuScore}. Reset and chase the crown again.`,
+      };
+    }
+    if (state.playerScore > 0 || state.cpuScore > 0) {
+      return {
+        pill: 'Next Serve',
+        pillClass: 'solo-neon-pong-status-pill-ready',
+        title: `Rally score ${state.playerScore} - ${state.cpuScore}`,
+        detail: 'Press Serve, Space, or drag the arena to line up your paddle.',
+      };
+    }
+    return {
+      pill: 'Serve Ready',
+      pillClass: 'solo-neon-pong-status-pill-ready',
+      title: 'Launch when ready',
+      detail: `First to ${WIN_SCORE} points wins. Arrow keys, drag, or touch move your paddle.`,
+    };
+  }, [bestWins, state.cpuScore, state.playerScore, state.status]);
 
   const handleRestart = useCallback(() => {
     lastReportedOutcomeRef.current = null;
@@ -136,6 +184,26 @@ export function SoloNeonPongGame({
     movementRef.current[direction] = active;
   }, []);
 
+  const handleStagePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    const stage = stageRef.current;
+    if (!stage) {
+      return;
+    }
+
+    const rect = stage.getBoundingClientRect();
+    if (rect.height <= 0) {
+      return;
+    }
+
+    const scaleY = STAGE_HEIGHT / rect.height;
+    const pointerY = (event.clientY - rect.top) * scaleY - PADDLE_HEIGHT / 2;
+    pointerTargetYRef.current = clamp(pointerY, PADDLE_MIN_Y, PADDLE_MAX_Y);
+  }, []);
+
+  const handleStagePointerLeave = useCallback(() => {
+    pointerTargetYRef.current = null;
+  }, []);
+
   const stepWorld = useCallback((deltaMs: number) => {
     setState((current) => {
       if (current.status !== 'playing') {
@@ -146,22 +214,24 @@ export function SoloNeonPongGame({
       let playerY = current.playerY;
       let cpuY = current.cpuY;
 
-      if (movementRef.current.up) {
-        playerY -= PADDLE_SPEED * deltaSeconds;
-      }
-      if (movementRef.current.down) {
-        playerY += PADDLE_SPEED * deltaSeconds;
+      if (pointerTargetYRef.current !== null) {
+        playerY = pointerTargetYRef.current;
+      } else {
+        if (movementRef.current.up) {
+          playerY -= PADDLE_SPEED * deltaSeconds;
+        }
+        if (movementRef.current.down) {
+          playerY += PADDLE_SPEED * deltaSeconds;
+        }
       }
 
-      const paddleMin = 12;
-      const paddleMax = STAGE_HEIGHT - PADDLE_HEIGHT - 12;
-      playerY = clamp(playerY, paddleMin, paddleMax);
+      playerY = clamp(playerY, PADDLE_MIN_Y, PADDLE_MAX_Y);
 
       const cpuCenter = cpuY + PADDLE_HEIGHT / 2;
       const targetCenter = current.ballY;
       const cpuDelta = targetCenter - cpuCenter;
       const cpuStep = clamp(cpuDelta, -CPU_SPEED * deltaSeconds, CPU_SPEED * deltaSeconds);
-      cpuY = clamp(cpuY + cpuStep, paddleMin, paddleMax);
+      cpuY = clamp(cpuY + cpuStep, PADDLE_MIN_Y, PADDLE_MAX_Y);
 
       let ballX = current.ballX + current.ballVx * deltaSeconds;
       let ballY = current.ballY + current.ballVy * deltaSeconds;
@@ -409,11 +479,7 @@ export function SoloNeonPongGame({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
-      <AdaptiveControllerOverlay
-        sections={controllerSections}
-        title="Neon Pong"
-        subtitle="Arrow keys move your paddle. Space serves."
-      />
+      <AdaptiveControllerOverlay sections={controllerSections} title="Neon Pong" />
 
       <motion.div
         drag
@@ -453,16 +519,14 @@ export function SoloNeonPongGame({
                 </button>
               </div>
 
-              <div className="room-score-strip">
-                <span className="room-float-line">
-                  <AiOutlineCheckCircle /> {statusLabel}
-                </span>
-              </div>
-
               <div className="solo-float-stats">
                 <div className="solo-float-stat">
                   <span>Player</span>
                   <strong>{player.name}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Status</span>
+                  <strong>{hud.status}</strong>
                 </div>
                 <div className="solo-float-stat">
                   <span>You</span>
@@ -483,6 +547,10 @@ export function SoloNeonPongGame({
                 <div className="solo-float-stat">
                   <span>Rally</span>
                   <strong>{state.rally + 1}</strong>
+                </div>
+                <div className="solo-float-stat">
+                  <span>Elapsed</span>
+                  <strong>{hud.elapsedSeconds}s</strong>
                 </div>
               </div>
 
@@ -508,66 +576,99 @@ export function SoloNeonPongGame({
         </div>
       </motion.div>
 
-      <section className="solo-neon-pong-shell ba-scroll-surface">
+      <section className="solo-neon-pong-shell">
         <div className="solo-neon-pong-hud">
-          <span className="solo-neon-pong-score solo-neon-pong-score-player">{state.playerScore}</span>
-          <span className="solo-neon-pong-hud-label">{statusLabel}</span>
-          <span className="solo-neon-pong-score solo-neon-pong-score-cpu">{state.cpuScore}</span>
+          <div className="solo-neon-pong-hud-item">
+            <span>Your Score</span>
+            <strong className="solo-neon-pong-score-you">{state.playerScore}</strong>
+          </div>
+          <div className="solo-neon-pong-hud-item">
+            <span>CPU Score</span>
+            <strong className="solo-neon-pong-score-cpu">{state.cpuScore}</strong>
+          </div>
+          <div className="solo-neon-pong-hud-item">
+            <span>Ball Speed</span>
+            <strong>{hud.ballSpeed}</strong>
+          </div>
+          <div className="solo-neon-pong-hud-item">
+            <span>Serve</span>
+            <strong>{hud.serveState}</strong>
+          </div>
         </div>
 
-        <button
-          type="button"
-          className="solo-neon-pong-stage"
-          onClick={state.status === 'ready' ? handleLaunch : undefined}
-          aria-label={state.status === 'ready' ? 'Serve ball' : 'Neon pong arena'}
+        <div
+          className="solo-neon-pong-stage-wrap"
+          onPointerDown={handleStagePointerMove}
+          onPointerMove={handleStagePointerMove}
+          onPointerLeave={handleStagePointerLeave}
+          role="presentation"
         >
-          <div
-            className="solo-neon-pong-court"
-            style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
-          >
+          <div ref={stageRef} className="solo-neon-pong-stage" aria-label="Neon Pong arena">
+            <div className="solo-neon-pong-glow solo-neon-pong-glow-left" aria-hidden="true" />
+            <div className="solo-neon-pong-glow solo-neon-pong-glow-right" aria-hidden="true" />
             <div className="solo-neon-pong-center-line" aria-hidden="true" />
             <div
               className="solo-neon-pong-paddle solo-neon-pong-paddle-player"
               style={{
-                transform: `translate(${PADDLE_MARGIN}px, ${state.playerY}px)`,
-                width: PADDLE_WIDTH,
-                height: PADDLE_HEIGHT,
+                left: toPercent(PADDLE_MARGIN, STAGE_WIDTH),
+                top: toPercent(state.playerY, STAGE_HEIGHT),
+                width: toPercent(PADDLE_WIDTH, STAGE_WIDTH),
+                height: toPercent(PADDLE_HEIGHT, STAGE_HEIGHT),
               }}
             />
             <div
               className="solo-neon-pong-paddle solo-neon-pong-paddle-cpu"
               style={{
-                transform: `translate(${STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH}px, ${state.cpuY}px)`,
-                width: PADDLE_WIDTH,
-                height: PADDLE_HEIGHT,
+                left: toPercent(STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH, STAGE_WIDTH),
+                top: toPercent(state.cpuY, STAGE_HEIGHT),
+                width: toPercent(PADDLE_WIDTH, STAGE_WIDTH),
+                height: toPercent(PADDLE_HEIGHT, STAGE_HEIGHT),
               }}
             />
             <div
-              className={classnames('solo-neon-pong-ball', state.status === 'playing' && 'solo-neon-pong-ball-live')}
+              className={classnames(
+                'solo-neon-pong-ball',
+                state.status === 'playing' && enableAnimations && 'solo-neon-pong-ball-live'
+              )}
               style={{
-                transform: `translate(${state.ballX - BALL_RADIUS}px, ${state.ballY - BALL_RADIUS}px)`,
-                width: BALL_RADIUS * 2,
-                height: BALL_RADIUS * 2,
+                left: toPercent(state.ballX - BALL_RADIUS, STAGE_WIDTH),
+                top: toPercent(state.ballY - BALL_RADIUS, STAGE_HEIGHT),
+                width: toPercent(BALL_RADIUS * 2, STAGE_WIDTH),
+                height: toPercent(BALL_RADIUS * 2, STAGE_HEIGHT),
               }}
             />
           </div>
 
-          {state.status === 'ready' ? (
+          {state.status === 'ready' || state.status === 'won' || state.status === 'lost' ? (
             <div className="solo-neon-pong-overlay">
-              <strong>Serve to Start</strong>
-              <span>First to {WIN_SCORE} wins the neon crown</span>
+              <div className="solo-neon-pong-message">
+                <span className={classnames('solo-neon-pong-status-pill', overlayCopy.pillClass)}>
+                  {overlayCopy.pill}
+                </span>
+                <h2>{overlayCopy.title}</h2>
+                <p>{overlayCopy.detail}</p>
+                <div className="solo-neon-pong-message-actions">
+                  {state.status === 'ready' ? (
+                    <button className="solo-neon-pong-restart-btn" type="button" onClick={handleLaunch}>
+                      <AiOutlineRocket /> Serve Ball
+                    </button>
+                  ) : null}
+                  <button className="solo-neon-pong-restart-btn" type="button" onClick={handleRestart}>
+                    <AiOutlineReload /> {state.status === 'ready' ? 'Reset Match' : 'Play Again'}
+                  </button>
+                </div>
+              </div>
             </div>
           ) : null}
+        </div>
 
-          {state.status === 'won' || state.status === 'lost' ? (
-            <div className="solo-neon-pong-overlay">
-              <strong>{state.status === 'won' ? 'You Win!' : 'CPU Wins'}</strong>
-              <button className="solo-neon-pong-restart-btn" type="button" onClick={handleRestart}>
-                Play Again
-              </button>
-            </div>
-          ) : null}
-        </button>
+        <p className="solo-neon-pong-message-inline">
+          {state.status === 'won'
+            ? 'Seven points secured. The arena neon is yours.'
+            : state.status === 'lost'
+              ? 'The CPU rallied past your guard. Serve again and own the center line.'
+              : 'Move with arrows or drag across the arena. Space serves the ball and speed climbs each rally.'}
+        </p>
       </section>
     </>
   );
