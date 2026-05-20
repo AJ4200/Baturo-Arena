@@ -41,6 +41,7 @@ const THUMBNAIL_LABELS: Record<GameType, string> = {
   'space-invaders': 'INVADERS',
   brickbreaker: 'BRICKS',
   'air-hockey': 'PUCK',
+  'neon-pong': 'PONG',
 };
 
 export function GameSelectScreen({
@@ -193,7 +194,7 @@ export function GameSelectScreen({
                   {isDropdownOpen ? <AiOutlineUp /> : <AiOutlineDown />}
                 </button>
                 {isDropdownOpen && (
-                  <div className="choose-game-dropdown">
+                  <div className="choose-game-dropdown ba-scroll-surface">
                     {filteredGames.map((game) => (
                       <button
                         key={game.id}

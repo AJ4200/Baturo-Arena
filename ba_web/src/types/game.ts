@@ -19,7 +19,8 @@ export type GameType =
   | 'snake'
   | 'space-invaders'
   | 'brickbreaker'
-  | 'air-hockey';
+  | 'air-hockey'
+  | 'neon-pong';
 
 export type GameDefinition = {
   id: GameType;
@@ -45,6 +46,7 @@ export type GameDefinition = {
     | 'solo-snake'
     | 'solo-space-invaders'
     | 'solo-brickbreaker'
+    | 'solo-neon-pong'
     | 'air-hockey';
   winCondition?:
     | 'connect'
@@ -60,6 +62,7 @@ export type GameDefinition = {
     | 'snake-survive'
     | 'space-invaders-clear'
     | 'brickbreaker-clear'
+    | 'neon-pong-score'
     | 'air-hockey-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

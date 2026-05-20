@@ -212,6 +212,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'neon-pong',
+    name: 'Neon Pong',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Retro paddle duel against the arena CPU. First to seven neon points claims the rally crown.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-neon-pong',
+    winCondition: 'neon-pong-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -389,6 +403,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-snake' ||
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
+    game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -435,6 +450,7 @@ export const applyMove = (
     game.moveMode === 'solo-snake' ||
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
+    game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -579,6 +595,7 @@ export const evaluateBoard = (
     game.winCondition === 'snake-survive' ||
     game.winCondition === 'space-invaders-clear' ||
     game.winCondition === 'brickbreaker-clear' ||
+    game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'air-hockey-score'
   ) {
     if (game.winCondition !== 'elimination') {

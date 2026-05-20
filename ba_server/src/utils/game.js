@@ -210,6 +210,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'neon-pong': {
+    id: 'neon-pong',
+    name: 'Neon Pong',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Retro paddle duel against the arena CPU. First to seven neon points claims the rally crown.',
+    moveMode: 'solo-neon-pong',
+    winCondition: 'neon-pong-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -451,6 +465,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'snake-survive' ||
     rules.winCondition === 'space-invaders-clear' ||
     rules.winCondition === 'brickbreaker-clear' ||
+    rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'air-hockey-score'
   ) {
     return null;
@@ -592,6 +607,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-snake' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {
@@ -659,6 +675,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-snake' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {

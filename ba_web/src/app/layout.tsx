@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="ba-root-scroll">
       <body>
         <GlobalGameUISounds
           clickSoundSrc="/music/ui/ui-click.mp3"
