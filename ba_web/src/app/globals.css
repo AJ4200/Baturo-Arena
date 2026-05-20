@@ -4,6 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(160deg, rgba(28, 29, 64, 0.88), rgba(12, 88, 74, 0.88));
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(160deg, rgba(28, 29, 64, 0.96), rgba(12, 88, 74, 0.96));
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(160deg, rgba(18, 93, 123, 0.96), rgba(20, 108, 139, 0.96));
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-color: rgba(28, 29, 64, 0.88) rgba(0, 0, 0, 0.12);
+  scrollbar-width: thin;
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -1702,10 +1736,13 @@ h1 span:last-child {
   z-index: 92;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
 }
 
 .dock-launchers {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
@@ -1715,19 +1752,20 @@ h1 span:last-child {
 .dock-launchers-hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(18px) scale(0.96);
+  transform: translateY(-50%) translateX(18px) scale(0.96);
 }
 
 .dock-launchers-visible {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(0) scale(1);
+  transform: translateY(-50%) translateX(0) scale(1);
 }
 
 .dock-launchers-reveal {
   pointer-events: auto;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.28rem;
   min-height: 58px;
   padding: 0.55rem 0.8rem 0.55rem 0.68rem;
@@ -1742,18 +1780,33 @@ h1 span:last-child {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   box-shadow: -6px 8px 20px rgba(0, 0, 0, 0.35);
-  transition: filter 150ms ease, transform 150ms ease;
+  transition: filter 150ms ease, transform 150ms ease, background 150ms ease;
+  position: relative;
+  z-index: 94;
 }
 
-.dock-launchers-reveal:hover {
+.dock-launchers-reveal:not(.dock-launchers-reveal-active):hover {
   filter: brightness(1.06);
   transform: translateX(-2px);
 }
 
 .dock-launchers-reveal-active {
+  width: 40px;
+  min-height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  border-right: 3px solid #000;
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.32), transparent 62%),
     linear-gradient(160deg, rgba(14, 60, 52, 0.96), rgba(18, 93, 123, 0.94));
+  font-size: 0.92rem;
+  transform: translateX(-68px);
+  z-index: 92;
+}
+
+.dock-launchers-reveal-active svg {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .music-dock,
@@ -1870,6 +1923,7 @@ h1 span:last-child {
   transform: translateY(-50%) translateX(0);
   opacity: 1;
   pointer-events: auto;
+  z-index: 94;
 }
 .profile-dock-head{
   position: sticky;
@@ -1947,6 +2001,7 @@ h1 span:last-child {
   transform: translateY(0);
   opacity: 1;
   pointer-events: auto;
+  z-index: 94;
 }
 
 .google-notice-dock-panel-error {
@@ -3152,6 +3207,7 @@ h1 span:last-child {
   transform: translateY(-50%) translateX(0);
   opacity: 1;
   pointer-events: auto;
+  z-index: 94;
 }
 
 .music-dock-panel,
