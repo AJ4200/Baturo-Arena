@@ -480,6 +480,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'space-invaders-clear' ||
     rules.winCondition === 'brickbreaker-clear' ||
     rules.winCondition === 'neon-pong-score' ||
+    rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'air-hockey-score'
   ) {
     return null;
@@ -622,6 +623,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||
+    rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {
@@ -690,6 +692,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||
+    rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {

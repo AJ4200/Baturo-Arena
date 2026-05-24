@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
 import { AiOutlineArrowLeft } from 'react-icons/ai';
 import { formatGameName } from '@/lib/games';
@@ -11,6 +11,15 @@ type HistoryScreenProps = {
   onBack: () => void;
   onClear: () => void;
   onSelectGame: (value: GameType | 'all') => void;
+};
+
+const getVisiblePages = (currentPage: number, totalPages: number): number[] => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  return Array.from({ length: 5 }, (_, index) => start + index);
 };
 
 export function HistoryScreen({ history, selectedGame, games, onBack, onClear, onSelectGame }: HistoryScreenProps) {
@@ -41,7 +50,23 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
   }, [filteredHistory]);
 
   const totalPages = Math.max(1, Math.ceil(sortedHistory.length / itemsPerPage));
+  const visiblePages = useMemo(
+    () => getVisiblePages(currentPage, totalPages),
+    [currentPage, totalPages]
+  );
+  const pageStart = sortedHistory.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const pageEnd = Math.min(sortedHistory.length, currentPage * itemsPerPage);
   const pageItems = sortedHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedGame, sortOrder]);
 
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
@@ -107,18 +132,74 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
               ))}
             </ul>
 
-            <div className="pagination-row">
-              <div className="pagination-controls">
-                <button className="lobby-btn" type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+            <div className="pagination-row pagination-row-rich">
+              <div className="pagination-meta-card">
+                <span className="pagination-info">
+                  Showing {pageStart}-{pageEnd} of {sortedHistory.length}
+                </span>
+                <span className="pagination-subtle">
+                  Page {currentPage} of {totalPages}
+                </span>
+              </div>
+
+              <div className="pagination-controls pagination-controls-rich">
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                >
                   Prev
                 </button>
-                <span className="pagination-info">Page {currentPage} / {totalPages}</span>
-                <button className="lobby-btn" type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+
+                <div className="pagination-page-list" aria-label="History pages">
+                  {visiblePages[0] > 1 ? (
+                    <>
+                      <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(1)}>
+                        1
+                      </button>
+                      {visiblePages[0] > 2 ? <span className="pagination-ellipsis">...</span> : null}
+                    </>
+                  ) : null}
+
+                  {visiblePages.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      className={classnames(
+                        'pagination-page-chip',
+                        currentPage === pageNumber && 'pagination-page-chip-active'
+                      )}
+                      type="button"
+                      onClick={() => setCurrentPage(pageNumber)}
+                      aria-current={currentPage === pageNumber ? 'page' : undefined}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  {visiblePages[visiblePages.length - 1] < totalPages ? (
+                    <>
+                      {visiblePages[visiblePages.length - 1] < totalPages - 1 ? (
+                        <span className="pagination-ellipsis">...</span>
+                      ) : null}
+                      <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(totalPages)}>
+                        {totalPages}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+
+                <button
+                  className="pagination-btn"
+                  type="button"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                >
                   Next
                 </button>
               </div>
 
-              <div className="pagination-size">
+              <div className="pagination-size pagination-size-card">
                 <label>Items per page:</label>
                 <select className="settings-select" value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
                   <option value={5}>5</option>

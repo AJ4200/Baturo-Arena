@@ -24,14 +24,13 @@ export function MainMenu({
 }: MainMenuProps) {
   return (
     <section className="title-screen-content">
-      <div className="title-board-card">
-              <h1>
-        <span>Baturo</span>
-        <span>-</span>
-        <span>Arena</span>
-      </h1>
+      <div className="title-board-card title-board-card-hero">
+        <h1>
+          <span>Baturo</span>
+          <span>-</span>
+          <span>Arena</span>
+        </h1>
       </div>
-
 
       <motion.div
         className="main-menu"

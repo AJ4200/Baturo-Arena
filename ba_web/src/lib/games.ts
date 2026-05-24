@@ -418,6 +418,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
+    game.moveMode === 'solo-tetris' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -465,6 +466,7 @@ export const applyMove = (
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
+    game.moveMode === 'solo-tetris' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -610,6 +612,7 @@ export const evaluateBoard = (
     game.winCondition === 'space-invaders-clear' ||
     game.winCondition === 'brickbreaker-clear' ||
     game.winCondition === 'neon-pong-score' ||
+    game.winCondition === 'tetris-score' ||
     game.winCondition === 'air-hockey-score'
   ) {
     if (game.winCondition !== 'elimination') {

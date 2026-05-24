@@ -13,6 +13,15 @@ type LeaderboardScreenProps = {
   onSelectCategory: (value: GameType | 'overall') => void;
 };
 
+const getVisiblePages = (currentPage: number, totalPages: number): number[] => {
+  if (totalPages <= 5) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  return Array.from({ length: 5 }, (_, index) => start + index);
+};
+
 export function LeaderboardScreen({
   leaderboard,
   selectedCategory,
@@ -41,12 +50,22 @@ export function LeaderboardScreen({
   }, [activeCategory, playerQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPlayers.length / itemsPerPage));
+  const visiblePages = useMemo(
+    () => getVisiblePages(currentPage, totalPages),
+    [currentPage, totalPages]
+  );
+  const pageStart = filteredPlayers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const pageEnd = Math.min(filteredPlayers.length, currentPage * itemsPerPage);
 
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
   }, [currentPage, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, playerQuery]);
 
   const pagePlayers = filteredPlayers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -99,7 +118,7 @@ export function LeaderboardScreen({
           <span className="leaderboard-count">
             Showing {filteredPlayers.length}/{activeCategory?.players.length || 0}
           </span>
-          <div className="leaderboard-page-size">
+          <div className="leaderboard-page-size pagination-size-card">
             <label>Per page:</label>
             <select className="settings-select" value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
               <option value={5}>5</option>
@@ -140,13 +159,69 @@ export function LeaderboardScreen({
                 );
               })}
 
-              <div className="pagination-row" style={{ marginTop: 12 }}>
-                <div className="pagination-controls">
-                  <button className="lobby-btn" type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+              <div className="pagination-row pagination-row-rich">
+                <div className="pagination-meta-card">
+                  <span className="pagination-info">
+                    Showing {pageStart}-{pageEnd} of {filteredPlayers.length}
+                  </span>
+                  <span className="pagination-subtle">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                </div>
+
+                <div className="pagination-controls pagination-controls-rich">
+                  <button
+                    className="pagination-btn"
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  >
                     Prev
                   </button>
-                  <span className="pagination-info">Page {currentPage} / {totalPages}</span>
-                  <button className="lobby-btn" type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+
+                  <div className="pagination-page-list" aria-label="Leaderboard pages">
+                    {visiblePages[0] > 1 ? (
+                      <>
+                        <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(1)}>
+                          1
+                        </button>
+                        {visiblePages[0] > 2 ? <span className="pagination-ellipsis">...</span> : null}
+                      </>
+                    ) : null}
+
+                    {visiblePages.map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        className={classnames(
+                          'pagination-page-chip',
+                          currentPage === pageNumber && 'pagination-page-chip-active'
+                        )}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        aria-current={currentPage === pageNumber ? 'page' : undefined}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+
+                    {visiblePages[visiblePages.length - 1] < totalPages ? (
+                      <>
+                        {visiblePages[visiblePages.length - 1] < totalPages - 1 ? (
+                          <span className="pagination-ellipsis">...</span>
+                        ) : null}
+                        <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(totalPages)}>
+                          {totalPages}
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <button
+                    className="pagination-btn"
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  >
                     Next
                   </button>
                 </div>
