@@ -12,6 +12,7 @@ import { SoloSpaceInvadersGame } from '@/features/game/singleplayer/SoloSpaceInv
 import { SoloNeonPongGame } from '@/features/game/singleplayer/SoloNeonPongGame';
 import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBreakerGame';
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
+import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
@@ -218,6 +219,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'tetris') {
     return (
       <SoloTetrisGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'starfall-survivor') {
+    return (
+      <SoloStarfallSurvivorGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

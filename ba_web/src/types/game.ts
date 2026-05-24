@@ -21,7 +21,8 @@ export type GameType =
   | 'brickbreaker'
   | 'air-hockey'
   | 'neon-pong'
-  | 'tetris';
+  | 'tetris'
+  | 'starfall-survivor';
 
 export type GameDefinition = {
   id: GameType;
@@ -49,6 +50,7 @@ export type GameDefinition = {
     | 'solo-brickbreaker'
     | 'solo-neon-pong'
     | 'solo-tetris'
+    | 'solo-starfall'
     | 'air-hockey';
   winCondition?:
     | 'connect'
@@ -66,6 +68,7 @@ export type GameDefinition = {
     | 'brickbreaker-clear'
     | 'neon-pong-score'
     | 'tetris-score'
+    | 'starfall-survive'
     | 'air-hockey-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

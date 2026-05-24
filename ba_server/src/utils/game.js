@@ -238,6 +238,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'starfall-survivor': {
+    id: 'starfall-survivor',
+    name: 'Starfall Survivor',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Pilot a prism skiff through a collapsing sky, recover star shards, and outfly comet swarms before the rift closes.',
+    moveMode: 'solo-starfall',
+    winCondition: 'starfall-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -481,6 +495,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'brickbreaker-clear' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
+    rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'air-hockey-score'
   ) {
     return null;
@@ -624,6 +639,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
+    rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {
@@ -693,6 +709,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
+    rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'ludo'
   ) {

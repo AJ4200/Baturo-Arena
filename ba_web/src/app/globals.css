@@ -3915,6 +3915,7 @@ h1 span:last-child {
 .motion-off .solo-neon-pong-stage-wrap,
 .motion-off .air-hockey-stage-wrap,
 .motion-off .tetris-stage-shell,
+.motion-off .starfall-stage-wrap,
 .motion-off .tetris-board,
 .motion-off .tetris-cell-filled,
 .motion-off .title-board-card,
@@ -3933,6 +3934,7 @@ h1 span:last-child {
 }
 
 .motion-off .tetris-preview-cell:hover,
+.motion-off .starfall-hud-card:hover,
 .motion-off .leaderboard-item:hover,
 .motion-off .settings-history-item:hover,
 .motion-off .pagination-btn:hover,
@@ -5597,6 +5599,15 @@ h1 span:last-child {
     repeating-linear-gradient(90deg, #1f7a5a 0 28px, #2e9ec0 28px 56px),
     linear-gradient(135deg, #0f172a, #062033);
   background-blend-mode: overlay, screen, normal, normal;
+}
+
+.choose-game-thumb-starfall-survivor {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.85) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 18%, rgba(255, 255, 255, 0.72) 0 2px, transparent 3px),
+    radial-gradient(circle at 62% 72%, rgba(255, 240, 150, 0.9) 0 10px, transparent 11px),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 26%),
+    linear-gradient(145deg, #120d2f, #172452 56%, #f97316);
 }
 
 .choose-game-thumb-air-hockey {
@@ -7851,7 +7862,9 @@ h1 span:last-child {
 .solo-space-stage-wrap,
 .solo-brick-stage-wrap,
 .solo-neon-pong-stage-wrap,
-.air-hockey-stage-wrap {
+.air-hockey-stage-wrap,
+.starfall-stage-wrap,
+.tetris-stage-shell {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.38);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -7974,7 +7987,8 @@ h1 span:last-child {
   .solo-space-shell,
   .solo-brick-shell,
   .solo-neon-pong-shell,
-  .air-hockey-shell {
+  .air-hockey-shell,
+  .starfall-shell {
     width: min(100%, 96vw);
     padding: 0.85rem;
   }
@@ -7996,6 +8010,15 @@ h1 span:last-child {
 
   .solo-brick-stage-wrap,
   .air-hockey-stage-wrap {
+    width: 100%;
+    padding: 0.7rem;
+  }
+
+  .starfall-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .starfall-stage-wrap {
     width: 100%;
     padding: 0.7rem;
   }
@@ -8948,6 +8971,381 @@ h1 span:last-child {
 
 
   color: white;
+}
+
+.starfall-shell {
+  display: grid;
+  gap: 0.9rem;
+  width: min(100%, 980px);
+  margin: 0 auto;
+}
+
+.starfall-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.starfall-hud-card {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.72rem 0.9rem;
+  border: 2px solid rgba(0, 0, 0, 0.42);
+  border-radius: 16px;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.92),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.72)
+    );
+  color: var(--match-text, #171717);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.starfall-hud-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--match-dark-rgb, 18, 18, 18), 0.56);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.16);
+}
+
+.starfall-hud-card span {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.84;
+}
+
+.starfall-hud-card strong {
+  font-size: 1.08rem;
+}
+
+.starfall-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  aspect-ratio: 11 / 7;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 18px;
+  padding: 0.85rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.9),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.74)
+    );
+}
+
+.starfall-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 20% 22%, rgba(110, 231, 183, 0.14), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(96, 165, 250, 0.22), transparent 24%),
+    radial-gradient(circle at 50% 70%, rgba(249, 115, 22, 0.16), transparent 24%),
+    linear-gradient(180deg, #040816, #0a1430 56%, #120d2f);
+}
+
+.starfall-nebula,
+.starfall-starfield,
+.starfall-rift-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.starfall-nebula {
+  filter: blur(30px);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+  animation: starfallNebulaDrift 9s ease-in-out infinite alternate;
+}
+
+.starfall-nebula-a {
+  background:
+    radial-gradient(circle at 18% 28%, rgba(61, 255, 214, 0.34), transparent 32%),
+    radial-gradient(circle at 52% 64%, rgba(146, 111, 255, 0.22), transparent 26%);
+}
+
+.starfall-nebula-b {
+  background:
+    radial-gradient(circle at 78% 20%, rgba(255, 194, 105, 0.24), transparent 24%),
+    radial-gradient(circle at 70% 66%, rgba(96, 165, 250, 0.22), transparent 28%);
+  animation-duration: 11s;
+}
+
+.starfall-starfield {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.82) 0 1px, transparent 2px),
+    radial-gradient(circle at 24% 72%, rgba(255, 255, 255, 0.58) 0 1px, transparent 2px),
+    radial-gradient(circle at 46% 26%, rgba(255, 255, 255, 0.68) 0 1px, transparent 2px),
+    radial-gradient(circle at 68% 54%, rgba(255, 255, 255, 0.76) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 22%, rgba(255, 255, 255, 0.72) 0 1px, transparent 2px),
+    radial-gradient(circle at 74% 82%, rgba(255, 255, 255, 0.62) 0 1px, transparent 2px);
+}
+
+.starfall-rift-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.86));
+}
+
+.starfall-progress-rail {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 0.9rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.starfall-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #6ee7b7, #fbbf24, #fb7185);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.28);
+}
+
+.starfall-shard,
+.starfall-comet,
+.starfall-ship {
+  position: absolute;
+  aspect-ratio: 1 / 1;
+  will-change: transform;
+}
+
+.starfall-shard {
+  border-radius: 28%;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.95), rgba(255, 246, 166, 0.85) 34%, rgba(245, 158, 11, 0.9) 68%, rgba(180, 83, 9, 0.9) 100%);
+  clip-path: polygon(50% 0, 78% 22%, 100% 50%, 78% 78%, 50% 100%, 22% 78%, 0 50%, 22% 22%);
+  box-shadow:
+    0 0 22px rgba(251, 191, 36, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  animation: starfallShardPulse 1.8s ease-in-out infinite alternate;
+}
+
+.starfall-comet {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.94), hsla(var(--starfall-comet-hue, 18), 100%, 76%, 0.94) 36%, hsla(var(--starfall-comet-hue, 18), 86%, 56%, 0.92) 66%, rgba(87, 30, 15, 0.88) 100%);
+  box-shadow:
+    0 0 24px hsla(var(--starfall-comet-hue, 18), 100%, 64%, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.starfall-comet-tail {
+  position: absolute;
+  left: 46%;
+  top: 46%;
+  width: 180%;
+  height: 34%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) rotate(18deg);
+  transform-origin: 22% 50%;
+  background: linear-gradient(90deg, rgba(255, 241, 189, 0.82), rgba(249, 115, 22, 0.28), transparent 86%);
+  filter: blur(4px);
+  opacity: 0.9;
+}
+
+.starfall-ship {
+  border-radius: 28%;
+  clip-path: polygon(50% 0, 88% 72%, 50% 58%, 12% 72%);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(186, 230, 253, 0.92) 38%, rgba(56, 189, 248, 0.82) 74%, rgba(14, 116, 144, 0.9) 100%);
+  box-shadow:
+    0 0 24px rgba(96, 165, 250, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.26);
+}
+
+.starfall-ship-core {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: 34%;
+  height: 34%;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.98), rgba(110, 231, 183, 0.78));
+  box-shadow: 0 0 18px rgba(110, 231, 183, 0.48);
+}
+
+.starfall-ship-thruster {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: 28%;
+  height: 28%;
+  border-radius: 0 0 999px 999px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, rgba(255, 251, 235, 0.2), rgba(251, 146, 60, 0.95));
+  filter: blur(1px);
+  animation: starfallThrusterPulse 0.24s ease-in-out infinite alternate;
+}
+
+.starfall-ship-invulnerable {
+  box-shadow:
+    0 0 30px rgba(244, 114, 182, 0.4),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.28);
+}
+
+.starfall-ship-dash-ready::after {
+  content: '';
+  position: absolute;
+  inset: -16%;
+  border-radius: 999px;
+  border: 2px dashed rgba(110, 231, 183, 0.68);
+  opacity: 0.7;
+}
+
+.starfall-stage-badges {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.starfall-stage-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.28rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(7, 12, 24, 0.58);
+  color: rgba(248, 250, 252, 0.92);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.starfall-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 10, 20, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.starfall-message {
+  width: min(88vw, 430px);
+  padding: 1.5rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 18px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  color: var(--match-text, #171717);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.2);
+}
+
+.starfall-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.starfall-status-pill-win {
+  background: rgba(110, 231, 183, 0.22);
+  color: #065f46;
+}
+
+.starfall-status-pill-loss {
+  background: rgba(248, 113, 113, 0.22);
+  color: #991b1b;
+}
+
+.starfall-message h2 {
+  margin: 0.9rem 0 0.5rem;
+  font-size: 1.6rem;
+}
+
+.starfall-message p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.starfall-message-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.starfall-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid rgba(0, 0, 0, 0.68);
+  border-radius: 999px;
+  padding: 0.48rem 0.9rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #101010;
+  font-weight: 800;
+  text-shadow: none;
+}
+
+.starfall-action-btn-ghost {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.starfall-inline-hint {
+  margin: 0;
+  text-align: center;
+  color: rgba(248, 250, 252, 0.92);
+  line-height: 1.6;
+}
+
+@keyframes starfallNebulaDrift {
+  0% {
+    transform: translate3d(-2%, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(2%, -3%, 0) scale(1.08);
+  }
+}
+
+@keyframes starfallShardPulse {
+  0% {
+    transform: scale(0.94) rotate(0deg);
+  }
+  100% {
+    transform: scale(1.08) rotate(14deg);
+  }
+}
+
+@keyframes starfallThrusterPulse {
+  0% {
+    opacity: 0.58;
+    transform: translateX(-50%) scaleY(0.86);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1.18);
+  }
 }
 .title-board-card {
   position: relative;

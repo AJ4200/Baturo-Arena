@@ -240,6 +240,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'starfall-survivor',
+    name: 'Starfall Survivor',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Pilot a prism skiff through a collapsing sky, recover star shards, and outfly comet swarms before the rift closes.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-starfall',
+    winCondition: 'starfall-survive',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -419,6 +433,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
+    game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -467,6 +482,7 @@ export const applyMove = (
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
+    game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'ludo'
   ) {
@@ -613,6 +629,7 @@ export const evaluateBoard = (
     game.winCondition === 'brickbreaker-clear' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
+    game.winCondition === 'starfall-survive' ||
     game.winCondition === 'air-hockey-score'
   ) {
     if (game.winCondition !== 'elimination') {
