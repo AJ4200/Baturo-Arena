@@ -942,7 +942,7 @@ export default function Home() {
           return game.supportsOnline;
         }
         if (category === 'single-player') {
-          return !game.supportsOnline || game.maxPlayers === 1;
+          return game.maxPlayers === 1;
         }
         return true;
       });

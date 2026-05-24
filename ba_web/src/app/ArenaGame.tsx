@@ -11,6 +11,7 @@ import { SoloSnakeGame } from '@/features/game/singleplayer/SoloSnakeGame';
 import { SoloSpaceInvadersGame } from '@/features/game/singleplayer/SoloSpaceInvadersGame';
 import { SoloNeonPongGame } from '@/features/game/singleplayer/SoloNeonPongGame';
 import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBreakerGame';
+import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
@@ -202,6 +203,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'neon-pong') {
     return (
       <SoloNeonPongGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'tetris') {
+    return (
+      <SoloTetrisGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

@@ -15,6 +15,8 @@ type HistoryScreenProps = {
 
 export function HistoryScreen({ history, selectedGame, games, onBack, onClear, onSelectGame }: HistoryScreenProps) {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  const [itemsPerPage, setItemsPerPage] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const filteredHistory = useMemo(
     () => (selectedGame === 'all' ? history : history.filter((entry) => entry.gameType === selectedGame)),
     [history, selectedGame]
@@ -37,6 +39,14 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
     return { wins, losses, draws, total, winRate };
   }, [filteredHistory]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedHistory.length / itemsPerPage));
+  const pageItems = sortedHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleItemsPerPageChange = (value: number) => {
+    setItemsPerPage(value);
+    setCurrentPage(1);
+  };
 
   return (
     <section className="title-screen-content">
@@ -84,17 +94,41 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
         {sortedHistory.length === 0 ? (
           <p className="settings-save-meta">No completed matches recorded yet for this category</p>
         ) : (
-          <ul className="settings-history-list">
-            {sortedHistory.slice(0, 20).map((entry) => (
-              <li key={entry.id} className="settings-history-item">
-                <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
-                <span className="settings-history-opponent">
-                  {formatGameName(entry.gameType, games)} | {(entry.mode === 'offline' ? 'LOCAL' : entry.mode.toUpperCase())} vs {entry.opponent}
-                </span>
-                <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="settings-history-list">
+              {pageItems.map((entry) => (
+                <li key={entry.id} className="settings-history-item">
+                  <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
+                  <span className="settings-history-opponent">
+                    {formatGameName(entry.gameType, games)} | {(entry.mode === 'offline' ? 'LOCAL' : entry.mode.toUpperCase())} vs {entry.opponent}
+                  </span>
+                  <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="pagination-row">
+              <div className="pagination-controls">
+                <button className="lobby-btn" type="button" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
+                  Prev
+                </button>
+                <span className="pagination-info">Page {currentPage} / {totalPages}</span>
+                <button className="lobby-btn" type="button" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
+                  Next
+                </button>
+              </div>
+
+              <div className="pagination-size">
+                <label>Items per page:</label>
+                <select className="settings-select" value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </section>

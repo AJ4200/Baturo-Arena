@@ -224,6 +224,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  tetris: {
+    id: 'tetris',
+    name: 'Tetris',
+    rows: 20,
+    columns: 10,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Stack falling tetrominoes, clear lines, and chase the high score.',
+    moveMode: 'solo-tetris',
+    winCondition: 'tetris-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {

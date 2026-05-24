@@ -20,7 +20,8 @@ export type GameType =
   | 'space-invaders'
   | 'brickbreaker'
   | 'air-hockey'
-  | 'neon-pong';
+  | 'neon-pong'
+  | 'tetris';
 
 export type GameDefinition = {
   id: GameType;
@@ -47,6 +48,7 @@ export type GameDefinition = {
     | 'solo-space-invaders'
     | 'solo-brickbreaker'
     | 'solo-neon-pong'
+    | 'solo-tetris'
     | 'air-hockey';
   winCondition?:
     | 'connect'
@@ -63,6 +65,7 @@ export type GameDefinition = {
     | 'space-invaders-clear'
     | 'brickbreaker-clear'
     | 'neon-pong-score'
+    | 'tetris-score'
     | 'air-hockey-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

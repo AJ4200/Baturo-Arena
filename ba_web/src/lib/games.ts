@@ -226,6 +226,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'tetris',
+    name: 'Tetris',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Stack falling tetrominoes, clear lines, and chase the high score.',
+    rows: 20,
+    columns: 10,
+    connect: 0,
+    moveMode: 'solo-tetris',
+    winCondition: 'tetris-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {

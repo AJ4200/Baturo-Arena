@@ -45,7 +45,7 @@ export function GameTypeSelectScreen({
           return game.supportsOnline;
         }
         if (category === 'single-player') {
-          return !game.supportsOnline || game.maxPlayers === 1;
+          return game.maxPlayers === 1;
         }
         return true; // 'all'
       }).length;
@@ -83,7 +83,7 @@ export function GameTypeSelectScreen({
           return game.supportsOnline && game.minPlayers >= 2;
         }
         if (category === 'single-player') {
-          return !game.supportsOnline || game.maxPlayers === 1;
+          return game.maxPlayers === 1;
         }
         return true;
       }),
