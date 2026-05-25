@@ -18,9 +18,20 @@
   }
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
-
   font-family: "Luckiest Guy", cursive;
 }
 
@@ -365,6 +376,7 @@ html.ba-root-scroll .google-notice-dock-panel {
   display: flex;
   position: fixed;
   top: 0;
+  left: 0;
   height: 2.5rem;
   width: 100%;
   align-items: center;

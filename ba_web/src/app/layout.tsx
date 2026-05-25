@@ -5,7 +5,7 @@ import { GlobalGameUISounds } from "@/features/home/GlobalGameUISounds";
 
 export const metadata: Metadata = {
   title: "Baturo Arena",
-  description: "Baturo Arena is a multiplayer board-game hub with online and CPU play across multiple games.",
+  description: "Baturo Arena is a multiplayer hub with online,local and CPU play across multiple games.",
 };
 
 export default function RootLayout({
