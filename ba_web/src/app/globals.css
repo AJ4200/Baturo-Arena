@@ -2088,6 +2088,120 @@ h1 span:last-child {
   transform: translateX(-2px);
 }
 
+/* Settings dock launcher (diamond) */
+.settings-dock {
+  position: relative;
+  pointer-events: none;
+}
+
+.settings-dock-launch {
+  pointer-events: auto;
+  position: relative;
+  width: 46px;
+  height: 46px;
+  display: inline-grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  overflow: visible;
+  transition: transform 140ms ease, filter 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.settings-dock-launch::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.24), transparent 62%),
+    linear-gradient(155deg, rgba(11, 33, 58, 0.94), rgba(10, 82, 61, 0.92));
+  border: 3px solid #000;
+  box-shadow: -6px 8px 20px rgba(0, 0, 0, 0.35);
+  z-index: 0;
+}
+
+.settings-dock-launch:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.settings-dock-launch svg {
+  position: relative;
+  z-index: 1;
+  width: 1.1rem;
+  height: 1.1rem;
+  transform: none;
+}
+
+.settings-dock-panel {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%) translateX(108%);
+  opacity: 0;
+  pointer-events: none;
+  width: min(90vw, 300px);
+  max-height: min(84vh, 640px);
+  overflow-y: auto;
+  border: 4px solid #000;
+  border-right: 0;
+  border-radius: 16px 0 0 16px;
+  padding: 0.7rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.22), transparent 58%),
+    linear-gradient(155deg, rgba(250, 250, 250, 0.92), rgba(227, 235, 250, 0.86));
+  color: #111;
+  text-shadow: none;
+  box-shadow: -10px 12px 26px rgba(0, 0, 0, 0.26);
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.settings-dock-panel,
+.settings-dock-panel * {
+  text-shadow: none !important;
+}
+
+.settings-dock-open .settings-dock-panel {
+  transform: translateY(-50%) translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 94;
+}
+
+.settings-dock-panel-head {
+  position: sticky;
+  top: -0.7rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: -0.7rem 0 0.5rem;
+  padding: 0.56rem 0.1rem 0.42rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 248, 255, 0.9)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.34), transparent 60%);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px dashed rgba(0, 0, 0, 0.38);
+}
+
+.settings-dock-panel .settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+}
+
+.settings-dock-panel .settings-dock-close {
+  background: transparent;
+  border: none;
+  font-size: 1.05rem;
+}
+
+
 .music-dock-panel {
   position: absolute;
   right: 0;
@@ -3500,6 +3614,7 @@ h1 span:last-child {
 }
 
 .music-dock-now-playing {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3507,6 +3622,11 @@ h1 span:last-child {
   text-align: center;
   gap: 0.46rem;
   margin-bottom: 0.68rem;
+  padding: 1rem;
+  border: 3px solid rgba(0, 0, 0, 0.88);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.16);
 }
 
 .music-dock-art-wrap {
@@ -3900,6 +4020,73 @@ h1 span:last-child {
 .music-dock-track-btn span {
   font-size: 0.66rem;
   opacity: 0.78;
+}
+
+.music-dock-tracklist-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.music-dock-tracklist-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border: 3px solid rgba(0, 0, 0, 0.88);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
+}
+
+.music-dock-tracklist-art-wrap {
+  width: 62px;
+  height: 62px;
+  border: 3px solid #000;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.95);
+  flex-shrink: 0;
+}
+
+.music-dock-tracklist-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.music-dock-tracklist-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.14rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.music-dock-tracklist-meta strong {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.music-dock-tracklist-meta span {
+  font-size: 0.74rem;
+  opacity: 0.78;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.music-dock-tracklist-row .music-dock-icon-btn-main {
+  width: 46px;
+  height: 46px;
+}
+
+.music-dock-expanded-list {
+  margin-top: 0.5rem;
 }
 
 .music-dock-empty {
@@ -9435,6 +9622,11 @@ h1 span:last-child {
   font-weight: 900;
 }
 
+/* Helpers for MainMenu title parts */
+.title-board-card h1 .title-main-dash {
+  display: inline-block;
+}
+
 .title-board-card-hero h1 {
   font-size: clamp(4.2rem, 8.8vw, 7.25rem);
 }
@@ -9455,6 +9647,16 @@ h1 span:last-child {
   .title-board-card h1 {
     font-size: 2.3rem;
     gap: 0.25rem;
+  }
+
+  /* Stack the title on small screens */
+  .title-board-card h1 {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .title-board-card h1 .title-main-dash {
+    display: none;
   }
 
   .title-board-card-hero h1 {

@@ -18,6 +18,7 @@ import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
 import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
 import { ProfileDock, type GoogleAccount } from '@/features/home/ProfileDock';
 import { SettingsScreen } from '@/features/home/SettingsScreen';
+import { SettingsDock } from '@/features/home/SettingsDock';
 import { useApiClient } from '@/hooks/useApiClient';
 import { STORAGE_KEYS } from '@/lib/constants';
 import { FALLBACK_GAMES } from '@/lib/games';
@@ -1828,6 +1829,48 @@ export default function Home() {
             }}
             onJoinRoom={(code) => void joinRoom(code)}
             onStatusMessage={setMessage}
+          />
+          <SettingsDock
+            isMusicMuted={isMusicMuted}
+            isUISoundsMuted={isUISoundsMuted}
+            musicVolume={musicVolume}
+            enableAnimations={enableAnimations}
+            cpuDifficulty={cpuDifficulty}
+            hasLocalSave={hasLocalSave}
+            lastSavedAtLabel={lastLocalSavedAt ? getSavedAtLabel(lastLocalSavedAt) : null}
+            onToggleMusic={() => {
+              const nextValue = !isMusicMuted;
+              setIsMusicMuted(nextValue);
+              window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
+            }}
+            onToggleUISounds={() => {
+              const nextMuted = !isUISoundsMuted;
+              setIsUISoundsMuted(nextMuted);
+              localStorage.setItem(STORAGE_KEYS.uisoundsMuted, String(nextMuted));
+              window.dispatchEvent(new Event('baruto-ui-sound-change'));
+            }}
+            onMusicVolumeChange={(volume) => {
+              setMusicVolume(volume);
+              window.localStorage.setItem(STORAGE_KEYS.musicVolume, String(volume));
+            }}
+            onToggleAnimations={() => {
+              const nextValue = !enableAnimations;
+              setEnableAnimations(nextValue);
+              window.localStorage.setItem(STORAGE_KEYS.enableAnimations, String(nextValue));
+            }}
+            onCpuDifficultyChange={applyCpuDifficulty}
+            onSaveNow={() => saveLocalBackup('manual')}
+            onLoadSave={() => loadLocalBackup()}
+            onResetPreferences={() => {
+              setIsMusicMuted(false);
+              setMusicVolume(70);
+              setEnableAnimations(true);
+              applyCpuDifficulty('medium');
+              window.localStorage.setItem(STORAGE_KEYS.musicMuted, 'false');
+              window.localStorage.setItem(STORAGE_KEYS.musicVolume, '70');
+              window.localStorage.setItem(STORAGE_KEYS.enableAnimations, 'true');
+              showSaveIndicator('Preferences reset');
+            }}
           />
         </div>
       </div>

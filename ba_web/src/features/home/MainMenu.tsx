@@ -26,9 +26,9 @@ export function MainMenu({
     <section className="title-screen-content">
       <div className="title-board-card title-board-card-hero">
         <h1>
-          <span>Baturo</span>
-          <span>-</span>
-          <span>Arena</span>
+          <span className="title-main-first">Baturo</span>
+          <span className="title-main-dash">-</span>
+          <span className="title-main-last">Arena</span>
         </h1>
       </div>
 
