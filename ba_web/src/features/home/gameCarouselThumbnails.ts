@@ -14,6 +14,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'corner-clash': { label: 'CORNERS', className: 'choose-game-thumb-corner-clash' },
   checkers: { label: 'CHECKERS', className: 'choose-game-thumb-checkers' },
   ludo: { label: 'LUDO', className: 'choose-game-thumb-ludo' },
+  'leap-on': { label: 'LEAP ON', className: 'choose-game-thumb-leap-on' },
   '2048': { label: 'MERGE', className: 'choose-game-thumb-2048' },
   sudoku: { label: '9 x 9', className: 'choose-game-thumb-sudoku' },
   minesweeper: { label: 'MINES', className: 'choose-game-thumb-minesweeper' },

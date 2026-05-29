@@ -86,6 +86,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: false,
   },
   {
+    id: 'leap-on',
+    name: 'Leap On',
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: 'Jump, bounce, and knock rivals off the arena in a fast survival jump party. Score highest before you fall.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'leap-on',
+    winCondition: 'leap-on-score',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
     id: '2048',
     name: '2048',
     minPlayers: 1,
@@ -435,7 +449,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
-    game.moveMode === 'ludo'
+    game.moveMode === 'ludo' ||
+    game.moveMode === 'leap-on'
   ) {
     return [];
   }
@@ -484,7 +499,8 @@ export const applyMove = (
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
-    game.moveMode === 'ludo'
+    game.moveMode === 'ludo' ||
+    game.moveMode === 'leap-on'
   ) {
     return [...board];
   }

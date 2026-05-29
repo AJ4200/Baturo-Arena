@@ -11,6 +11,7 @@ export type GameType =
   | 'corner-clash'
   | 'checkers'
   | 'ludo'
+  | 'leap-on'
   | '2048'
   | 'sudoku'
   | 'minesweeper'
@@ -40,6 +41,7 @@ export type GameDefinition = {
     | 'corner-flip'
     | 'checkers'
     | 'ludo'
+    | 'leap-on'
     | 'solo-2048'
     | 'solo-sudoku'
     | 'solo-minesweeper'
@@ -69,9 +71,30 @@ export type GameDefinition = {
     | 'neon-pong-score'
     | 'tetris-score'
     | 'starfall-survive'
-    | 'air-hockey-score';
+    | 'air-hockey-score'
+    | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;
+};
+
+export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait';
+
+export type LeapOnPlayerState = {
+  symbol: GameSymbol;
+  name: string;
+  alive: boolean;
+  score: number;
+  stamina: number;
+  action: LeapOnAction | null;
+};
+
+export type LeapOnBoardState = {
+  mode: 'leap-on';
+  status: 'waiting' | 'playing' | 'finished';
+  timeMs: number;
+  round: number;
+  winner: GameSymbol | 'draw' | null;
+  players: LeapOnPlayerState[];
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';
@@ -158,7 +181,7 @@ export type LudoBoardState = {
   tokens: Partial<Record<GameSymbol, number[]>>;
 };
 
-export type GameMove = number | { from: number; to: number };
+export type GameMove = number | { from: number; to: number } | { action: LeapOnAction };
 
 export type RoomState = {
   code: string;
@@ -166,7 +189,7 @@ export type RoomState = {
   gameType: GameType;
   maxPlayers: number;
   isPublic: boolean;
-  board: BoardCell[] | LudoBoardState;
+  board: BoardCell[] | LudoBoardState | LeapOnBoardState;
   turn: GameSymbol;
   status: 'waiting' | 'playing' | 'finished';
   winner: GameSymbol | 'draw' | null;

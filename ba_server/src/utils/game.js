@@ -83,6 +83,20 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: false,
   },
+  'leap-on': {
+    id: 'leap-on',
+    name: 'Leap On',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 4,
+    description: 'Jump, bounce, and knock rivals off the arena in a fast survival jump party.',
+    moveMode: 'leap-on',
+    winCondition: 'leap-on-score',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
   '2048': {
     id: '2048',
     name: '2048',
@@ -302,6 +316,16 @@ function createEmptyBoard(gameType) {
     }
   }
 
+  if (rules.id === 'leap-on') {
+    return {
+      mode: 'leap-on',
+      status: 'waiting',
+      timeMs: 0,
+      winner: null,
+      players: [],
+    };
+  }
+
   return board;
 }
 
@@ -501,6 +525,15 @@ function checkWinner(gameType, board) {
     return null;
   }
 
+  if (rules.winCondition === 'leap-on-score') {
+    if (board && typeof board === 'object' && board.mode === 'leap-on') {
+      return board.winner === 'draw' || ['X', 'O', 'Y', 'Z'].includes(board.winner)
+        ? board.winner
+        : null;
+    }
+    return null;
+  }
+
   if (rules.winCondition === 'majority') {
     const counts = new Map();
     COMPETITIVE_SYMBOLS.forEach((symbol) => counts.set(symbol, 0));
@@ -680,6 +713,10 @@ function isValidMove(gameType, board, move, symbol = 'X') {
     throw new Error(`Unsupported game type: ${gameType}`);
   }
 
+  if (rules.moveMode === 'leap-on') {
+    return false;
+  }
+
   if (rules.moveMode === 'checkers') {
     const owner = symbol === 'O' ? 'O' : 'X';
     const parsedMove = parseCheckersMove(move);
@@ -711,7 +748,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'air-hockey' ||
-    rules.moveMode === 'ludo'
+    rules.moveMode === 'ludo' ||
+    rules.moveMode === 'leap-on'
   ) {
     return [...board];
   }

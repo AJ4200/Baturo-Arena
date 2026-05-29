@@ -4,6 +4,8 @@ import React from 'react';
 import { CpuArenaGame } from '@/features/game/CpuArenaGame';
 import { LudoArenaGame } from '@/features/game/multiplayer/LudoArenaGame';
 import { OnlineLudoArenaGame } from '@/features/game/multiplayer/OnlineLudoArenaGame';
+import { OnlineLeapOnArenaGame } from '@/features/game/multiplayer/OnlineLeapOnArenaGame';
+import { SoloLeapOnGame } from '@/features/game/singleplayer/SoloLeapOnGame';
 import { SoloDinoGame } from '@/features/game/singleplayer/SoloDinoGame';
 import { SoloMemoryMatchGame } from '@/features/game/singleplayer/SoloMemoryMatchGame';
 import { SoloMinesweeperGame } from '@/features/game/singleplayer/SoloMinesweeperGame';
@@ -261,6 +263,44 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onToggleAnimations={onToggleAnimations}
         runWithLoader={runWithLoader}
         onProfileUpdate={onProfileUpdate}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'leap-on' && mode === 'online') {
+    if (!roomCode) {
+      return null;
+    }
+    return (
+      <OnlineLeapOnArenaGame
+        roomCode={roomCode}
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        runWithLoader={runWithLoader}
+        onProfileUpdate={onProfileUpdate}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'leap-on') {
+    return (
+      <SoloLeapOnGame
+        player={player}
+        mode={mode}
+        gameType={gameType}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
       />

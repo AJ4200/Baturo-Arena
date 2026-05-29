@@ -422,6 +422,134 @@ function applyLudoAction(boardState, symbol, action, turnSymbols) {
   return { error: 'Invalid ludo action' };
 }
 
+function createLeapOnBoardState(roomPlayers = [], status = 'waiting') {
+  const players = roomPlayers.map((entry) => ({
+    symbol: entry.symbol,
+    name: entry.name,
+    alive: true,
+    score: 0,
+    stamina: 3,
+    action: null,
+  }));
+
+  return {
+    mode: 'leap-on',
+    status,
+    timeMs: 0,
+    round: 0,
+    winner: null,
+    players,
+  };
+}
+
+function normalizeLeapOnBoardState(board, roomPlayers = []) {
+  if (!board || typeof board !== 'object' || board.mode !== 'leap-on') {
+    return createLeapOnBoardState(roomPlayers);
+  }
+
+  const players = roomPlayers.map((entry) => {
+    const existing = Array.isArray(board.players)
+      ? board.players.find((player) => player.symbol === entry.symbol)
+      : null;
+
+    return {
+      symbol: entry.symbol,
+      name: entry.name,
+      alive: existing?.alive !== false,
+      score: Number.isFinite(Number(existing?.score)) ? Number(existing.score) : 0,
+      stamina: Number.isFinite(Number(existing?.stamina))
+        ? Math.max(0, Math.min(5, Number(existing.stamina)))
+        : 3,
+      action: null,
+    };
+  });
+
+  return {
+    mode: 'leap-on',
+    status: board.status === 'finished' ? 'finished' : board.status === 'playing' ? 'playing' : 'waiting',
+    timeMs: Number.isFinite(Number(board.timeMs)) ? Math.max(0, Number(board.timeMs)) : 0,
+    round: Number.isFinite(Number(board.round)) ? Math.max(0, Number(board.round)) : 0,
+    winner:
+      board.winner === 'draw' || ['X', 'O', 'Y', 'Z'].includes(board.winner)
+        ? board.winner
+        : null,
+    players,
+  };
+}
+
+function getLeapOnActionResult(boardState, symbol, action) {
+  const validActions = new Set(['jump', 'dash', 'block', 'wait']);
+  if (!validActions.has(action)) {
+    return { error: 'Invalid leap-on action' };
+  }
+
+  const nextPlayers = boardState.players.map((player) => ({ ...player, action: null }));
+  const active = nextPlayers.find((player) => player.symbol === symbol);
+  if (!active || !active.alive) {
+    return { error: 'Player is not active in this match' };
+  }
+
+  active.action = action;
+  if (action === 'jump') {
+    active.score += 2;
+  } else if (action === 'dash' || action === 'block') {
+    active.score += 1;
+  }
+
+  const alivePlayers = nextPlayers.filter((player) => player.alive);
+  if (action === 'dash' && alivePlayers.length > 1) {
+    const targets = alivePlayers.filter((player) => player.symbol !== symbol);
+    const target = targets[Math.floor(Math.random() * targets.length)];
+    if (target && target.action !== 'block' && Math.random() < 0.56) {
+      target.alive = false;
+    }
+  }
+
+  nextPlayers.forEach((player) => {
+    if (!player.alive || player.symbol === symbol) {
+      return;
+    }
+
+    const hazardChance = player.action === 'block' ? 0.08 : 0.22;
+    if (player.action !== 'jump' && Math.random() < hazardChance) {
+      player.alive = false;
+    }
+  });
+
+  if (action !== 'jump' && Math.random() < 0.16) {
+    active.alive = false;
+  }
+
+  const survivors = nextPlayers.filter((player) => player.alive);
+  let winner = null;
+  if (survivors.length <= 1) {
+    winner = survivors.length === 1 ? survivors[0].symbol : 'draw';
+  }
+
+  const aliveSymbols = survivors.map((player) => player.symbol);
+  const currentIndex = aliveSymbols.indexOf(symbol);
+  const nextTurn =
+    aliveSymbols.length === 0
+      ? symbol
+      : currentIndex < 0
+        ? aliveSymbols[0]
+        : aliveSymbols[(currentIndex + 1) % aliveSymbols.length];
+
+  return {
+    board: {
+      mode: 'leap-on',
+      players: nextPlayers,
+      status: winner ? 'finished' : 'playing',
+      timeMs: boardState.timeMs + 1200,
+      round: boardState.round + 1,
+      winner,
+    },
+    turn: nextTurn,
+    status: winner ? 'finished' : 'playing',
+    winner,
+  };
+}
+
 async function resetRoomForPlayers(room, gameDefinition) {
   const players = await listRoomPlayers(room.id);
   const playerCount = players.length;
@@ -431,7 +559,9 @@ async function resetRoomForPlayers(room, gameDefinition) {
   const board =
     gameDefinition.id === 'ludo'
       ? createLudoBoardState(turnSymbols)
-      : createEmptyBoard(gameDefinition.id);
+      : gameDefinition.id === 'leap-on'
+        ? createLeapOnBoardState(players, status)
+        : createEmptyBoard(gameDefinition.id);
 
   await updateRoomState(room.id, {
     board,
@@ -646,6 +776,41 @@ async function makeMove({ code, playerId, index, move }) {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Failed to record finished ludo result during move', {
+          roomId: room.id,
+          roomCode: room.code,
+          gameType: room.game_type,
+          winner: resolution.winner,
+        }, error);
+      }
+    }
+  } else if (room.game_type === 'leap-on') {
+    const action = String(move?.action || '').trim();
+    const boardState = normalizeLeapOnBoardState(room.board, roomPlayers);
+    const resolution = getLeapOnActionResult(boardState, membership.symbol, action);
+    if (resolution.error) {
+      throw new HttpError(409, resolution.error);
+    }
+
+    await updateRoomState(room.id, {
+      board: resolution.board,
+      turn: resolution.turn,
+      status: resolution.status,
+      winner: resolution.winner,
+      resultRecorded: false,
+    });
+
+    if (resolution.status === 'finished' && resolution.winner && !room.result_recorded) {
+      try {
+        await ensureMatchResultRecorded({
+          ...room,
+          board: resolution.board,
+          winner: resolution.winner,
+          status: 'finished',
+          result_recorded: false,
+        });
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to record finished leap-on result during move', {
           roomId: room.id,
           roomCode: room.code,
           gameType: room.game_type,

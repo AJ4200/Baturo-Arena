@@ -18,7 +18,7 @@ export default function RootLayout({
       <body>
         <GlobalGameUISounds
           clickSoundSrc="/music/ui/ui-click.mp3"
-          volume={0.3}
+          volume={0.2}
         />
         {children}
         <Analytics />
