@@ -77,7 +77,16 @@ export type GameDefinition = {
   supportsCpu: boolean;
 };
 
-export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait';
+export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait' | 'tick';
+
+export type LeapOnOrbState = {
+  id: string;
+  kind: 'safe' | 'hazard' | 'split';
+  angle: number;
+  radius: number;
+  spin: number;
+  drift: number;
+};
 
 export type LeapOnPlayerState = {
   symbol: GameSymbol;
@@ -86,6 +95,13 @@ export type LeapOnPlayerState = {
   score: number;
   stamina: number;
   action: LeapOnAction | null;
+  angle: number;
+  radius: number;
+  momentum: number;
+  multiplier: number;
+  orbits: number;
+  lastAngle: number;
+  eliminatedBy: string | null;
 };
 
 export type LeapOnBoardState = {
@@ -95,6 +111,9 @@ export type LeapOnBoardState = {
   round: number;
   winner: GameSymbol | 'draw' | null;
   players: LeapOnPlayerState[];
+  anchorRadius: number;
+  orbs: LeapOnOrbState[];
+  lastEvent: string | null;
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';

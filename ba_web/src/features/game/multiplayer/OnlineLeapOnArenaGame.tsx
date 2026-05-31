@@ -33,18 +33,37 @@ import type {
 } from '@/types/game';
 
 const ACTION_LABELS: Record<LeapOnAction, string> = {
-  jump: 'Jump',
-  dash: 'Dash',
-  block: 'Block',
-  wait: 'Brace',
+  jump: 'Leap',
+  dash: 'Outer Leap',
+  block: 'Split Timing',
+  wait: 'Hold Orbit',
+  tick: 'Orbit',
 };
 
+const LEAP_INPUT_LABEL = 'Space / Tap to leap';
+
 const ACTION_TOOLTIPS: Record<LeapOnAction, string> = {
-  jump: 'Try to leap over the next hazard.',
-  dash: 'Rush a rival to push them off balance.',
-  block: 'Protect yourself from incoming impact.',
-  wait: 'Hold your position and stay safe.',
+  jump: 'Land on the nearest white orb.',
+  dash: 'Risk a farther white orb for momentum.',
+  block: 'Time the white side of a split orb.',
+  wait: 'Hold orbit and recover stamina.',
+  tick: 'Keep the live arena moving.',
 };
+
+const getPolarStyle = (angle: number, radius: number): React.CSSProperties => {
+  const radians = (angle * Math.PI) / 180;
+  const distance = Math.max(0, Math.min(92, radius)) * 0.43;
+  return {
+    left: `${50 + Math.cos(radians) * distance}%`,
+    top: `${50 + Math.sin(radians) * distance}%`,
+    '--leap-angle': `${angle}deg`,
+  } as React.CSSProperties;
+};
+
+const getOrbStyle = (angle: number, radius: number, spin: number): React.CSSProperties => ({
+  ...getPolarStyle(angle, radius),
+  '--leap-spin': `${spin}deg`,
+} as React.CSSProperties);
 
 const readValidAuthToken = (): string | null => {
   const token = window.localStorage.getItem(STORAGE_KEYS.authToken);
@@ -125,12 +144,16 @@ export function OnlineLeapOnArenaGame({
     return room.board;
   }, [room]);
 
-  const currentPlayer = useMemo(
-    () => boardState?.players.find((entry) => entry.symbol === room?.turn) ?? null,
-    [boardState, room?.turn]
+  const yourPlayer = useMemo(
+    () => boardState?.players.find((entry) => entry.symbol === yourSymbol) ?? null,
+    [boardState, yourSymbol]
+  );
+  const tickerSymbol = useMemo(
+    () => boardState?.players.find((entry) => entry.alive)?.symbol ?? null,
+    [boardState]
   );
 
-  const gameLabel = room ? formatGameName(room.gameType, gameDefinitions) : 'Loading Leap On';
+  const gameLabel = room ? formatGameName(room.gameType, gameDefinitions) : 'Loading Leap';
 
   const status = useMemo(() => {
     if (!room || !boardState) {
@@ -142,10 +165,7 @@ export function OnlineLeapOnArenaGame({
     }
 
     if (room.status === 'playing') {
-      if (yourSymbol && room.turn === yourSymbol) {
-        return `${gameLabel} | Room ${room.code} | Your turn (${room.turn})`;
-      }
-      return `${gameLabel} | Room ${room.code} | ${room.turn}'s turn`;
+      return `${gameLabel} | Room ${room.code} | Live orbit`;
     }
 
     if (room.winner === 'draw') {
@@ -161,7 +181,7 @@ export function OnlineLeapOnArenaGame({
     return `${gameLabel} | Room ${room.code} | Match finished`;
   }, [boardState, gameLabel, room, yourSymbol]);
 
-  const canPlay = Boolean(room && yourSymbol && room.status === 'playing' && room.turn === yourSymbol && currentPlayer?.alive);
+  const canPlay = Boolean(room && yourSymbol && room.status === 'playing' && yourPlayer?.alive);
 
   const callApi = useCallback(
     async <T,>(path: string, init?: RequestInit, showLoader = true): Promise<T> => {
@@ -218,7 +238,7 @@ export function OnlineLeapOnArenaGame({
     setMessage((currentMessage) => (currentMessage === 'Internal server error' ? '' : currentMessage));
   }, [callApi, onProfileUpdate, roomCode]);
 
-  const handleAction = async (action: LeapOnAction) => {
+  const handleAction = async (action: LeapOnAction = 'jump', showLoader = true) => {
     if (!room || !canPlay) {
       return;
     }
@@ -229,14 +249,52 @@ export function OnlineLeapOnArenaGame({
         {
           method: 'POST',
           body: JSON.stringify({ move: { action } }),
-        }
+        },
+        showLoader
       );
       applyPayload(payload);
-      setMessage('');
+      if (action !== 'tick') {
+        setMessage('');
+      }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not perform action');
+      if (action !== 'tick') {
+        setMessage(error instanceof Error ? error.message : 'Could not perform action');
+      }
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== 'Space') {
+        return;
+      }
+      event.preventDefault();
+      void handleAction('jump');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [canPlay, room?.code]);
+
+  useEffect(() => {
+    if (!room || room.status !== 'playing' || room.winner) {
+      return;
+    }
+
+    if (!tickerSymbol || tickerSymbol !== yourSymbol) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      void handleAction('tick', false);
+    }, 550);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [canPlay, room?.code, room?.status, room?.winner, tickerSymbol, yourSymbol]);
 
   const handleRematch = async () => {
     if (!room) {
@@ -291,7 +349,7 @@ export function OnlineLeapOnArenaGame({
       syncRoom().catch(() => {
         // Keep polling silent unless user triggers an action.
       });
-    }, 1200);
+    }, 450);
 
     return () => {
       window.clearInterval(intervalId);
@@ -320,7 +378,6 @@ export function OnlineLeapOnArenaGame({
     });
   }, [onMatchComplete, player.playerId, room, yourSymbol]);
 
-  const actionButtons: LeapOnAction[] = ['jump', 'dash', 'block', 'wait'];
   const statusIcon = room?.winner ? <AiOutlineCheckCircle /> : room?.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineClockCircle />;
 
   return (
@@ -440,21 +497,46 @@ export function OnlineLeapOnArenaGame({
               <span>Timer {boardState?.timeMs ?? 0}ms</span>
             </div>
 
-            <div className="leap-on-actions-panel">
-              {actionButtons.map((action) => (
-                <motion.button
-                  key={action}
-                  className="leap-on-action-btn"
-                  type="button"
-                  disabled={!canPlay}
-                  onClick={() => handleAction(action)}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <strong>{ACTION_LABELS[action]}</strong>
-                  <span>{ACTION_TOOLTIPS[action]}</span>
-                </motion.button>
+            <div className="leap-orbit-stage" aria-label="Leap arena">
+              <div className="leap-anchor" />
+              <div className="leap-anchor-ring" />
+              {boardState?.orbs.map((orb) => (
+                <span
+                  key={orb.id}
+                  className={`leap-orb leap-orb-${orb.kind}`}
+                  style={getOrbStyle(orb.angle, orb.radius, orb.spin)}
+                  title={orb.kind === 'safe' ? 'White orb' : orb.kind === 'hazard' ? 'Black orb' : 'Split orb'}
+                />
               ))}
+              {boardState?.players.map((state) => (
+                <span
+                  key={state.symbol}
+                  className={`leap-runner leap-runner-${state.symbol.toLowerCase()}${state.alive ? '' : ' leap-runner-out'}`}
+                  style={getPolarStyle(state.angle, state.radius)}
+                  title={`${state.name} ${state.alive ? 'alive' : 'eliminated'}`}
+                >
+                  {state.symbol}
+                </span>
+              ))}
+            </div>
+
+            <div className="leap-on-arena-status">
+              <p>{boardState?.lastEvent || 'Chain white-orb landings and stay outside the anchor.'}</p>
+              <p>{LEAP_INPUT_LABEL}</p>
+            </div>
+
+            <div className="leap-on-actions-panel">
+              <motion.button
+                className="leap-on-action-btn leap-on-action-btn-primary"
+                type="button"
+                disabled={!canPlay}
+                onClick={() => handleAction('jump')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                <strong>{ACTION_LABELS.jump}</strong>
+                <span>{ACTION_TOOLTIPS.jump}</span>
+              </motion.button>
             </div>
 
             <div className="leap-on-player-grid">
@@ -472,7 +554,8 @@ export function OnlineLeapOnArenaGame({
                   </div>
                   <div className="leap-on-player-stats">
                     <span>Score {state.score}</span>
-                    <span>Action {state.action ?? 'None'}</span>
+                    <span>Orbit x{state.multiplier.toFixed(1)}</span>
+                    <span>Momentum {state.momentum.toFixed(1)}</span>
                   </div>
                 </div>
               ))}

@@ -85,13 +85,13 @@ const GAME_RULES = {
   },
   'leap-on': {
     id: 'leap-on',
-    name: 'Leap On',
+    name: 'Leap',
     rows: 1,
     columns: 1,
     connect: 0,
     minPlayers: 1,
     maxPlayers: 4,
-    description: 'Jump, bounce, and knock rivals off the arena in a fast survival jump party.',
+    description: 'Orbit a fixed central anchor, chain leaps between safe white orbs, avoid black hazards, and survive the inward pull.',
     moveMode: 'leap-on',
     winCondition: 'leap-on-score',
     supportsOnline: true,
@@ -321,8 +321,21 @@ function createEmptyBoard(gameType) {
       mode: 'leap-on',
       status: 'waiting',
       timeMs: 0,
+      round: 0,
       winner: null,
       players: [],
+      anchorRadius: 16,
+      orbs: [
+        { id: 'safe-1', kind: 'safe', angle: 28, radius: 66, spin: 0, drift: 8 },
+        { id: 'safe-2', kind: 'safe', angle: 116, radius: 78, spin: 0, drift: -7 },
+        { id: 'safe-3', kind: 'safe', angle: 214, radius: 58, spin: 0, drift: 10 },
+        { id: 'safe-4', kind: 'safe', angle: 302, radius: 84, spin: 0, drift: -9 },
+        { id: 'hazard-1', kind: 'hazard', angle: 74, radius: 50, spin: 0, drift: -13 },
+        { id: 'hazard-2', kind: 'hazard', angle: 258, radius: 72, spin: 0, drift: 12 },
+        { id: 'split-1', kind: 'split', angle: 168, radius: 68, spin: 25, drift: 16 },
+        { id: 'split-2', kind: 'split', angle: 336, radius: 54, spin: 205, drift: -15 },
+      ],
+      lastEvent: null,
     };
   }
 

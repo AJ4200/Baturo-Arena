@@ -422,15 +422,115 @@ function applyLudoAction(boardState, symbol, action, turnSymbols) {
   return { error: 'Invalid ludo action' };
 }
 
-function createLeapOnBoardState(roomPlayers = [], status = 'waiting') {
-  const players = roomPlayers.map((entry) => ({
+const LEAP_ANCHOR_RADIUS = 16;
+
+const LEAP_ORB_LAYOUT = [
+  { id: 'safe-1', kind: 'safe', angle: 28, radius: 66, spin: 0, drift: 8 },
+  { id: 'safe-2', kind: 'safe', angle: 116, radius: 78, spin: 0, drift: -7 },
+  { id: 'safe-3', kind: 'safe', angle: 214, radius: 58, spin: 0, drift: 10 },
+  { id: 'safe-4', kind: 'safe', angle: 302, radius: 84, spin: 0, drift: -9 },
+  { id: 'hazard-1', kind: 'hazard', angle: 74, radius: 50, spin: 0, drift: -13 },
+  { id: 'hazard-2', kind: 'hazard', angle: 258, radius: 72, spin: 0, drift: 12 },
+  { id: 'split-1', kind: 'split', angle: 168, radius: 68, spin: 25, drift: 16 },
+  { id: 'split-2', kind: 'split', angle: 336, radius: 54, spin: 205, drift: -15 },
+];
+
+const LEAP_ACTION_CONFIG = {
+  jump: {
+    landingKinds: ['safe', 'split'],
+    label: 'chained a white-orb leap',
+    radiusBoost: 16,
+    momentumBoost: 1.05,
+    score: 18,
+    missChance: 0.08,
+  },
+  tick: {
+    landingKinds: ['safe', 'split'],
+    label: 'kept orbiting',
+    radiusBoost: 0,
+    momentumBoost: 0,
+    score: 0,
+    missChance: 0,
+  },
+  dash: {
+    landingKinds: ['safe'],
+    label: 'pushed for an outer leap',
+    radiusBoost: 24,
+    momentumBoost: 1.35,
+    score: 24,
+    missChance: 0.14,
+  },
+  block: {
+    landingKinds: ['split'],
+    label: 'timed a split-orb landing',
+    radiusBoost: 12,
+    momentumBoost: 0.8,
+    score: 30,
+    missChance: 0.12,
+  },
+  wait: {
+    landingKinds: ['safe', 'split'],
+    label: 'held orbit',
+    radiusBoost: 4,
+    momentumBoost: 0.35,
+    score: 8,
+    missChance: 0.04,
+  },
+};
+
+function normalizeLeapAngle(angle) {
+  return ((Number(angle) % 360) + 360) % 360;
+}
+
+function getLeapAngleDistance(a, b) {
+  const difference = Math.abs(normalizeLeapAngle(a) - normalizeLeapAngle(b));
+  return Math.min(difference, 360 - difference);
+}
+
+function createLeapOrbs() {
+  return LEAP_ORB_LAYOUT.map((orb) => ({ ...orb }));
+}
+
+function advanceLeapOrbs(orbs) {
+  const sourceOrbs = Array.isArray(orbs) && orbs.length ? orbs : createLeapOrbs();
+  return sourceOrbs.map((orb) => ({
+    ...orb,
+    angle: normalizeLeapAngle(Number(orb.angle) + Number(orb.drift || 0) + (Math.random() * 10 - 5)),
+    spin: normalizeLeapAngle(Number(orb.spin || 0) + 54 + Math.random() * 20),
+  }));
+}
+
+function createLeapPlayer(entry, index, existing = null) {
+  const fallbackAngle = normalizeLeapAngle(index * 88 + 12);
+  return {
     symbol: entry.symbol,
     name: entry.name,
-    alive: true,
-    score: 0,
-    stamina: 3,
+    alive: existing?.alive !== false,
+    score: Number.isFinite(Number(existing?.score)) ? Number(existing.score) : 0,
+    stamina: Number.isFinite(Number(existing?.stamina))
+      ? Math.max(0, Math.min(5, Number(existing.stamina)))
+      : 3,
     action: null,
-  }));
+    angle: Number.isFinite(Number(existing?.angle)) ? normalizeLeapAngle(existing.angle) : fallbackAngle,
+    radius: Number.isFinite(Number(existing?.radius))
+      ? Math.max(0, Math.min(92, Number(existing.radius)))
+      : 76,
+    momentum: Number.isFinite(Number(existing?.momentum))
+      ? Math.max(0, Math.min(12, Number(existing.momentum)))
+      : 3,
+    multiplier: Number.isFinite(Number(existing?.multiplier))
+      ? Math.max(1, Math.min(9, Number(existing.multiplier)))
+      : 1,
+    orbits: Number.isFinite(Number(existing?.orbits)) ? Math.max(0, Number(existing.orbits)) : 0,
+    lastAngle: Number.isFinite(Number(existing?.lastAngle))
+      ? normalizeLeapAngle(existing.lastAngle)
+      : fallbackAngle,
+    eliminatedBy: typeof existing?.eliminatedBy === 'string' ? existing.eliminatedBy : null,
+  };
+}
+
+function createLeapOnBoardState(roomPlayers = [], status = 'waiting') {
+  const players = roomPlayers.map((entry, index) => createLeapPlayer(entry, index));
 
   return {
     mode: 'leap-on',
@@ -439,6 +539,9 @@ function createLeapOnBoardState(roomPlayers = [], status = 'waiting') {
     round: 0,
     winner: null,
     players,
+    anchorRadius: LEAP_ANCHOR_RADIUS,
+    orbs: createLeapOrbs(),
+    lastEvent: null,
   };
 }
 
@@ -447,21 +550,11 @@ function normalizeLeapOnBoardState(board, roomPlayers = []) {
     return createLeapOnBoardState(roomPlayers);
   }
 
-  const players = roomPlayers.map((entry) => {
+  const players = roomPlayers.map((entry, index) => {
     const existing = Array.isArray(board.players)
       ? board.players.find((player) => player.symbol === entry.symbol)
       : null;
-
-    return {
-      symbol: entry.symbol,
-      name: entry.name,
-      alive: existing?.alive !== false,
-      score: Number.isFinite(Number(existing?.score)) ? Number(existing.score) : 0,
-      stamina: Number.isFinite(Number(existing?.stamina))
-        ? Math.max(0, Math.min(5, Number(existing.stamina)))
-        : 3,
-      action: null,
-    };
+    return createLeapPlayer(entry, index, existing);
   });
 
   return {
@@ -474,50 +567,133 @@ function normalizeLeapOnBoardState(board, roomPlayers = []) {
         ? board.winner
         : null,
     players,
+    anchorRadius: LEAP_ANCHOR_RADIUS,
+    orbs: Array.isArray(board.orbs) && board.orbs.length ? board.orbs : createLeapOrbs(),
+    lastEvent: typeof board.lastEvent === 'string' ? board.lastEvent : null,
   };
 }
 
+function findLeapLandingOrb(orbs, player, action) {
+  const config = LEAP_ACTION_CONFIG[action] || LEAP_ACTION_CONFIG.jump;
+  const targetRadius = Math.min(92, player.radius + config.radiusBoost);
+  const targetAngle = normalizeLeapAngle(player.angle + 22 + player.momentum * 2.4);
+  const candidates = orbs
+    .filter((orb) => config.landingKinds.includes(orb.kind))
+    .map((orb) => ({
+      orb,
+      score:
+        Math.abs(Number(orb.radius) - targetRadius) * 1.45 +
+        getLeapAngleDistance(Number(orb.angle), targetAngle),
+    }))
+    .sort((a, b) => a.score - b.score);
+
+  return candidates[0]?.score <= 32 ? candidates[0].orb : null;
+}
+
+function isLeapSplitWhiteSide(orb, playerAngle) {
+  const whiteCenter = normalizeLeapAngle(Number(orb.spin || 0));
+  return getLeapAngleDistance(whiteCenter, playerAngle) <= 90;
+}
+
 function getLeapOnActionResult(boardState, symbol, action) {
-  const validActions = new Set(['jump', 'dash', 'block', 'wait']);
+  const validActions = new Set(['jump', 'tick']);
   if (!validActions.has(action)) {
     return { error: 'Invalid leap-on action' };
   }
 
+  const nextOrbs = advanceLeapOrbs(boardState.orbs);
   const nextPlayers = boardState.players.map((player) => ({ ...player, action: null }));
   const active = nextPlayers.find((player) => player.symbol === symbol);
   if (!active || !active.alive) {
     return { error: 'Player is not active in this match' };
   }
 
-  active.action = action;
-  if (action === 'jump') {
-    active.score += 2;
-  } else if (action === 'dash' || action === 'block') {
-    active.score += 1;
-  }
-
-  const alivePlayers = nextPlayers.filter((player) => player.alive);
-  if (action === 'dash' && alivePlayers.length > 1) {
-    const targets = alivePlayers.filter((player) => player.symbol !== symbol);
-    const target = targets[Math.floor(Math.random() * targets.length)];
-    if (target && target.action !== 'block' && Math.random() < 0.56) {
-      target.alive = false;
-    }
-  }
+  const config = LEAP_ACTION_CONFIG[action] || LEAP_ACTION_CONFIG.jump;
+  let lastEvent = `${active.name} ${config.label}.`;
 
   nextPlayers.forEach((player) => {
-    if (!player.alive || player.symbol === symbol) {
+    if (!player.alive) {
       return;
     }
 
-    const hazardChance = player.action === 'block' ? 0.08 : 0.22;
-    if (player.action !== 'jump' && Math.random() < hazardChance) {
+    const nextAngle = normalizeLeapAngle(player.angle + 18 + player.momentum * 2.4);
+    const completedOrbit = nextAngle < player.lastAngle && player.lastAngle - nextAngle > 120;
+    player.angle = nextAngle;
+    player.lastAngle = nextAngle;
+    player.radius = Math.max(0, player.radius - 7.5 + player.momentum * 0.22);
+    player.momentum = Math.max(0, player.momentum * 0.88);
+
+    if (completedOrbit) {
+      player.orbits += 1;
+      player.multiplier = Math.min(9, player.multiplier + 0.5);
+      player.score += Math.round(20 * player.multiplier);
+    }
+
+    if (player.radius <= LEAP_ANCHOR_RADIUS) {
       player.alive = false;
+      player.eliminatedBy = 'central anchor';
+      return;
+    }
+
+    const touchedOrb = nextOrbs.find((orb) => (
+      Math.abs(Number(orb.radius) - player.radius) < 6 &&
+      getLeapAngleDistance(Number(orb.angle), player.angle) < 12
+    ));
+    if (touchedOrb?.kind === 'hazard') {
+      player.alive = false;
+      player.eliminatedBy = 'black orb';
+    } else if (touchedOrb?.kind === 'split' && !isLeapSplitWhiteSide(touchedOrb, Number(touchedOrb.angle))) {
+      player.alive = false;
+      player.eliminatedBy = 'black side';
     }
   });
 
-  if (action !== 'jump' && Math.random() < 0.16) {
-    active.alive = false;
+  active.action = action;
+  if (action === 'tick') {
+    lastEvent = boardState.lastEvent || 'The arena keeps pulling inward.';
+  } else if (!active.alive) {
+    lastEvent = `${active.name} was eliminated by ${active.eliminatedBy || 'the arena'}.`;
+  } else {
+    active.stamina = Math.max(0, Math.min(5, active.stamina - 1));
+    const landingOrb = findLeapLandingOrb(nextOrbs, active, action);
+
+    if (!landingOrb) {
+      active.radius = Math.max(0, active.radius - 8);
+      active.momentum = Math.max(0, active.momentum - 1.6);
+      active.stamina = Math.max(0, active.stamina - 1);
+      lastEvent = `${active.name} jumped without a landing window.`;
+    } else if (landingOrb.kind === 'split' && !isLeapSplitWhiteSide(landingOrb, Number(landingOrb.angle))) {
+      active.alive = false;
+      active.eliminatedBy = 'black side';
+      lastEvent = `${active.name} clipped the black side of a split orb.`;
+    } else {
+      active.radius = Math.min(92, Math.max(LEAP_ANCHOR_RADIUS + 10, Number(landingOrb.radius) + 5));
+      active.angle = normalizeLeapAngle(Number(landingOrb.angle));
+      active.lastAngle = active.angle;
+      active.momentum = Math.min(12, active.momentum + config.momentumBoost);
+      active.stamina = Math.min(5, active.stamina + 2);
+      active.score += Math.round(config.score * active.multiplier);
+      lastEvent = landingOrb.kind === 'split'
+        ? `${active.name} caught the white side and kept orbiting.`
+        : `${active.name} landed on a white orb and pushed outward.`;
+
+      const hazardHit = nextOrbs.find((orb) => (
+        orb.kind === 'hazard' &&
+        Math.abs(Number(orb.radius) - active.radius) < 8 &&
+        getLeapAngleDistance(Number(orb.angle), active.angle) < 16
+      ));
+      if (hazardHit) {
+        active.alive = false;
+        active.eliminatedBy = 'black orb';
+        lastEvent = `${active.name} landed too close to a black orb.`;
+      }
+    }
+
+    if (active.alive && active.radius <= LEAP_ANCHOR_RADIUS) {
+      active.alive = false;
+      active.eliminatedBy = 'central anchor';
+      lastEvent = `${active.name} was pulled into the central anchor.`;
+    }
   }
 
   const survivors = nextPlayers.filter((player) => player.alive);
@@ -543,6 +719,9 @@ function getLeapOnActionResult(boardState, symbol, action) {
       timeMs: boardState.timeMs + 1200,
       round: boardState.round + 1,
       winner,
+      anchorRadius: LEAP_ANCHOR_RADIUS,
+      orbs: nextOrbs,
+      lastEvent,
     },
     turn: nextTurn,
     status: winner ? 'finished' : 'playing',
@@ -733,7 +912,7 @@ async function makeMove({ code, playerId, index, move }) {
     throw new HttpError(409, 'Game is not in playing state');
   }
 
-  if (membership.symbol !== room.turn) {
+  if (room.game_type !== 'leap-on' && membership.symbol !== room.turn) {
     throw new HttpError(409, 'Not your turn');
   }
 

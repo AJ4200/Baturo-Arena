@@ -27,7 +27,7 @@ import type {
   PlayerProfile,
 } from '@/types/game';
 
-type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait';
+type LeapOnAction = 'jump';
 
 type LeapOnPlayerState = {
   symbol: GameSymbol;
@@ -36,7 +36,23 @@ type LeapOnPlayerState = {
   score: number;
   stamina: number;
   action: LeapOnAction | null;
+  angle: number;
+  radius: number;
+  momentum: number;
+  multiplier: number;
+  orbits: number;
+  lastAngle: number;
+  eliminatedBy: string | null;
   isCpu: boolean;
+};
+
+type LeapOnOrbState = {
+  id: string;
+  kind: 'safe' | 'hazard' | 'split';
+  angle: number;
+  radius: number;
+  spin: number;
+  drift: number;
 };
 
 type SoloLeapOnGameProps = {
@@ -52,19 +68,63 @@ type SoloLeapOnGameProps = {
   onLeave: () => void;
 };
 
-const ACTION_LABELS: Record<LeapOnAction, string> = {
-  jump: 'Jump',
-  dash: 'Dash',
-  block: 'Block',
-  wait: 'Brace',
+const LEAP_ANCHOR_RADIUS = 16;
+
+const LEAP_ORB_LAYOUT: LeapOnOrbState[] = [
+  { id: 'safe-1', kind: 'safe', angle: 28, radius: 66, spin: 0, drift: 8 },
+  { id: 'safe-2', kind: 'safe', angle: 116, radius: 78, spin: 0, drift: -7 },
+  { id: 'safe-3', kind: 'safe', angle: 214, radius: 58, spin: 0, drift: 10 },
+  { id: 'safe-4', kind: 'safe', angle: 302, radius: 84, spin: 0, drift: -9 },
+  { id: 'hazard-1', kind: 'hazard', angle: 74, radius: 50, spin: 0, drift: -13 },
+  { id: 'hazard-2', kind: 'hazard', angle: 258, radius: 72, spin: 0, drift: 12 },
+  { id: 'split-1', kind: 'split', angle: 168, radius: 68, spin: 25, drift: 16 },
+  { id: 'split-2', kind: 'split', angle: 336, radius: 54, spin: 205, drift: -15 },
+];
+
+const LEAP_ACTION_CONFIG: Record<LeapOnAction, {
+  landingKinds: LeapOnOrbState['kind'][];
+  radiusBoost: number;
+  momentumBoost: number;
+  score: number;
+}> = {
+  jump: {
+    landingKinds: ['safe', 'split'],
+    radiusBoost: 16,
+    momentumBoost: 1.05,
+    score: 18,
+  },
 };
 
-const ACTION_DESCRIPTIONS: Record<LeapOnAction, string> = {
-  jump: 'Leap over danger and earn extra momentum.',
-  dash: 'Charge a rival and can knock them off balance.',
-  block: 'Brace against impacts and reduce knockback.',
-  wait: 'Stay safe and recover your rhythm.',
+const normalizeLeapAngle = (angle: number) => ((angle % 360) + 360) % 360;
+
+const getLeapAngleDistance = (firstAngle: number, secondAngle: number) => {
+  const difference = Math.abs(normalizeLeapAngle(firstAngle) - normalizeLeapAngle(secondAngle));
+  return Math.min(difference, 360 - difference);
 };
+
+const createLeapOrbs = () => LEAP_ORB_LAYOUT.map((orb) => ({ ...orb }));
+
+const advanceLeapOrbsLive = (orbs: LeapOnOrbState[], deltaSeconds: number) =>
+  orbs.map((orb) => ({
+    ...orb,
+    angle: normalizeLeapAngle(orb.angle + orb.drift * deltaSeconds * 0.9),
+    spin: normalizeLeapAngle(orb.spin + 96 * deltaSeconds),
+  }));
+
+const getPolarStyle = (angle: number, radius: number): React.CSSProperties => {
+  const radians = (angle * Math.PI) / 180;
+  const distance = Math.max(0, Math.min(92, radius)) * 0.43;
+  return {
+    left: `${50 + Math.cos(radians) * distance}%`,
+    top: `${50 + Math.sin(radians) * distance}%`,
+    '--leap-angle': `${angle}deg`,
+  } as React.CSSProperties;
+};
+
+const getOrbStyle = (angle: number, radius: number, spin: number): React.CSSProperties => ({
+  ...getPolarStyle(angle, radius),
+  '--leap-spin': `${spin}deg`,
+} as React.CSSProperties);
 
 const getPlayerVisual = (player: LeapOnPlayerState) => {
   switch (player.symbol) {
@@ -86,20 +146,6 @@ const getOpponentLabels = (mode: GameMode) => {
   return ['Local Rival', 'Local Buddy', 'Local Pal'];
 };
 
-const chooseCpuAction = (player: LeapOnPlayerState) => {
-  if (player.score >= 10 && Math.random() < 0.5) {
-    return 'dash' as LeapOnAction;
-  }
-  if (player.stamina <= 1) {
-    return 'jump' as LeapOnAction;
-  }
-  const roll = Math.random();
-  if (roll < 0.4) return 'jump';
-  if (roll < 0.7) return 'dash';
-  if (roll < 0.9) return 'block';
-  return 'wait';
-};
-
 const createParticipants = (playerName: string, mode: GameMode): LeapOnPlayerState[] => {
   const opponentNames = getOpponentLabels(mode);
   const base = [
@@ -110,6 +156,13 @@ const createParticipants = (playerName: string, mode: GameMode): LeapOnPlayerSta
       score: 0,
       stamina: 3,
       action: null,
+      angle: 12,
+      radius: 76,
+      momentum: 3,
+      multiplier: 1,
+      orbits: 0,
+      lastAngle: 12,
+      eliminatedBy: null,
       isCpu: false,
     },
     {
@@ -119,6 +172,13 @@ const createParticipants = (playerName: string, mode: GameMode): LeapOnPlayerSta
       score: 0,
       stamina: 3,
       action: null,
+      angle: 100,
+      radius: 76,
+      momentum: 3,
+      multiplier: 1,
+      orbits: 0,
+      lastAngle: 100,
+      eliminatedBy: null,
       isCpu: true,
     },
     {
@@ -128,6 +188,13 @@ const createParticipants = (playerName: string, mode: GameMode): LeapOnPlayerSta
       score: 0,
       stamina: 3,
       action: null,
+      angle: 188,
+      radius: 76,
+      momentum: 3,
+      multiplier: 1,
+      orbits: 0,
+      lastAngle: 188,
+      eliminatedBy: null,
       isCpu: true,
     },
     {
@@ -137,6 +204,13 @@ const createParticipants = (playerName: string, mode: GameMode): LeapOnPlayerSta
       score: 0,
       stamina: 3,
       action: null,
+      angle: 276,
+      radius: 76,
+      momentum: 3,
+      multiplier: 1,
+      orbits: 0,
+      lastAngle: 276,
+      eliminatedBy: null,
       isCpu: true,
     },
   ];
@@ -151,6 +225,31 @@ const describeOutcome = (winner: GameSymbol | 'draw' | null, playerSymbol: GameS
   return winner === playerSymbol ? 'win' : 'loss';
 };
 
+const findLeapLandingOrb = (orbs: LeapOnOrbState[], playerState: LeapOnPlayerState, action: LeapOnAction) => {
+  const config = LEAP_ACTION_CONFIG[action];
+  const targetRadius = Math.min(92, playerState.radius + config.radiusBoost);
+  const targetAngle = normalizeLeapAngle(playerState.angle + 34 + playerState.momentum * 3);
+  return orbs
+    .filter((orb) => config.landingKinds.includes(orb.kind))
+    .map((orb) => ({
+      orb,
+      score:
+        Math.abs(orb.radius - targetRadius) * 1.45 +
+        getLeapAngleDistance(orb.angle, targetAngle),
+    }))
+    .sort((first, second) => first.score - second.score)[0]?.orb ?? null;
+};
+
+const isLeapSplitWhiteSide = (orb: LeapOnOrbState, playerAngle: number) => {
+  return getLeapAngleDistance(orb.spin, playerAngle) <= 90;
+};
+
+const getTouchedOrb = (orbs: LeapOnOrbState[], playerState: LeapOnPlayerState) =>
+  orbs.find((orb) => (
+    Math.abs(orb.radius - playerState.radius) < 6 &&
+    getLeapAngleDistance(orb.angle, playerState.angle) < 10
+  )) ?? null;
+
 export function SoloLeapOnGame({
   player,
   mode,
@@ -164,135 +263,182 @@ export function SoloLeapOnGame({
   onLeave,
 }: SoloLeapOnGameProps) {
   const [players, setPlayers] = useState<LeapOnPlayerState[]>(() => createParticipants(player.name, mode));
-  const [turn, setTurn] = useState<GameSymbol>('X');
-  const [round, setRound] = useState(1);
+  const [orbs, setOrbs] = useState<LeapOnOrbState[]>(() => createLeapOrbs());
+  const [timeMs, setTimeMs] = useState(0);
   const [winner, setWinner] = useState<GameSymbol | 'draw' | null>(null);
-  const [message, setMessage] = useState('Ready to leap on!');
+  const [message, setMessage] = useState('Chain white-orb landings and stay outside the anchor.');
   const lastReportedWinnerRef = useRef<GameSymbol | 'draw' | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
+  const jumpQueuedRef = useRef(false);
+  const playersRef = useRef(players);
+  const orbsRef = useRef(orbs);
   const gameLabel = formatGameName(gameType as any, gameDefinitions);
-  const currentPlayer = players.find((playerState) => playerState.symbol === turn);
-  const isCurrentHuman = currentPlayer ? !currentPlayer.isCpu : false;
   const statusText = winner
     ? winner === 'draw'
       ? 'Draw'
       : winner === 'X'
         ? 'You win'
         : 'You lose'
-    : currentPlayer
-      ? `${currentPlayer.name}'s turn`
-      : 'Waiting for next turn';
+    : 'Live orbit';
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: () => handleRematch() },
   ];
 
-  const updatePlayers = (
-    currentPlayers: LeapOnPlayerState[],
-    symbol: GameSymbol,
-    action: LeapOnAction
-  ) => {
-    const nextPlayers = currentPlayers.map((playerState) => ({ ...playerState, action: null }));
-    const active = nextPlayers.find((playerState) => playerState.symbol === symbol);
-    if (!active || !active.alive) {
-      return { nextPlayers: currentPlayers, message: 'Cannot perform action from eliminated player', aliveCount: 0 };
-    }
-
-    active.action = action;
-    let roundMessage = `${active.name} uses ${ACTION_LABELS[action]}.`;
-    if (action === 'jump') {
-      active.score += 2;
-    } else if (action === 'dash' || action === 'block') {
-      active.score += 1;
-    }
-
-    const alivePlayers = nextPlayers.filter((playerState) => playerState.alive);
-    if (action === 'dash' && alivePlayers.length > 1) {
-      const targets = alivePlayers.filter((playerState) => playerState.symbol !== symbol);
-      const target = targets[Math.floor(Math.random() * targets.length)];
-      if (target && target.action !== 'block' && Math.random() < 0.56) {
-        target.alive = false;
-        roundMessage += ` ${target.name} was knocked off!`;
-      }
-    }
-
-    nextPlayers.forEach((playerState) => {
-      if (!playerState.alive || playerState.symbol === symbol) {
-        return;
-      }
-      const hazardChance = playerState.action === 'block' ? 0.08 : 0.22;
-      if (playerState.action !== 'jump' && Math.random() < hazardChance) {
-        playerState.alive = false;
-        roundMessage += ` ${playerState.name} tumbled off the arena.`;
-      }
-    });
-
-    if (action !== 'jump' && Math.random() < 0.16) {
-      active.alive = false;
-      roundMessage += ` ${active.name} missed the landing!`;
-    }
-
-    const aliveCount = nextPlayers.filter((playerState) => playerState.alive).length;
-    return { nextPlayers, message: roundMessage, aliveCount };
-  };
-
-  const advanceToNextTurn = (activeSymbol: GameSymbol, nextPlayers: LeapOnPlayerState[]) => {
-    const survivors = nextPlayers.filter((playerState) => playerState.alive);
-    if (survivors.length === 0) {
-      return activeSymbol;
-    }
-    const symbols = survivors.map((playerState) => playerState.symbol);
-    const current = symbols.indexOf(activeSymbol);
-    if (current < 0 || current === symbols.length - 1) {
-      return symbols[0];
-    }
-    return symbols[current + 1];
-  };
-
-  const commitAction = (action: LeapOnAction) => {
-    if (!currentPlayer || !currentPlayer.alive || winner) {
+  const queueJump = () => {
+    if (winner) {
       return;
     }
-
-    const { nextPlayers, message: nextMessage, aliveCount } = updatePlayers(players, turn, action);
-    const nextTurn = advanceToNextTurn(turn, nextPlayers);
-    const nextWinner = aliveCount <= 1 ? nextPlayers.find((playerState) => playerState.alive)?.symbol ?? 'draw' : null;
-
-    setPlayers(nextPlayers);
-    setRound((value) => value + 1);
-    setMessage(nextMessage);
-    setTurn(nextWinner ? turn : nextTurn);
-    setWinner(nextWinner);
-  };
-
-  const handleAction = (action: LeapOnAction) => {
-    if (!isCurrentHuman || !currentPlayer || winner) {
-      return;
-    }
-    commitAction(action);
+    jumpQueuedRef.current = true;
   };
 
   const handleRematch = () => {
     setPlayers(createParticipants(player.name, mode));
-    setTurn('X');
-    setRound(1);
+    setOrbs(createLeapOrbs());
+    setTimeMs(0);
     setWinner(null);
-    setMessage('Ready to leap on!');
+    setMessage('Chain white-orb landings and stay outside the anchor.');
     lastReportedWinnerRef.current = null;
+    lastFrameTimeRef.current = null;
+    jumpQueuedRef.current = false;
   };
 
   useEffect(() => {
-    if (!currentPlayer || winner || !currentPlayer.isCpu) {
+    playersRef.current = players;
+  }, [players]);
+
+  useEffect(() => {
+    orbsRef.current = orbs;
+  }, [orbs]);
+
+  useEffect(() => {
+    if (winner) {
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
-      const cpuAction = chooseCpuAction(currentPlayer);
-      commitAction(cpuAction);
-    }, 700);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== 'Space') {
+        return;
+      }
+      event.preventDefault();
+      queueJump();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [winner]);
+
+  useEffect(() => {
+    if (winner) {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      return;
+    }
+
+    const step = (timestamp: number) => {
+      const previousTimestamp = lastFrameTimeRef.current ?? timestamp;
+      const deltaSeconds = Math.min(0.05, Math.max(0.001, (timestamp - previousTimestamp) / 1000));
+      lastFrameTimeRef.current = timestamp;
+
+      const nextOrbs = advanceLeapOrbsLive(orbsRef.current, deltaSeconds);
+      orbsRef.current = nextOrbs;
+      setOrbs(nextOrbs);
+      setTimeMs((value) => value + Math.round(deltaSeconds * 1000));
+
+      const nextPlayers = playersRef.current.map((playerState) => ({ ...playerState, action: null }));
+      let nextMessage: string | null = null;
+
+      nextPlayers.forEach((playerState) => {
+        if (!playerState.alive) {
+          return;
+        }
+
+        const previousAngle = playerState.angle;
+        playerState.angle = normalizeLeapAngle(playerState.angle + (44 + playerState.momentum * 6) * deltaSeconds);
+        playerState.radius = Math.max(0, playerState.radius - (4.8 + playerState.multiplier * 0.18) * deltaSeconds + playerState.momentum * 0.012);
+        playerState.momentum = Math.max(0, playerState.momentum - 0.36 * deltaSeconds);
+
+        if (playerState.angle < previousAngle && previousAngle - playerState.angle > 120) {
+          playerState.orbits += 1;
+          playerState.multiplier = Math.min(9, playerState.multiplier + 0.5);
+          playerState.score += Math.round(20 * playerState.multiplier);
+        }
+
+        const shouldJump = playerState.symbol === 'X'
+          ? jumpQueuedRef.current
+          : playerState.radius < 48 || Boolean(findLeapLandingOrb(nextOrbs, playerState, 'jump'));
+
+        if (shouldJump) {
+          playerState.action = 'jump';
+          const landingOrb = findLeapLandingOrb(nextOrbs, playerState, 'jump');
+          if (
+            landingOrb &&
+            (landingOrb.kind !== 'split' || isLeapSplitWhiteSide(landingOrb, landingOrb.angle))
+          ) {
+            playerState.angle = normalizeLeapAngle(landingOrb.angle);
+            playerState.lastAngle = playerState.angle;
+            playerState.radius = Math.min(92, Math.max(LEAP_ANCHOR_RADIUS + 10, landingOrb.radius + 6));
+            playerState.momentum = Math.min(12, playerState.momentum + 2.3);
+            playerState.stamina = Math.min(5, playerState.stamina + 1);
+            playerState.score += Math.round(16 * playerState.multiplier);
+            if (playerState.symbol === 'X') {
+              nextMessage = landingOrb.kind === 'split' ? 'Clean white-side split landing.' : 'White orb chained.';
+            }
+          } else {
+            playerState.radius = Math.max(0, playerState.radius - 7);
+            playerState.momentum = Math.max(0, playerState.momentum - 1.6);
+            playerState.stamina = Math.max(0, playerState.stamina - 1);
+            if (playerState.symbol === 'X') {
+              nextMessage = 'No landing window. The anchor pulls harder.';
+            }
+          }
+        }
+
+        const touchedOrb = getTouchedOrb(nextOrbs, playerState);
+        if (touchedOrb?.kind === 'hazard') {
+          playerState.alive = false;
+          playerState.eliminatedBy = 'black orb';
+        } else if (touchedOrb?.kind === 'split' && !isLeapSplitWhiteSide(touchedOrb, touchedOrb.angle)) {
+          playerState.alive = false;
+          playerState.eliminatedBy = 'black side';
+        } else if (playerState.radius <= LEAP_ANCHOR_RADIUS) {
+          playerState.alive = false;
+          playerState.eliminatedBy = 'central anchor';
+        }
+      });
+
+      jumpQueuedRef.current = false;
+
+      const survivors = nextPlayers.filter((playerState) => playerState.alive);
+      const nextWinner = survivors.length <= 1 ? survivors[0]?.symbol ?? 'draw' : null;
+
+      playersRef.current = nextPlayers;
+      setPlayers(nextPlayers);
+      if (nextMessage) {
+        setMessage(nextMessage);
+      }
+      if (nextWinner) {
+        setWinner(nextWinner);
+        setMessage(nextWinner === 'draw' ? 'Everyone was pulled in.' : `${survivors[0].name} outlasted the arena.`);
+        return;
+      }
+
+      animationFrameRef.current = window.requestAnimationFrame(step);
+    };
+
+    animationFrameRef.current = window.requestAnimationFrame(step);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
     };
-  }, [currentPlayer, winner, players]);
+  }, [winner]);
 
   useEffect(() => {
     if (!winner || lastReportedWinnerRef.current === winner) {
@@ -308,7 +454,6 @@ export function SoloLeapOnGame({
     });
   }, [gameType, mode, onMatchComplete, players, winner]);
 
-  const availableActions: LeapOnAction[] = ['jump', 'dash', 'block', 'wait'];
   const gameTitle = `${gameLabel} | ${mode === 'cpu' ? 'CPU Match' : 'Local Match'}`;
 
   return (
@@ -356,7 +501,7 @@ export function SoloLeapOnGame({
               </p>
               {players.map((playerState) => (
                 <p key={playerState.symbol} className="room-joined-line">
-                  <AiOutlinePlayCircle /> {playerState.name} — {playerState.alive ? 'Alive' : 'Out'} — Score {playerState.score}
+                  <AiOutlinePlayCircle /> {playerState.name} | {playerState.alive ? 'Alive' : 'Out'} | Score {playerState.score}
                 </p>
               ))}
             </div>
@@ -409,24 +554,44 @@ export function SoloLeapOnGame({
           <div className="leap-on-arena-board">
             <div className="leap-on-arena-status">
               <p>{message}</p>
-              <p>Round {round}</p>
+              <p>Time {(timeMs / 1000).toFixed(1)}s</p>
+            </div>
+
+            <div className="leap-orbit-stage" aria-label="Leap arena">
+              <div className="leap-anchor" />
+              <div className="leap-anchor-ring" />
+              {orbs.map((orb) => (
+                <span
+                  key={orb.id}
+                  className={`leap-orb leap-orb-${orb.kind}`}
+                  style={getOrbStyle(orb.angle, orb.radius, orb.spin)}
+                  title={orb.kind === 'safe' ? 'White orb' : orb.kind === 'hazard' ? 'Black orb' : 'Split orb'}
+                />
+              ))}
+              {players.map((playerState) => (
+                <span
+                  key={playerState.symbol}
+                  className={`leap-runner leap-runner-${playerState.symbol.toLowerCase()}${playerState.alive ? '' : ' leap-runner-out'}`}
+                  style={getPolarStyle(playerState.angle, playerState.radius)}
+                  title={`${playerState.name} ${playerState.alive ? 'alive' : 'eliminated'}`}
+                >
+                  {playerState.symbol}
+                </span>
+              ))}
             </div>
 
             <div className="leap-on-actions">
-              {availableActions.map((action) => (
-                <motion.button
-                  key={action}
-                  className="leap-on-action-btn"
-                  type="button"
-                  disabled={!isCurrentHuman || Boolean(winner) || !currentPlayer?.alive}
-                  onClick={() => handleAction(action)}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.96 }}
-                >
-                  <strong>{ACTION_LABELS[action]}</strong>
-                  <span>{ACTION_DESCRIPTIONS[action]}</span>
-                </motion.button>
-              ))}
+              <motion.button
+                className="leap-on-action-btn leap-on-action-btn-primary"
+                type="button"
+                disabled={Boolean(winner) || !players.find((playerState) => playerState.symbol === 'X')?.alive}
+                onClick={queueJump}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                <strong>Leap</strong>
+                <span>Space / tap when a white landing window lines up.</span>
+              </motion.button>
             </div>
 
             <div className="leap-on-score-grid">
@@ -445,6 +610,8 @@ export function SoloLeapOnGame({
                   <div className="leap-on-score-details">
                     <span>Score {playerState.score}</span>
                     <span>Stamina {playerState.stamina}</span>
+                    <span>Orbit x{playerState.multiplier.toFixed(1)}</span>
+                    <span>Momentum {playerState.momentum.toFixed(1)}</span>
                   </div>
                 </div>
               ))}

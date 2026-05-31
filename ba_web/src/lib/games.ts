@@ -87,10 +87,10 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'leap-on',
-    name: 'Leap On',
+    name: 'Leap',
     minPlayers: 1,
     maxPlayers: 4,
-    description: 'Jump, bounce, and knock rivals off the arena in a fast survival jump party. Score highest before you fall.',
+    description: 'Orbit a fixed central anchor, chain leaps between safe white orbs, avoid black hazards, and survive the inward pull.',
     rows: 1,
     columns: 1,
     connect: 0,
