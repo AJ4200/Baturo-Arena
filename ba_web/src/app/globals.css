@@ -4289,18 +4289,31 @@ h1 span:last-child {
 
 .motion-off .board-stage-card,
 .motion-off .board,
+.motion-off .solo-2048-shell,
 .motion-off .solo-2048-board,
+.motion-off .solo-sudoku-shell,
 .motion-off .solo-sudoku-board,
+.motion-off .solo-mines-shell,
 .motion-off .solo-mines-board,
+.motion-off .solo-memory-shell,
 .motion-off .solo-memory-board,
+.motion-off .solo-dino-shell,
 .motion-off .solo-dino-stage-wrap,
+.motion-off .solo-snake-shell,
 .motion-off .solo-snake-board,
+.motion-off .solo-space-shell,
 .motion-off .solo-space-stage-wrap,
+.motion-off .solo-brick-shell,
 .motion-off .solo-brick-stage-wrap,
+.motion-off .solo-neon-pong-shell,
 .motion-off .solo-neon-pong-stage-wrap,
+.motion-off .air-hockey-shell,
 .motion-off .air-hockey-stage-wrap,
+.motion-off .starfall-shell,
 .motion-off .tetris-stage-shell,
 .motion-off .starfall-stage-wrap,
+.motion-off .racing-shell,
+.motion-off .racing-stage-wrap,
 .motion-off .tetris-board,
 .motion-off .tetris-cell-filled,
 .motion-off .title-board-card,
@@ -5697,6 +5710,13 @@ h1 span:last-child {
   margin-bottom: 0.5rem;
 }
 
+.choose-game-layout-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
 .choose-game-search {
   flex: 1;
   min-width: 220px;
@@ -6250,6 +6270,20 @@ h1 span:last-child {
     radial-gradient(circle at 62% 72%, rgba(255, 240, 150, 0.9) 0 10px, transparent 11px),
     linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 26%),
     linear-gradient(145deg, #120d2f, #172452 56%, #f97316);
+}
+
+.choose-game-thumb-turbo-rush {
+  background:
+    radial-gradient(circle at 50% 76%, rgba(255, 255, 255, 0.92) 0 12px, transparent 13px),
+    linear-gradient(90deg, transparent 47%, rgba(255, 255, 255, 0.8) 47% 53%, transparent 53%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.62) 0 12px,
+      transparent 12px 30px
+    ),
+    linear-gradient(115deg, transparent 0 36%, rgba(45, 212, 191, 0.5) 36% 41%, transparent 41%),
+    radial-gradient(circle at 22% 28%, rgba(250, 204, 21, 0.72), transparent 22%),
+    linear-gradient(155deg, #09111f, #0f766e 48%, #db2777);
 }
 
 .choose-game-thumb-air-hockey {
@@ -8506,7 +8540,8 @@ h1 span:last-child {
 .solo-neon-pong-stage-wrap,
 .air-hockey-stage-wrap,
 .starfall-stage-wrap,
-.tetris-stage-shell {
+.tetris-stage-shell,
+.racing-stage-wrap {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.38);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -8982,7 +9017,8 @@ h1 span:last-child {
 }
 
 /* Per-game carousel thumbnails — add new games in this block + gameCarouselThumbnails.ts */
-.choose-game-carousel-card .choose-game-thumb-neon-pong {
+.choose-game-carousel-card .choose-game-thumb-neon-pong,
+.choose-game-option-card .choose-game-thumb-neon-pong {
   border: 3px solid #000;
   background:
     radial-gradient(circle at 50% 50%, #fff 0 8px, rgba(125, 211, 252, 0.95) 9px 11px, transparent 12px),
@@ -9001,11 +9037,13 @@ h1 span:last-child {
     0 0 18px rgba(125, 211, 252, 0.18);
 }
 
-.choose-game-carousel-card .choose-game-thumb-neon-pong > span {
+.choose-game-carousel-card .choose-game-thumb-neon-pong > span,
+.choose-game-option-card .choose-game-thumb-neon-pong > span {
   background: linear-gradient(160deg, rgba(28, 29, 64, 0.94), rgba(12, 88, 74, 0.92));
 }
 
-.choose-game-carousel-card .choose-game-thumb-leap-on {
+.choose-game-carousel-card .choose-game-thumb-leap-on,
+.choose-game-option-card .choose-game-thumb-leap-on {
   border: 3px solid #000;
   background:
     radial-gradient(circle at 50% 50%, #030303 0 12px, rgba(3, 3, 3, 0.78) 13px 17px, transparent 18px),
@@ -9020,7 +9058,8 @@ h1 span:last-child {
     0 0 18px rgba(13, 107, 102, 0.22);
 }
 
-.choose-game-carousel-card .choose-game-thumb-leap-on > span {
+.choose-game-carousel-card .choose-game-thumb-leap-on > span,
+.choose-game-option-card .choose-game-thumb-leap-on > span {
   background: linear-gradient(160deg, rgba(18, 33, 58, 0.94), rgba(124, 63, 29, 0.92));
 }
 
@@ -9058,6 +9097,549 @@ h1 span:last-child {
 
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.25);
   pointer-events: none;
+}
+
+.choose-game-layout-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.18rem;
+  background: rgba(255, 255, 255, 0.78);
+  color: #111;
+  text-shadow: none;
+}
+
+.choose-game-layout-btn {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.18rem 0.52rem;
+  background: transparent;
+  color: inherit;
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  text-shadow: none;
+  transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.choose-game-layout-btn svg {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.choose-game-layout-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.choose-game-layout-btn-active {
+  background: rgba(9, 62, 47, 0.92);
+  color: #fff;
+}
+
+.choose-game-browser-shell-list .choose-game-carousel-mask,
+.choose-game-browser-shell-grid .choose-game-carousel-mask {
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.choose-game-carousel-mask {
+  height: calc(var(--choose-carousel-card-size, 300px) + 2rem);
+  min-height: 252px;
+}
+
+.choose-game-layout-panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 0.12rem;
+  scrollbar-gutter: stable;
+}
+
+.choose-game-layout-panel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.58rem;
+}
+
+.choose-game-layout-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.choose-game-option-card {
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #000;
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 38%),
+    radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.32), transparent 34%),
+    linear-gradient(150deg, rgba(9, 20, 36, 0.9), rgba(12, 91, 73, 0.82));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 160ms ease, background 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.choose-game-option-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, transparent 0 54%, rgba(255, 255, 255, 0.08) 54% 64%, transparent 64%),
+    radial-gradient(circle at 94% 16%, rgba(255, 222, 118, 0.16), transparent 24%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.choose-game-option-card:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 10px 18px rgba(0, 0, 0, 0.28);
+}
+
+.choose-game-option-card:hover::after,
+.choose-game-option-card-active::after {
+  opacity: 1;
+}
+
+.choose-game-option-card-active {
+  transform: translateY(-2px);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 40%),
+    radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.4), transparent 35%),
+    linear-gradient(148deg, rgba(6, 30, 54, 0.94), rgba(19, 120, 84, 0.88));
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.2),
+    0 12px 22px rgba(0, 0, 0, 0.34);
+}
+
+.choose-game-option-card-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: stretch;
+  padding: 0.54rem;
+}
+
+.choose-game-option-card-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.52rem;
+  padding: 0.62rem;
+  min-height: 218px;
+}
+
+.choose-game-option-select {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  text-shadow: none;
+  cursor: pointer;
+}
+
+.choose-game-option-card-list .choose-game-option-select {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.choose-game-option-card-grid .choose-game-option-select {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.choose-game-option-art {
+  width: 100%;
+}
+
+.choose-game-option-card-list .choose-game-option-art {
+  height: 76px;
+}
+
+.choose-game-option-card-grid .choose-game-option-art {
+  height: 100px;
+}
+
+.choose-game-option-art .choose-game-thumb {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  align-items: flex-end;
+  justify-content: flex-end;
+  border-radius: 9px;
+  padding: 0.38rem;
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.18),
+    0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.choose-game-option-card .choose-game-thumb > span {
+  position: relative;
+  z-index: 2;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.16rem 0.42rem;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.choose-game-option-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.choose-game-option-copy strong {
+  font-size: 1rem;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+}
+
+.choose-game-option-copy span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.72rem;
+  line-height: 1.24;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.choose-game-option-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22rem;
+}
+
+.choose-game-option-pills small {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.16rem;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  padding: 0.08rem 0.34rem;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.choose-game-option-pills svg {
+  flex-shrink: 0;
+}
+
+.choose-game-option-play {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #111;
+  padding: 0.28rem 0.58rem;
+  font-size: 0.72rem;
+  text-shadow: none;
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.choose-game-option-card-list .choose-game-option-play {
+  align-self: center;
+  min-width: 4.6rem;
+}
+
+.choose-game-option-card-grid .choose-game-option-play {
+  width: 100%;
+}
+
+.choose-game-option-play:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.choose-game-option-play-active {
+  background: rgba(10, 44, 28, 0.92);
+  color: #fff;
+  text-shadow: var(--signature-shadow);
+}
+
+.choose-game-layout-btn:focus-visible,
+.choose-game-option-select:focus-visible,
+.choose-game-option-play:focus-visible,
+.choose-game-catalog-page-btn:focus-visible,
+.choose-game-page-dot:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.choose-game-catalog-stage {
+  --choose-catalog-stage-height: clamp(390px, 52vh, 540px);
+  min-height: var(--choose-catalog-stage-height);
+  display: flex;
+  flex-direction: column;
+  gap: 0.62rem;
+  border: 4px solid #000;
+  border-radius: 18px;
+  padding: 0.78rem;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(255, 255, 255, 0.28), transparent 42%),
+    linear-gradient(135deg, rgba(4, 19, 34, 0.16), rgba(6, 71, 62, 0.2)),
+    rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.choose-game-catalog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.choose-game-catalog-count {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.choose-game-catalog-count span {
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.22rem 0.58rem;
+  background: rgba(255, 255, 255, 0.82);
+  color: #111;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-shadow: none;
+}
+
+.choose-game-catalog-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.16rem;
+  background: rgba(255, 255, 255, 0.72);
+  text-shadow: none;
+}
+
+.choose-game-catalog-page-btn {
+  width: 1.85rem;
+  height: 1.85rem;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.08);
+  color: #111;
+  text-shadow: none;
+  transition: transform 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.choose-game-catalog-page-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(9, 62, 47, 0.9);
+  color: #fff;
+}
+
+.choose-game-catalog-page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.choose-game-catalog-dots {
+  max-width: min(32vw, 13rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+}
+
+.choose-game-page-status {
+  min-width: 3.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.14rem;
+  border-radius: 999px;
+  padding: 0.22rem 0.48rem;
+  background: rgba(9, 62, 47, 0.92);
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: var(--signature-shadow);
+}
+
+.choose-game-page-status small {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.7rem;
+}
+
+.choose-game-catalog-dots .choose-game-dot {
+  width: 8px;
+  height: 8px;
+  border-width: 1px;
+}
+
+.choose-game-catalog-stage .choose-game-layout-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  padding: 0.12rem 0.18rem 0.12rem 0.12rem;
+}
+
+.choose-game-catalog-stage-grid .choose-game-layout-panel-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.choose-game-catalog-empty {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.choose-game-catalog-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 2px solid rgba(0, 0, 0, 0.72);
+  border-radius: 10px;
+  padding: 0.58rem 0.68rem;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.4), transparent 58%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(229, 247, 237, 0.5));
+  color: #111;
+}
+
+.choose-game-catalog-summary > div {
+  min-width: 0;
+}
+
+.choose-game-catalog-summary strong {
+  display: block;
+  margin-bottom: 0.16rem;
+  font-size: 0.98rem;
+  letter-spacing: 0.03em;
+}
+
+.choose-game-catalog-summary p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  text-shadow: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+@media (max-width: 960px) {
+  .choose-game-layout-switch {
+    order: 2;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .choose-game-layout-toolbar {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .choose-game-layout-switch {
+    width: 100%;
+  }
+
+  .choose-game-layout-btn {
+    flex: 1;
+    padding-inline: 0.35rem;
+  }
+
+  .choose-game-option-card-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .choose-game-option-card-list .choose-game-option-select {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .choose-game-option-card-list .choose-game-option-play {
+    width: 100%;
+  }
+
+  .choose-game-layout-panel-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .choose-game-catalog-stage {
+    --choose-catalog-stage-height: clamp(430px, 62vh, 560px);
+  }
+
+  .choose-game-catalog-head,
+  .choose-game-catalog-summary {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .choose-game-catalog-pager {
+    justify-content: space-between;
+  }
+
+  .choose-game-catalog-dots {
+    max-width: none;
+    flex: 1;
+  }
+
+  .choose-game-catalog-summary .choose-game-play-now-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .choose-game-layout-btn span {
+    display: none;
+  }
+
+  .choose-game-layout-panel-grid {
+    grid-template-columns: 1fr;
+  }
 }
 .lobby-cpu-cta-main svg {
   font-size: 2rem;
@@ -9978,6 +10560,465 @@ h1 span:last-child {
   text-align: center;
   color: rgba(248, 250, 252, 0.92);
   line-height: 1.6;
+}
+
+.racing-shell {
+  width: min(100%, 1060px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.78rem;
+}
+
+.racing-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.58rem;
+}
+
+.racing-hud-card {
+  border: 3px solid #000;
+  border-radius: 10px;
+  padding: 0.62rem 0.72rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.3), transparent 54%),
+    linear-gradient(145deg, rgba(5, 16, 33, 0.86), rgba(13, 92, 82, 0.72));
+  color: #fff;
+  text-shadow: var(--signature-shadow);
+}
+
+.racing-hud-card span {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.racing-hud-card strong {
+  font-size: 1.08rem;
+  letter-spacing: 0.03em;
+}
+
+.racing-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  aspect-ratio: 920 / 560;
+  margin: 0 auto;
+  border: 5px solid #000;
+  border-radius: 18px;
+  padding: 0.7rem;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.22), transparent 28%),
+    radial-gradient(circle at 84% 16%, rgba(244, 114, 182, 0.22), transparent 30%),
+    linear-gradient(145deg, rgba(3, 7, 18, 0.94), rgba(17, 24, 39, 0.88));
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.4),
+    inset 0 0 38px rgba(34, 211, 238, 0.12);
+}
+
+.racing-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 3px solid rgba(0, 0, 0, 0.86);
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, rgba(8, 47, 73, 0.52), transparent 20% 80%, rgba(131, 24, 67, 0.44)),
+    linear-gradient(180deg, #061020 0%, #0b1220 46%, #111827 100%);
+}
+
+.racing-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 12%, rgba(45, 212, 191, 0.22) 13%, transparent 14% 86%, rgba(244, 114, 182, 0.22) 87%, transparent 88%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 2px, transparent 2px 32px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.racing-city {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18%;
+  opacity: 0.8;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0 8px, transparent 8px 26px),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.92) 0 18px, rgba(30, 41, 59, 0.92) 18px 36px);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 100%);
+}
+
+.racing-city-left {
+  left: 0;
+}
+
+.racing-city-right {
+  right: 0;
+}
+
+.racing-road {
+  position: absolute;
+  inset: 0 14%;
+  background:
+    linear-gradient(90deg, rgba(45, 212, 191, 0.35), transparent 4% 96%, rgba(244, 114, 182, 0.35)),
+    linear-gradient(90deg, #101827 0%, #172033 50%, #101827 100%);
+  clip-path: polygon(38% 0, 62% 0, 88% 100%, 12% 100%);
+}
+
+.racing-road-line {
+  position: absolute;
+  top: -18%;
+  bottom: -18%;
+  width: 3px;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0 30px, transparent 30px 66px);
+  animation: racing-road-scroll 0.82s linear infinite;
+  opacity: 0.78;
+}
+
+.racing-road-line-a {
+  left: 35%;
+}
+
+.racing-road-line-b {
+  left: 50%;
+}
+
+.racing-road-line-c {
+  left: 65%;
+}
+
+.motion-off .racing-road-line {
+  animation: none;
+}
+
+.racing-progress-rail {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: 0.82rem;
+  z-index: 8;
+  height: 0.56rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.racing-progress-rail span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22d3ee, #facc15, #fb7185);
+}
+
+.racing-boost-pad,
+.racing-traffic,
+.racing-car {
+  position: absolute;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+}
+
+.racing-boost-pad {
+  width: clamp(34px, 5.5vw, 54px);
+  height: clamp(48px, 7vw, 74px);
+  border: 2px solid #000;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent),
+    linear-gradient(160deg, rgba(250, 204, 21, 0.94), rgba(45, 212, 191, 0.88));
+  color: #111;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.28);
+}
+
+.racing-traffic {
+  width: clamp(40px, 6vw, 62px);
+  height: clamp(58px, 8vw, 86px);
+  border: 2px solid #000;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 30% 14%, rgba(255, 255, 255, 0.8) 0 4px, transparent 5px),
+    radial-gradient(circle at 70% 14%, rgba(255, 255, 255, 0.8) 0 4px, transparent 5px),
+    linear-gradient(160deg, #ef4444, #7f1d1d);
+  box-shadow: 0 10px 14px rgba(0, 0, 0, 0.25);
+}
+
+.racing-traffic span {
+  position: absolute;
+  inset: 20% 20% 52%;
+  border-radius: 7px;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.racing-car {
+  width: clamp(44px, 6.2vw, 64px);
+  height: clamp(68px, 9vw, 94px);
+  z-index: 6;
+  transition: filter 120ms ease;
+}
+
+.racing-car-body {
+  position: absolute;
+  inset: 0;
+  border: 3px solid #000;
+  border-radius: 15px 15px 10px 10px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.55), transparent 18%),
+    linear-gradient(160deg, var(--racing-car-color), #111827 92%);
+  box-shadow:
+    0 8px 14px rgba(0, 0, 0, 0.34),
+    0 0 18px color-mix(in srgb, var(--racing-car-color), transparent 55%);
+}
+
+.racing-car-local .racing-car-body {
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.42),
+    0 0 24px color-mix(in srgb, var(--racing-car-color), transparent 36%);
+}
+
+.racing-car-hit .racing-car-body {
+  filter: brightness(1.2) saturate(0.75);
+}
+
+.racing-car-leader .racing-car-name {
+  border-color: #facc15;
+}
+
+.racing-car-glass {
+  position: absolute;
+  inset: 20% 22% 48%;
+  border: 2px solid rgba(0, 0, 0, 0.55);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(224, 242, 254, 0.88), rgba(14, 116, 144, 0.56));
+}
+
+.racing-car-light {
+  position: absolute;
+  bottom: 8px;
+  width: 9px;
+  height: 6px;
+  border-radius: 999px;
+  background: #fef3c7;
+  box-shadow: 0 0 8px #fde68a;
+}
+
+.racing-car-light-left {
+  left: 13px;
+}
+
+.racing-car-light-right {
+  right: 13px;
+}
+
+.racing-car-flame {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  width: 22px;
+  height: 34px;
+  border-radius: 999px 999px 45% 45%;
+  background: linear-gradient(180deg, #fef3c7, #fb7185 60%, transparent);
+  transform: translateX(-50%);
+}
+
+.racing-car-name {
+  position: absolute;
+  left: 50%;
+  top: -1.35rem;
+  transform: translateX(-50%);
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1.5px solid rgba(255, 255, 255, 0.58);
+  border-radius: 999px;
+  padding: 0.08rem 0.34rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.58rem;
+  text-shadow: var(--signature-shadow);
+}
+
+.racing-stage-badges {
+  position: absolute;
+  top: 0.72rem;
+  left: 0.72rem;
+  right: 0.72rem;
+  z-index: 9;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.racing-stage-badges span {
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  background: rgba(255, 255, 255, 0.84);
+  color: #111;
+  font-size: 0.68rem;
+  text-shadow: none;
+}
+
+.racing-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 7, 18, 0.62);
+  backdrop-filter: blur(4px);
+}
+
+.racing-message {
+  width: min(92%, 430px);
+  border: 3px solid #000;
+  border-radius: 14px;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.34), transparent 54%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(204, 251, 241, 0.86));
+  color: #111;
+  text-align: center;
+}
+
+.racing-status-pill {
+  display: inline-flex;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.16rem 0.52rem;
+  background: rgba(17, 24, 39, 0.88);
+  color: #fff;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.racing-status-pill-win {
+  background: rgba(10, 92, 58, 0.92);
+}
+
+.racing-message h2 {
+  margin: 0.52rem 0 0.26rem;
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+}
+
+.racing-message p {
+  margin-bottom: 0.75rem;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  text-shadow: none;
+}
+
+.racing-message-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.racing-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 0.44rem 0.75rem;
+  background: rgba(10, 44, 28, 0.92);
+  color: #fff;
+  text-shadow: var(--signature-shadow);
+}
+
+.racing-action-btn-ghost {
+  background: rgba(255, 255, 255, 0.86);
+  color: #111;
+  text-shadow: none;
+}
+
+.racing-inline-hint {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  text-align: center;
+  text-shadow: var(--signature-shadow);
+}
+
+@keyframes racing-road-scroll {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(66px);
+  }
+}
+
+@media (max-width: 960px) {
+  .racing-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .racing-stage-wrap {
+    width: 100%;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .racing-stage-wrap {
+    aspect-ratio: 3 / 4;
+  }
+
+  .racing-road {
+    inset: 0 6%;
+    clip-path: polygon(32% 0, 68% 0, 96% 100%, 4% 100%);
+  }
+
+  .racing-city {
+    width: 9%;
+  }
+
+  .racing-stage-badges {
+    align-items: flex-start;
+    flex-direction: column;
+    right: auto;
+    max-width: min(78%, 360px);
+  }
+
+  .racing-stage-badges span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 460px) {
+  .racing-hud {
+    gap: 0.38rem;
+  }
+
+  .racing-hud-card {
+    padding: 0.48rem 0.52rem;
+  }
+
+  .racing-hud-card strong {
+    font-size: 0.94rem;
+  }
+
+  .racing-car-name {
+    max-width: 4.8rem;
+  }
 }
 
 @keyframes starfallNebulaDrift {

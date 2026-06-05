@@ -16,6 +16,7 @@ import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBrea
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
+import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -184,6 +185,25 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onToggleAnimations={onToggleAnimations}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'turbo-rush') {
+    return (
+      <RacingArenaGame
+        player={player}
+        mode={mode}
+        roomCode={roomCode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+        offlineParticipantNames={offlineParticipantNames}
+        offlineParticipantCount={offlineParticipantCount}
       />
     );
   }

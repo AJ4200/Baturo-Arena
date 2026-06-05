@@ -23,7 +23,8 @@ export type GameType =
   | 'air-hockey'
   | 'neon-pong'
   | 'tetris'
-  | 'starfall-survivor';
+  | 'starfall-survivor'
+  | 'turbo-rush';
 
 export type GameDefinition = {
   id: GameType;
@@ -53,7 +54,8 @@ export type GameDefinition = {
     | 'solo-neon-pong'
     | 'solo-tetris'
     | 'solo-starfall'
-    | 'air-hockey';
+    | 'air-hockey'
+    | 'racing';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -72,6 +74,7 @@ export type GameDefinition = {
     | 'tetris-score'
     | 'starfall-survive'
     | 'air-hockey-score'
+    | 'race-finish'
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

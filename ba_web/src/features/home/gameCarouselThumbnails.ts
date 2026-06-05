@@ -27,6 +27,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'neon-pong': { label: 'NEON', className: 'choose-game-thumb-neon-pong' },
   tetris: { label: 'TETRIS', className: 'choose-game-thumb-tetris' },
   'starfall-survivor': { label: 'STARFALL', className: 'choose-game-thumb-starfall-survivor' },
+  'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
 };
 
 export const getGameCarouselThumbnail = (gameType: GameType) => GAME_CAROUSEL_THUMBNAILS[gameType];

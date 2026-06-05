@@ -268,6 +268,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'turbo-rush',
+    name: 'Turbo Rush',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A realtime neon street race with boost pads, traffic hazards, live rivals, and a sprint to the finish line.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'racing',
+    winCondition: 'race-finish',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -449,6 +463,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
+    game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -499,6 +514,7 @@ export const applyMove = (
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'air-hockey' ||
+    game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -646,7 +662,8 @@ export const evaluateBoard = (
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
-    game.winCondition === 'air-hockey-score'
+    game.winCondition === 'air-hockey-score' ||
+    game.winCondition === 'race-finish'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;

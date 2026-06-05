@@ -266,6 +266,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'turbo-rush': {
+    id: 'turbo-rush',
+    name: 'Turbo Rush',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A realtime neon street race with boost pads, traffic hazards, live rivals, and a sprint to the finish line.',
+    moveMode: 'racing',
+    winCondition: 'race-finish',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -533,7 +547,8 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
-    rules.winCondition === 'air-hockey-score'
+    rules.winCondition === 'air-hockey-score' ||
+    rules.winCondition === 'race-finish'
   ) {
     return null;
   }
@@ -687,6 +702,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'air-hockey' ||
+    rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -761,6 +777,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'air-hockey' ||
+    rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'
   ) {
