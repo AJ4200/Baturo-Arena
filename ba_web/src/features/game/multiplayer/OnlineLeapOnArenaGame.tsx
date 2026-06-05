@@ -87,19 +87,6 @@ const readValidAuthToken = (): string | null => {
   return token;
 };
 
-const getPlayerAvatar = (symbol: GameSymbol, name: string) => {
-  switch (symbol) {
-    case 'O':
-      return <PlayerO pieceLabel={name} alias={name} picture={`https://robohash.org/${name}`} wins={0} losses={0} draws={0} />;
-    case 'Y':
-      return <PlayerY pieceLabel={name} alias={name} picture={`https://robohash.org/${name}`} wins={0} losses={0} draws={0} />;
-    case 'Z':
-      return <PlayerZ pieceLabel={name} alias={name} picture={`https://robohash.org/${name}`} wins={0} losses={0} draws={0} />;
-    default:
-      return <PlayerX pieceLabel={name} alias={name} picture={`https://robohash.org/${name}`} wins={0} losses={0} draws={0} />;
-  }
-};
-
 const isLeapOnBoard = (board: unknown): board is LeapOnBoardState => {
   return typeof board === 'object' && board !== null && (board as LeapOnBoardState).mode === 'leap-on';
 };
@@ -380,6 +367,52 @@ export function OnlineLeapOnArenaGame({
 
   const statusIcon = room?.winner ? <AiOutlineCheckCircle /> : room?.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineClockCircle />;
 
+  const symbolPositionMap: Record<GameSymbol, 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'> = {
+    X: 'top-left',
+    O: 'top-right',
+    Y: 'bottom-left',
+    Z: 'bottom-right',
+  };
+
+  const renderPlayerCard = (state: LeapOnBoardState['players'][number]) => {
+
+    const position = symbolPositionMap[state.symbol];
+    const result = (room?.winner && room.winner !== 'draw'
+      ? room.winner === state.symbol
+        ? 'winner'
+        : 'loser'
+      : 'neutral') as 'winner' | 'loser' | 'neutral';
+
+    const mood = state.symbol === yourSymbol
+      ? <span className="player-state you">You</span>
+      : state.alive
+        ? <span className="player-state ready">Alive</span>
+        : <span className="player-state">Out</span>;
+
+    const playerProps = {
+      alias: state.name,
+      picture: `https://robohash.org/${state.name}`,
+      pieceLabel: state.symbol,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      mood,
+      result,
+      position,
+    };
+
+    switch (state.symbol) {
+      case 'O':
+        return <PlayerO key={state.symbol} {...playerProps} />;
+      case 'Y':
+        return <PlayerY key={state.symbol} {...playerProps} />;
+      case 'Z':
+        return <PlayerZ key={state.symbol} {...playerProps} />;
+      default:
+        return <PlayerX key={state.symbol} {...playerProps} />;
+    }
+  };
+
   return (
     <>
       <div>
@@ -539,27 +572,7 @@ export function OnlineLeapOnArenaGame({
               </motion.button>
             </div>
 
-            <div className="leap-on-player-grid">
-              {boardState?.players.map((state) => (
-                <div
-                  key={state.symbol}
-                  className={`leap-on-player-card${state.alive ? '' : ' leap-on-player-card-eliminated'}`}
-                >
-                  <div className="leap-on-player-card-head">
-                    {getPlayerAvatar(state.symbol, state.name)}
-                    <div>
-                      <p>{state.name}</p>
-                      <p>{state.alive ? 'Alive' : 'Eliminated'}</p>
-                    </div>
-                  </div>
-                  <div className="leap-on-player-stats">
-                    <span>Score {state.score}</span>
-                    <span>Orbit x{state.multiplier.toFixed(1)}</span>
-                    <span>Momentum {state.momentum.toFixed(1)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {boardState?.players.map(renderPlayerCard)}
 
             {message ? <p className="leap-on-message">{message}</p> : null}
           </div>

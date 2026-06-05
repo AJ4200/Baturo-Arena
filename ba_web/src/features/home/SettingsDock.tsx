@@ -62,7 +62,8 @@ export function SettingsDock(props: SettingsDockProps) {
               aria-label={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
               title={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
             >
-              {props.isMusicMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
+              <AiOutlineSound />
+              <span className="settings-dock-icon-label">Music</span>
             </button>
             <button
               className={classnames('settings-dock-icon-btn', !props.isUISoundsMuted && 'settings-dock-icon-btn-active')}
@@ -71,7 +72,8 @@ export function SettingsDock(props: SettingsDockProps) {
               aria-label={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
               title={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
             >
-              {props.isUISoundsMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
+              <AiOutlineSound />
+              <span className="settings-dock-icon-label">Sound</span>
             </button>
             <button
               className={classnames('settings-dock-icon-btn', props.enableAnimations && 'settings-dock-icon-btn-active')}
@@ -81,9 +83,11 @@ export function SettingsDock(props: SettingsDockProps) {
               title={props.enableAnimations ? 'Disable motion' : 'Enable motion'}
             >
               <AiOutlineThunderbolt />
+              <span className="settings-dock-icon-label">Motion</span>
             </button>
             <button className="settings-dock-icon-btn" type="button" onClick={props.onSaveNow} aria-label="Save local backup" title="Save local backup">
               <AiOutlineSave />
+              <span className="settings-dock-icon-label">Save</span>
             </button>
             <button
               className="settings-dock-icon-btn"
@@ -94,39 +98,31 @@ export function SettingsDock(props: SettingsDockProps) {
               title="Load local backup"
             >
               <AiOutlineCloudDownload />
+              <span className="settings-dock-icon-label">Load</span>
             </button>
             <button className="settings-dock-icon-btn" type="button" onClick={props.onResetPreferences} aria-label="Reset preferences" title="Reset preferences">
               <AiOutlineReload />
+              <span className="settings-dock-icon-label">Reset</span>
             </button>
           </div>
 
-          <label className="settings-dock-compact-control">
-            <span>Volume</span>
-            <input
-              className="settings-slider"
-              type="range"
-              min={0}
-              max={100}
-              step={5}
-              value={props.musicVolume}
-              onChange={(event) => props.onMusicVolumeChange(Number(event.target.value))}
-              aria-label="Music volume"
-            />
-            <strong>{props.musicVolume}%</strong>
-          </label>
-
-          <label className="settings-dock-compact-control">
+          <label className="settings-dock-compact-control settings-dock-cpu-control">
             <span>CPU</span>
-            <select
-              className="settings-select"
-              value={props.cpuDifficulty}
-              onChange={(event) => props.onCpuDifficultyChange(event.target.value as CpuDifficulty)}
-              aria-label="CPU difficulty"
-            >
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
-            </select>
+            <div className="settings-dock-cpu-tab-row" role="tablist" aria-label="CPU difficulty">
+              {(['easy', 'medium', 'hard'] as CpuDifficulty[]).map((difficultyOption) => (
+                <button
+                  key={difficultyOption}
+                  type="button"
+                  role="tab"
+                  aria-selected={props.cpuDifficulty === difficultyOption}
+                  className={classnames('settings-dock-tab', props.cpuDifficulty === difficultyOption && 'settings-dock-tab-active')}
+                  onClick={() => props.onCpuDifficultyChange(difficultyOption)}
+                  title={`Set CPU difficulty to ${difficultyOption}`}
+                >
+                  {difficultyOption}
+                </button>
+              ))}
+            </div>
           </label>
 
           <p className="settings-dock-save-meta">

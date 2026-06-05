@@ -11,6 +11,7 @@ interface PlayerXProps {
   draws: number;
   mood: React.ReactNode;
   result?: "winner" | "loser" | "neutral";
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 const PlayerX: React.FC<PlayerXProps> = ({
@@ -22,8 +23,16 @@ const PlayerX: React.FC<PlayerXProps> = ({
   draws,
   mood,
   result = "neutral",
+  position,
 }) => (
-  <div className={classnames("fixed left-10 flex-col", "player plx", `player-result-${result}`)}>
+  <div
+    className={classnames(
+      position ? `player-position-${position}` : 'fixed left-10',
+      'flex-col',
+      'player plx',
+      `player-result-${result}`
+    )}
+  >
     <div className="player-top">
       <img src={picture} alt={`${alias}'s Picture`} className="player-picture" />
       <div className="player-identity">

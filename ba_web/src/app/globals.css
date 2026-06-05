@@ -2226,6 +2226,7 @@ h1 span:last-child {
   aspect-ratio: 1;
   display: inline-grid;
   place-items: center;
+  gap: 0.25rem;
   border: 3px solid #000;
   border-radius: 12px;
   background:
@@ -2235,6 +2236,43 @@ h1 span:last-child {
   font-size: 1.12rem;
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.42);
   transition: transform 140ms ease, filter 140ms ease, opacity 140ms ease;
+}
+
+.settings-dock-icon-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.86;
+}
+
+.settings-dock-cpu-tab-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.settings-dock-tab {
+  min-width: 0;
+  padding: 0.4rem 0.7rem;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #152d3f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+
+.settings-dock-tab:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.settings-dock-tab-active {
+  border-color: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(145deg, rgba(55, 163, 102, 0.98), rgba(17, 94, 121, 0.96));
+  color: #fff;
 }
 
 .settings-dock-icon-btn:hover:not(:disabled) {
@@ -4708,6 +4746,34 @@ h1 span:last-child {
   animation: playerAnimation 5s infinite;
   transition: scale 260ms ease, filter 260ms ease, opacity 260ms ease,
     box-shadow 260ms ease;
+}
+
+.player-position-top-left,
+.player-position-top-right,
+.player-position-bottom-left,
+.player-position-bottom-right {
+  position: fixed;
+  z-index: 93;
+}
+
+.player-position-top-left {
+  top: 1rem;
+  left: 1rem;
+}
+
+.player-position-top-right {
+  top: 1rem;
+  right: 1rem;
+}
+
+.player-position-bottom-left {
+  bottom: 1rem;
+  left: 1rem;
+}
+
+.player-position-bottom-right {
+  bottom: 1rem;
+  right: 1rem;
 }
 
 .player,

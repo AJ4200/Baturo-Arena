@@ -126,19 +126,6 @@ const getOrbStyle = (angle: number, radius: number, spin: number): React.CSSProp
   '--leap-spin': `${spin}deg`,
 } as React.CSSProperties);
 
-const getPlayerVisual = (player: LeapOnPlayerState) => {
-  switch (player.symbol) {
-    case 'O':
-      return <PlayerO pieceLabel={player.name} alias={player.name} picture={`https://robohash.org/${player.name}`} wins={0} losses={0} draws={0} />;
-    case 'Y':
-      return <PlayerY pieceLabel={player.name} alias={player.name} picture={`https://robohash.org/${player.name}`} wins={0} losses={0} draws={0} />;
-    case 'Z':
-      return <PlayerZ pieceLabel={player.name} alias={player.name} picture={`https://robohash.org/${player.name}`} wins={0} losses={0} draws={0} />;
-    default:
-      return <PlayerX pieceLabel={player.name} alias={player.name} picture={`https://robohash.org/${player.name}`} wins={0} losses={0} draws={0} />;
-  }
-};
-
 const getOpponentLabels = (mode: GameMode) => {
   if (mode === 'cpu') {
     return ['CPU Rebound', 'CPU Drift', 'CPU Smash'];
@@ -267,6 +254,7 @@ export function SoloLeapOnGame({
   const [timeMs, setTimeMs] = useState(0);
   const [winner, setWinner] = useState<GameSymbol | 'draw' | null>(null);
   const [message, setMessage] = useState('Chain white-orb landings and stay outside the anchor.');
+  const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const lastReportedWinnerRef = useRef<GameSymbol | 'draw' | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
@@ -349,7 +337,7 @@ export function SoloLeapOnGame({
       setOrbs(nextOrbs);
       setTimeMs((value) => value + Math.round(deltaSeconds * 1000));
 
-      const nextPlayers = playersRef.current.map((playerState) => ({ ...playerState, action: null }));
+      const nextPlayers = playersRef.current.map((playerState): LeapOnPlayerState => ({ ...playerState, action: null }));
       let nextMessage: string | null = null;
 
       nextPlayers.forEach((playerState) => {
@@ -414,16 +402,18 @@ export function SoloLeapOnGame({
       jumpQueuedRef.current = false;
 
       const survivors = nextPlayers.filter((playerState) => playerState.alive);
-      const nextWinner = survivors.length <= 1 ? survivors[0]?.symbol ?? 'draw' : null;
+      const winnerSymbol = survivors[0]?.symbol;
+      const isDraw = survivors.length <= 1 && !winnerSymbol;
 
       playersRef.current = nextPlayers;
       setPlayers(nextPlayers);
       if (nextMessage) {
         setMessage(nextMessage);
       }
-      if (nextWinner) {
+      if (survivors.length <= 1) {
+        const nextWinner: GameSymbol | 'draw' = isDraw ? 'draw' : winnerSymbol!;
         setWinner(nextWinner);
-        setMessage(nextWinner === 'draw' ? 'Everyone was pulled in.' : `${survivors[0].name} outlasted the arena.`);
+        setMessage(isDraw ? 'Everyone was pulled in.' : `${survivors[0].name} outlasted the arena.`);
         return;
       }
 
@@ -456,6 +446,57 @@ export function SoloLeapOnGame({
 
   const gameTitle = `${gameLabel} | ${mode === 'cpu' ? 'CPU Match' : 'Local Match'}`;
 
+  const symbolPositionMap: Record<GameSymbol, 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'> = {
+    X: 'top-left',
+    O: 'top-right',
+    Y: 'bottom-left',
+    Z: 'bottom-right',
+  };
+
+  const renderPlayerCard = (playerState: LeapOnPlayerState) => {
+    const position = symbolPositionMap[playerState.symbol];
+    const result = (winner && winner !== 'draw'
+      ? winner === playerState.symbol
+        ? 'winner'
+        : 'loser'
+      : 'neutral') as 'winner' | 'loser' | 'neutral';
+
+    const mood = winner
+      ? playerState.symbol === winner
+        ? <span className="player-state winner">Winner</span>
+        : playerState.alive
+          ? <span className="player-state ready">Alive</span>
+          : <span className="player-state">Out</span>
+      : playerState.symbol === 'X'
+        ? <span className="player-state you">You</span>
+        : playerState.alive
+          ? <span className="player-state ready">Alive</span>
+          : <span className="player-state">Out</span>;
+
+    const playerProps = {
+      alias: playerState.name,
+      picture: `https://robohash.org/${playerState.name}`,
+      pieceLabel: playerState.symbol === 'X' ? 'You' : playerState.symbol,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      mood,
+      result,
+      position,
+    };
+
+    switch (playerState.symbol) {
+      case 'O':
+        return <PlayerO key={playerState.symbol} {...playerProps} />;
+      case 'Y':
+        return <PlayerY key={playerState.symbol} {...playerProps} />;
+      case 'Z':
+        return <PlayerZ key={playerState.symbol} {...playerProps} />;
+      default:
+        return <PlayerX key={playerState.symbol} {...playerProps} />;
+    }
+  };
+
   return (
     <>
       <div>
@@ -470,24 +511,38 @@ export function SoloLeapOnGame({
 
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
-          <div className="room-float-card">
-            <div className="room-float-header">
-              <span className="room-float-anchor">
-                <AiOutlineDrag /> drag
-              </span>
-              <span className="room-float-title">
-                <AiOutlineInfoCircle className="room-float-title-icon" /> {gameTitle}
-              </span>
+          <div className={`room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+            {isInfoCardCollapsed ? (
               <button
-                className="room-float-toggle-btn"
+                className="room-float-collapsed-center"
                 type="button"
-                onClick={onLeave}
-                aria-label="Leave"
-                title="Leave"
+                onClick={() => setIsInfoCardCollapsed(false)}
+                aria-label="Expand game info"
+                title="Expand game info"
               >
-                <AiOutlineArrowDown />
+                <AiOutlineInfoCircle />
               </button>
-            </div>
+            ) : (
+              <>
+                <div className="room-float-header">
+                  <span className="room-float-anchor">
+                    <AiOutlineDrag /> drag
+                  </span>
+                  <span className="room-float-title">
+                    <AiOutlineInfoCircle className="room-float-title-icon" /> {gameTitle}
+                  </span>
+                  <button
+                    className="room-float-toggle-btn"
+                    type="button"
+                    onClick={() => setIsInfoCardCollapsed(true)}
+                    aria-label="Collapse game info"
+                    title="Collapse game info"
+                  >
+                    <AiOutlineArrowDown />
+                  </button>
+                </div>
+              </>
+            )}
 
             <div className="room-score-strip">
               <span className="room-float-line">
@@ -594,28 +649,7 @@ export function SoloLeapOnGame({
               </motion.button>
             </div>
 
-            <div className="leap-on-score-grid">
-              {players.map((playerState) => (
-                <div
-                  key={playerState.symbol}
-                  className={`leap-on-score-card${playerState.alive ? '' : ' leap-on-score-card-eliminated'}`}
-                >
-                  <div className="leap-on-score-card-header">
-                    {getPlayerVisual(playerState)}
-                    <div>
-                      <p>{playerState.name}</p>
-                      <p>{playerState.alive ? 'Alive' : 'Eliminated'}</p>
-                    </div>
-                  </div>
-                  <div className="leap-on-score-details">
-                    <span>Score {playerState.score}</span>
-                    <span>Stamina {playerState.stamina}</span>
-                    <span>Orbit x{playerState.multiplier.toFixed(1)}</span>
-                    <span>Momentum {playerState.momentum.toFixed(1)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {players.map(renderPlayerCard)}
           </div>
         </div>
       </div>

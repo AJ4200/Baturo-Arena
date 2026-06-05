@@ -506,7 +506,7 @@ export const applyMove = (
   }
 
   if (game.moveMode === 'checkers') {
-    if (typeof move !== 'object' || move === null) {
+    if (typeof move !== 'object' || move === null || 'action' in move) {
       return [...board];
     }
     const owner = symbol.startsWith('O') ? 'O' : 'X';

@@ -11,6 +11,7 @@ interface PlayerOProps {
   draws: number;
   mood: React.ReactNode;
   result?: "winner" | "loser" | "neutral";
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 const PlayerO: React.FC<PlayerOProps> = ({
@@ -22,8 +23,16 @@ const PlayerO: React.FC<PlayerOProps> = ({
   draws,
   mood,
   result = "neutral",
+  position,
 }) => (
-  <div className={classnames("fixed right-10 flex-col", "player plo", `player-result-${result}`)}>
+  <div
+    className={classnames(
+      position ? `player-position-${position}` : 'fixed right-10',
+      'flex-col',
+      'player plo',
+      `player-result-${result}`
+    )}
+  >
     <div className="player-top">
       <img src={picture} alt={`${alias}'s Picture`} className="player-picture" />
       <div className="player-identity">
