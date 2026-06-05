@@ -2217,13 +2217,37 @@ h1 span:last-child {
 
 .settings-dock-quick-row {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto repeat(3, minmax(0, 1fr));
   gap: 0.42rem;
+  align-items: center;
+}
+
+.settings-dock-quick-item {
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+}
+
+.settings-dock-quick-divider {
+  width: 0.5rem;
+  height: 100%;
+  justify-self: center;
+  align-self: stretch;
+  display: inline-grid;
+}
+
+.settings-dock-quick-divider::before {
+  content: '';
+  width: 0;
+  height: 100%;
+  border-right: 1px dotted rgba(255, 255, 255, 0.75);
+  align-self: center;
 }
 
 .settings-dock-icon-btn {
   width: 100%;
   aspect-ratio: 1;
+  position: relative;
   display: inline-grid;
   place-items: center;
   gap: 0.25rem;
@@ -2238,6 +2262,23 @@ h1 span:last-child {
   transition: transform 140ms ease, filter 140ms ease, opacity 140ms ease;
 }
 
+.settings-dock-icon-state {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.settings-dock-icon-state-active {
+  background: #7df3a1;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
 .settings-dock-icon-label {
   font-size: 0.62rem;
   text-transform: uppercase;
@@ -2246,31 +2287,35 @@ h1 span:last-child {
 }
 
 .settings-dock-cpu-tab-row {
-  display: flex;
+  display: inline-flex;
+  justify-content: center;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  padding: 0.16rem;
+  background: rgba(17, 29, 45, 0.64);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
 }
 
 .settings-dock-tab {
-  min-width: 0;
-  padding: 0.4rem 0.7rem;
-  border: 2px solid transparent;
+  min-width: 3.4rem;
+  padding: 0.36rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #152d3f;
-  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
 }
 
 .settings-dock-tab:hover:not(:disabled) {
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .settings-dock-tab-active {
-  border-color: rgba(0, 0, 0, 0.6);
+  border-color: rgba(125, 243, 161, 0.9);
   background: linear-gradient(145deg, rgba(55, 163, 102, 0.98), rgba(17, 94, 121, 0.96));
   color: #fff;
 }

@@ -55,60 +55,106 @@ export function SettingsDock(props: SettingsDockProps) {
 
         <div className="settings-dock-body">
           <div className="settings-dock-quick-row" aria-label="Quick setting toggles">
-            <button
-              className={classnames('settings-dock-icon-btn', !props.isMusicMuted && 'settings-dock-icon-btn-active')}
-              type="button"
-              onClick={props.onToggleMusic}
-              aria-label={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
-              title={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
-            >
-              <AiOutlineSound />
+            <div className="settings-dock-quick-item">
+              <button
+                className={classnames('settings-dock-icon-btn', !props.isMusicMuted && 'settings-dock-icon-btn-active')}
+                type="button"
+                onClick={props.onToggleMusic}
+                aria-label={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
+                title={props.isMusicMuted ? 'Unmute music' : 'Mute music'}
+              >
+                <span
+                  className={classnames(
+                    'settings-dock-icon-state',
+                    !props.isMusicMuted && 'settings-dock-icon-state-active'
+                  )}
+                  aria-hidden="true"
+                />
+                <AiOutlineSound />
+              </button>
               <span className="settings-dock-icon-label">Music</span>
-            </button>
-            <button
-              className={classnames('settings-dock-icon-btn', !props.isUISoundsMuted && 'settings-dock-icon-btn-active')}
-              type="button"
-              onClick={props.onToggleUISounds}
-              aria-label={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
-              title={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
-            >
-              <AiOutlineSound />
-              <span className="settings-dock-icon-label">Sound</span>
-            </button>
-            <button
-              className={classnames('settings-dock-icon-btn', props.enableAnimations && 'settings-dock-icon-btn-active')}
-              type="button"
-              onClick={props.onToggleAnimations}
-              aria-label={props.enableAnimations ? 'Disable motion' : 'Enable motion'}
-              title={props.enableAnimations ? 'Disable motion' : 'Enable motion'}
-            >
-              <AiOutlineThunderbolt />
+            </div>
+            <div className="settings-dock-quick-item">
+              <button
+                className={classnames('settings-dock-icon-btn', !props.isUISoundsMuted && 'settings-dock-icon-btn-active')}
+                type="button"
+                onClick={props.onToggleUISounds}
+                aria-label={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
+                title={props.isUISoundsMuted ? 'Enable UI sounds' : 'Mute UI sounds'}
+              >
+                <span
+                  className={classnames(
+                    'settings-dock-icon-state',
+                    !props.isUISoundsMuted && 'settings-dock-icon-state-active'
+                  )}
+                  aria-hidden="true"
+                />
+                <AiOutlineSound />
+              </button>
+              <span className="settings-dock-icon-label">UI</span>
+            </div>
+            <div className="settings-dock-quick-item">
+              <button
+                className={classnames('settings-dock-icon-btn', props.enableAnimations && 'settings-dock-icon-btn-active')}
+                type="button"
+                onClick={props.onToggleAnimations}
+                aria-label={props.enableAnimations ? 'Disable motion' : 'Enable motion'}
+                title={props.enableAnimations ? 'Disable motion' : 'Enable motion'}
+              >
+                <span
+                  className={classnames(
+                    'settings-dock-icon-state',
+                    props.enableAnimations && 'settings-dock-icon-state-active'
+                  )}
+                  aria-hidden="true"
+                />
+                <AiOutlineThunderbolt />
+              </button>
               <span className="settings-dock-icon-label">Motion</span>
-            </button>
-            <button className="settings-dock-icon-btn" type="button" onClick={props.onSaveNow} aria-label="Save local backup" title="Save local backup">
-              <AiOutlineSave />
+            </div>
+            <div className="settings-dock-quick-divider" aria-hidden="true" />
+            <div className="settings-dock-quick-item">
+              <button
+                className="settings-dock-icon-btn"
+                type="button"
+                onClick={props.onSaveNow}
+                aria-label="Save local backup"
+                title="Save local backup"
+              >
+                <AiOutlineSave />
+              </button>
               <span className="settings-dock-icon-label">Save</span>
-            </button>
-            <button
-              className="settings-dock-icon-btn"
-              type="button"
-              disabled={!props.hasLocalSave}
-              onClick={props.onLoadSave}
-              aria-label="Load local backup"
-              title="Load local backup"
-            >
-              <AiOutlineCloudDownload />
+            </div>
+            <div className="settings-dock-quick-item">
+              <button
+                className="settings-dock-icon-btn"
+                type="button"
+                disabled={!props.hasLocalSave}
+                onClick={props.onLoadSave}
+                aria-label="Load local backup"
+                title="Load local backup"
+              >
+                <AiOutlineCloudDownload />
+              </button>
               <span className="settings-dock-icon-label">Load</span>
-            </button>
-            <button className="settings-dock-icon-btn" type="button" onClick={props.onResetPreferences} aria-label="Reset preferences" title="Reset preferences">
-              <AiOutlineReload />
+            </div>
+            <div className="settings-dock-quick-item">
+              <button
+                className="settings-dock-icon-btn"
+                type="button"
+                onClick={props.onResetPreferences}
+                aria-label="Reset preferences"
+                title="Reset preferences"
+              >
+                <AiOutlineReload />
+              </button>
               <span className="settings-dock-icon-label">Reset</span>
-            </button>
+            </div>
           </div>
 
           <label className="settings-dock-compact-control settings-dock-cpu-control">
-            <span>CPU</span>
-            <div className="settings-dock-cpu-tab-row" role="tablist" aria-label="CPU difficulty">
+            <span>Difficulty</span>
+            <div className="settings-dock-cpu-tab-row" role="tablist" aria-label="Difficulty">
               {(['easy', 'medium', 'hard'] as CpuDifficulty[]).map((difficultyOption) => (
                 <button
                   key={difficultyOption}
