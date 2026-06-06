@@ -1,8 +1,15 @@
-import classnames from "classnames";
-import { AiOutlineArrowLeft, AiOutlineMuted, AiOutlineSound } from "react-icons/ai";
-import type { CpuDifficulty } from "@/types/game";
-import { FaCheck, FaTimes } from "react-icons/fa";
-import { BiDownload, BiReset, BiSave } from "react-icons/bi";
+import classnames from 'classnames';
+import {
+  AiFillSetting,
+  AiOutlineArrowLeft,
+  AiOutlineMuted,
+  AiOutlineSound,
+} from 'react-icons/ai';
+import { BiDownload, BiReset, BiSave } from 'react-icons/bi';
+import { FaCheck, FaRobot, FaTimes } from 'react-icons/fa';
+import { MdAnimation, MdMusicNote, MdStorage, MdTouchApp } from 'react-icons/md';
+import type { CSSProperties } from 'react';
+import type { CpuDifficulty } from '@/types/game';
 
 type SettingsScreenProps = {
   isMusicMuted: boolean;
@@ -23,6 +30,16 @@ type SettingsScreenProps = {
   onResetPreferences: () => void;
 };
 
+const DIFFICULTY_OPTIONS: Array<{
+  value: CpuDifficulty;
+  label: string;
+  description: string;
+}> = [
+  { value: 'easy', label: 'Easy', description: 'A relaxed warm-up' },
+  { value: 'medium', label: 'Medium', description: 'A balanced battle' },
+  { value: 'hard', label: 'Hard', description: 'No mercy mode' },
+];
+
 export function SettingsScreen({
   isMusicMuted,
   isUISoundsMuted,
@@ -42,49 +59,113 @@ export function SettingsScreen({
   onResetPreferences,
 }: SettingsScreenProps) {
   return (
-    <section className="title-screen-content">
-      <h1>
-        <span>Set-</span>
-        <span>tings</span>
-      </h1>
+    <section className="title-screen-content settings-screen">
+      <div className="settings-screen-heading">
+        <span className="settings-screen-kicker">
+          <AiFillSetting aria-hidden="true" /> Tune your arena
+        </span>
+        <h1>
+          <span>Set-</span>
+          <span>tings</span>
+        </h1>
+        <p>Make every match look, sound, and play exactly your way.</p>
+      </div>
 
-      <div className="lobby-card mt-8">
-        <div className="lobby-row justify-between items-center">
+      <div className="lobby-card settings-shell">
+        <div className="settings-toolbar">
           <button className="lobby-back" type="button" onClick={onBack}>
-            <AiOutlineArrowLeft /> Back
+            <AiOutlineArrowLeft aria-hidden="true" /> Back
           </button>
-          <p className="settings-save-meta">
-            {lastSavedAtLabel ? (
-              <>
-                Last local save:{' '}
-                <span className="text-blue-500">
-                  {lastSavedAtLabel.toString()}
-                </span>
-              </>
-            ) : (
-              'No local save found yet'
-            )}
-          </p>
-        </div>
-        <div className="settings-item">
-          <p>UI Sounds</p>
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onToggleUISounds}>
-            {isUISoundsMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
-          </button>
-        </div>
-
-        <div className="settings-item flex flex-col space-y-4">
-          <div className="flex items-center justify-between w-full">
-            <p>Music</p>
-            <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onToggleMusic}>
-              {isMusicMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
-            </button>
+          <div className={classnames('settings-save-status', hasLocalSave && 'settings-save-status-ready')}>
+            <span className="settings-save-status-dot" aria-hidden="true" />
+            <span>
+              <strong>{hasLocalSave ? 'Backup ready' : 'No backup yet'}</strong>
+              {lastSavedAtLabel && <small>Saved {lastSavedAtLabel.toString()}</small>}
+            </span>
           </div>
+        </div>
 
-          <div className="settings-item-volume flex items-center justify-between w-full">
-            <div className="flex items-center justify-between w-full">
-              <p>Volume</p>
-              <div className="settings-volume">
+        <div className="settings-layout">
+          <section className="settings-panel settings-panel-experience">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon settings-panel-icon-pink">
+                <MdTouchApp aria-hidden="true" />
+              </span>
+              <span>
+                <span className="settings-eyebrow">Experience</span>
+                <h2>Feel the game</h2>
+              </span>
+            </div>
+
+            <div className="settings-control-grid">
+              <div className="settings-control-card">
+                <div className="settings-control-copy">
+                  <AiOutlineSound aria-hidden="true" />
+                  <span>
+                    <strong>UI sounds</strong>
+                    <small>Clicks, moves, and alerts</small>
+                  </span>
+                </div>
+                <button
+                  className={classnames('settings-toggle', !isUISoundsMuted && 'settings-toggle-active')}
+                  type="button"
+                  role="switch"
+                  aria-checked={!isUISoundsMuted}
+                  aria-label={`UI sounds ${isUISoundsMuted ? 'off' : 'on'}`}
+                  onClick={onToggleUISounds}
+                >
+                  <span className="settings-toggle-icon">
+                    {isUISoundsMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
+                  </span>
+                  <span>{isUISoundsMuted ? 'Off' : 'On'}</span>
+                </button>
+              </div>
+
+              <div className="settings-control-card">
+                <div className="settings-control-copy">
+                  <MdAnimation aria-hidden="true" />
+                  <span>
+                    <strong>Motion</strong>
+                    <small>Transitions and effects</small>
+                  </span>
+                </div>
+                <button
+                  className={classnames('settings-toggle', enableAnimations && 'settings-toggle-active')}
+                  type="button"
+                  role="switch"
+                  aria-checked={enableAnimations}
+                  aria-label={`Motion ${enableAnimations ? 'on' : 'off'}`}
+                  onClick={onToggleAnimations}
+                >
+                  <span className="settings-toggle-icon">
+                    {enableAnimations ? <FaCheck /> : <FaTimes />}
+                  </span>
+                  <span>{enableAnimations ? 'On' : 'Off'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="settings-music-card">
+              <div className="settings-music-head">
+                <div className="settings-control-copy">
+                  <MdMusicNote aria-hidden="true" />
+                  <span>
+                    <strong>Arena music</strong>
+                    <small>{isMusicMuted ? 'Muted' : 'Playing during menus and matches'}</small>
+                  </span>
+                </div>
+                <button
+                  className={classnames('settings-icon-button', !isMusicMuted && 'settings-icon-button-active')}
+                  type="button"
+                  aria-label={isMusicMuted ? 'Unmute music' : 'Mute music'}
+                  onClick={onToggleMusic}
+                >
+                  {isMusicMuted ? <AiOutlineMuted /> : <AiOutlineSound />}
+                </button>
+              </div>
+
+              <label className="settings-volume-control">
+                <span>Volume</span>
                 <input
                   className="settings-slider"
                   type="range"
@@ -92,83 +173,99 @@ export function SettingsScreen({
                   max={100}
                   step={1}
                   value={musicVolume}
+                  aria-label="Music volume"
+                  style={{ '--settings-volume': `${musicVolume}%` } as CSSProperties}
                   onChange={(event) => onMusicVolumeChange(Number(event.target.value))}
                 />
-                <span className="settings-volume-value">{musicVolume}%</span>
-              </div>
+                <output>{musicVolume}%</output>
+              </label>
+            </div>
+          </section>
+
+          <section className="settings-panel settings-panel-difficulty">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon settings-panel-icon-blue">
+                <FaRobot aria-hidden="true" />
+              </span>
+              <span>
+                <span className="settings-eyebrow">CPU challenge</span>
+                <h2>Choose your rival</h2>
+              </span>
             </div>
 
-          </div>
-        </div>
+            <div className="settings-difficulty-list" role="radiogroup" aria-label="CPU difficulty">
+              {DIFFICULTY_OPTIONS.map((option, index) => {
+                const isActive = cpuDifficulty === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    className={classnames('settings-difficulty-option', isActive && 'settings-difficulty-option-active')}
+                    onClick={() => onCpuDifficultyChange(option.value)}
+                  >
+                    <span className="settings-difficulty-number">0{index + 1}</span>
+                    <span className="settings-difficulty-copy">
+                      <strong>{option.label}</strong>
+                      <small>{option.description}</small>
+                    </span>
+                    <span className="settings-difficulty-check" aria-hidden="true">
+                      {isActive && <FaCheck />}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
-        <div className="settings-item">
-          <p>Enable Motion</p>
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onToggleAnimations}>
-            {enableAnimations ? <FaCheck /> : <FaTimes />}
-          </button>
-        </div>
+          <section className="settings-panel settings-panel-data">
+            <div className="settings-panel-heading">
+              <span className="settings-panel-icon settings-panel-icon-yellow">
+                <MdStorage aria-hidden="true" />
+              </span>
+              <span>
+                <span className="settings-eyebrow">Local data</span>
+                <h2>Keep your lineup safe</h2>
+              </span>
+            </div>
 
-        <div className="settings-item">
-          <p>CPU Difficulty</p>
+            <p className="settings-data-copy">
+              Store your preferences and progress on this device, then restore them whenever you need.
+            </p>
 
-          <div className={classnames("settings-tabs", "lobby-btn", "custome-shadow")}>
-            <button
-              type="button"
-              onClick={() => onCpuDifficultyChange('easy')}
-              className={classnames(
-                'settings-tab',
-                cpuDifficulty === 'easy' && 'settings-tab-active'
-              )}
-            >
-              Easy
-            </button>
+            <div className="settings-data-actions">
+              <button className="settings-action-button settings-action-button-primary" type="button" onClick={onSaveNow}>
+                <BiSave aria-hidden="true" />
+                <span>
+                  <strong>Save now</strong>
+                  <small>Update local backup</small>
+                </span>
+              </button>
+              <button
+                className="settings-action-button"
+                type="button"
+                disabled={!hasLocalSave}
+                onClick={onLoadSave}
+              >
+                <BiDownload aria-hidden="true" />
+                <span>
+                  <strong>Load save</strong>
+                  <small>{hasLocalSave ? 'Restore this device' : 'No save available'}</small>
+                </span>
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => onCpuDifficultyChange('medium')}
-              className={classnames(
-                'settings-tab',
-                cpuDifficulty === 'medium' && 'settings-tab-active'
-              )}
-            >
-              Medium
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onCpuDifficultyChange('hard')}
-              className={classnames(
-                'settings-tab',
-                cpuDifficulty === 'hard' && 'settings-tab-active'
-              )}
-            >
-              Hard
-            </button>
-          </div>
-        </div>
-
-        <div className="settings-item settings-item-save">
-          <p>Local Backup</p>
-          <div className="settings-save-actions">
-            <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onSaveNow}>
-              <BiSave /> Save Now
-            </button>
-            <button
-              className={classnames("lobby-btn", "custome-shadow")}
-              type="button"
-              disabled={!hasLocalSave}
-              onClick={onLoadSave}
-            >
-              <BiDownload /> Load Save
-            </button>
-          </div>
-        </div>
-
-        <div className="settings-item">
-          <p>Preferences</p>
-          <button className={classnames("lobby-btn", "custome-shadow")} type="button" onClick={onResetPreferences}>
-            <BiReset /> Reset to Default
-          </button>
+            <div className="settings-reset-row">
+              <span>
+                <strong>Need a clean slate?</strong>
+                <small>Return audio, motion, and CPU settings to default.</small>
+              </span>
+              <button type="button" onClick={onResetPreferences}>
+                <BiReset aria-hidden="true" /> Reset
+              </button>
+            </div>
+          </section>
         </div>
       </div>
     </section>
