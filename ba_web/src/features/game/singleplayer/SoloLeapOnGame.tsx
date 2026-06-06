@@ -269,7 +269,16 @@ export function SoloLeapOnGame({
         ? 'You win'
         : 'You lose'
     : 'Live orbit';
+  const youState = players.find((playerState) => playerState.symbol === 'X') ?? null;
+  const survivorsCount = players.filter((playerState) => playerState.alive).length;
   const controllerButtons = [
+    {
+      key: 'jump',
+      label: 'Leap',
+      icon: <AiOutlinePlayCircle />,
+      onClick: () => queueJump(),
+      disabled: Boolean(winner) || !youState?.alive,
+    },
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: () => handleRematch() },
   ];
 
@@ -504,14 +513,14 @@ export function SoloLeapOnGame({
       </div>
 
       <AdaptiveControllerOverlay
-        title={gameTitle}
-        subtitle={statusText}
+        title={`${gameLabel} Controls`}
+        subtitle="Space / tap when a white landing window lines up."
         buttons={controllerButtons}
       />
 
       <div>
         <motion.div drag dragMomentum={false} className="room-float-drag-root">
-          <div className={`room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
+          <div className={`room-float-card solo-room-float-card${isInfoCardCollapsed ? ' room-float-card-collapsed' : ''}`}>
             {isInfoCardCollapsed ? (
               <button
                 className="room-float-collapsed-center"
@@ -541,67 +550,85 @@ export function SoloLeapOnGame({
                     <AiOutlineArrowDown />
                   </button>
                 </div>
+                <div className="room-score-strip">
+                  <span className="room-float-line">
+                    {winner ? <AiOutlineCheckCircle /> : <AiOutlineClockCircle />} {statusText}
+                  </span>
+                </div>
+
+                <div className="room-joined">
+                  <p className="room-joined-title">
+                    <AiOutlineTeam /> Arena Players ({survivorsCount})
+                  </p>
+                  {players.map((playerState) => (
+                    <p key={playerState.symbol} className="room-joined-line">
+                      <AiOutlinePlayCircle /> {playerState.name} | {playerState.alive ? 'Alive' : 'Out'} | Score {playerState.score}
+                    </p>
+                  ))}
+                </div>
+
+                <div className="solo-float-stats">
+                  <div className="solo-float-stat">
+                    <span>You</span>
+                    <strong>{youState?.score ?? 0}</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>Time</span>
+                    <strong>{(timeMs / 1000).toFixed(1)}s</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>Alive</span>
+                    <strong>{survivorsCount}</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>Status</span>
+                    <strong>{statusText}</strong>
+                  </div>
+                </div>
+
+                <div className="room-float-actions">
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={handleRematch}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineReload /> Rematch
+                  </motion.button>
+
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={onToggleMusic}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
+                  </motion.button>
+
+                  <motion.button
+                    className="room-float-action-btn"
+                    type="button"
+                    onClick={onToggleAnimations}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Motion {enableAnimations ? 'On' : 'Off'}
+                  </motion.button>
+
+                  <motion.button
+                    className="room-float-action-btn room-float-action-btn-danger"
+                    type="button"
+                    onClick={onLeave}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Leave
+                  </motion.button>
+                </div>
               </>
             )}
-
-            <div className="room-score-strip">
-              <span className="room-float-line">
-                {winner ? <AiOutlineCheckCircle /> : <AiOutlineClockCircle />} {statusText}
-              </span>
-            </div>
-
-            <div className="room-joined">
-              <p className="room-joined-title">
-                <AiOutlineTeam /> Arena Players ({players.filter((playerState) => playerState.alive).length})
-              </p>
-              {players.map((playerState) => (
-                <p key={playerState.symbol} className="room-joined-line">
-                  <AiOutlinePlayCircle /> {playerState.name} | {playerState.alive ? 'Alive' : 'Out'} | Score {playerState.score}
-                </p>
-              ))}
-            </div>
-
-            <div className="room-float-actions">
-              <motion.button
-                className="room-float-action-btn"
-                type="button"
-                onClick={handleRematch}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <AiOutlineReload /> Rematch
-              </motion.button>
-
-              <motion.button
-                className="room-float-action-btn"
-                type="button"
-                onClick={onToggleMusic}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-              </motion.button>
-
-              <motion.button
-                className="room-float-action-btn"
-                type="button"
-                onClick={onToggleAnimations}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Motion {enableAnimations ? 'On' : 'Off'}
-              </motion.button>
-
-              <motion.button
-                className="room-float-action-btn room-float-action-btn-danger"
-                type="button"
-                onClick={onLeave}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Leave
-              </motion.button>
-            </div>
           </div>
         </motion.div>
 

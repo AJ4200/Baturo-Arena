@@ -18,15 +18,17 @@ import {
 } from 'react-icons/ai';
 import { AdaptiveControllerOverlay } from '@/features/game/AdaptiveControllerOverlay';
 import { formatGameName } from '@/lib/games';
-import type { GameDefinition, MatchResultEvent, PlayerProfile } from '@/types/game';
+import type { CpuDifficulty, GameDefinition, GameMode, MatchResultEvent, PlayerProfile } from '@/types/game';
 
 type LudoArenaGameProps = {
   player: PlayerProfile;
+  mode: GameMode;
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
   onToggleAnimations: () => void;
   gameDefinitions: GameDefinition[];
+  cpuDifficulty: CpuDifficulty;
   participantNames: string[];
   participantCount: number;
   onMatchComplete: (result: MatchResultEvent) => void;
@@ -39,6 +41,7 @@ type LudoParticipant = {
   color: LudoColor;
   name: string;
   index: number;
+  isCpu: boolean;
 };
 
 type LudoToken = {
@@ -344,11 +347,13 @@ const applyTokenMove = (
 
 export function LudoArenaGame({
   player,
+  mode,
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
   onToggleAnimations,
   gameDefinitions,
+  cpuDifficulty,
   participantNames,
   participantCount,
   onMatchComplete,
@@ -367,10 +372,11 @@ export function LudoArenaGame({
         return {
           color,
           index,
-          name: configuredName || (index === 0 ? player.name : `Player ${index + 1}`),
+          name: configuredName || (index === 0 ? player.name : mode === 'cpu' ? `CPU ${index}` : `Player ${index + 1}`),
+          isCpu: mode === 'cpu' && index > 0,
         };
       }),
-    [activeColors, participantNames, player.name]
+    [activeColors, mode, participantNames, player.name]
   );
 
   const [tokens, setTokens] = useState<LudoToken[]>(() => createInitialTokens(activeColors));
@@ -398,6 +404,7 @@ export function LudoArenaGame({
   const currentTurnColor = activeColors[currentTurnIndex] || activeColors[0];
   const currentParticipant =
     participants.find((participant) => participant.color === currentTurnColor) || participants[0];
+  const isCpuTurn = mode === 'cpu' && Boolean(currentParticipant?.isCpu) && !winnerColor;
 
   const movableTokenIds = useMemo(() => {
     if (diceValue === null || !currentTurnColor || winnerColor) {
@@ -458,6 +465,7 @@ export function LudoArenaGame({
   const roomStatusIcon = winnerColor ? <AiOutlineCheckCircle /> : <AiOutlineClockCircle />;
   const canRoll = winnerColor === null && diceValue === null;
   const canSelectToken = winnerColor === null && diceValue !== null;
+  const canInteract = !isCpuTurn;
 
   const advanceTurn = (index: number): number => (index + 1) % Math.max(1, activeColors.length);
 
@@ -577,15 +585,80 @@ export function LudoArenaGame({
 
     lastReportedWinnerRef.current = winnerColor;
     onMatchComplete({
-      mode: 'offline',
+      mode: mode === 'cpu' ? 'cpu' : 'offline',
       gameType: 'ludo',
       outcome: winnerColor === primaryColor ? 'win' : 'loss',
       opponent: opponents || 'Local Opponent',
     });
-  }, [activeColors, onMatchComplete, participants, winnerColor]);
+  }, [activeColors, mode, onMatchComplete, participants, winnerColor]);
+
+  useEffect(() => {
+    if (!isCpuTurn || !currentParticipant || winnerColor) {
+      return;
+    }
+
+    const rollDelayMs =
+      cpuDifficulty === 'easy' ? 900 : cpuDifficulty === 'hard' ? 360 : 620;
+    const moveDelayMs =
+      cpuDifficulty === 'easy' ? 760 : cpuDifficulty === 'hard' ? 280 : 520;
+
+    if (diceValue === null) {
+      const timerId = window.setTimeout(() => {
+        handleRollDice();
+      }, rollDelayMs);
+      return () => window.clearTimeout(timerId);
+    }
+
+    if (!movableTokenIds.length) {
+      return;
+    }
+
+    const pickTokenId = () => {
+      const ranked = [...movableTokenIds].sort((leftId, rightId) => {
+        const leftToken = tokens.find((token) => token.id === leftId);
+        const rightToken = tokens.find((token) => token.id === rightId);
+        if (!leftToken || !rightToken) {
+          return 0;
+        }
+        const leftScore =
+          leftToken.progress >= HOME_LANE_START_PROGRESS ? 90 : leftToken.progress === -1 ? 32 : leftToken.progress;
+        const rightScore =
+          rightToken.progress >= HOME_LANE_START_PROGRESS ? 90 : rightToken.progress === -1 ? 32 : rightToken.progress;
+
+        if (cpuDifficulty === 'easy') {
+          return Math.random() > 0.5 ? 1 : -1;
+        }
+
+        return rightScore - leftScore;
+      });
+
+      if (cpuDifficulty === 'hard') {
+        return ranked[0];
+      }
+
+      return ranked[Math.min(ranked.length - 1, Math.floor(Math.random() * Math.min(2, ranked.length)))];
+    };
+
+    const timerId = window.setTimeout(() => {
+      const tokenId = pickTokenId();
+      if (tokenId) {
+        handleSelectToken(tokenId);
+      }
+    }, moveDelayMs);
+
+    return () => window.clearTimeout(timerId);
+  }, [
+    cpuDifficulty,
+    currentParticipant,
+    diceValue,
+    isCpuTurn,
+    movableTokenIds,
+    tokens,
+    winnerColor,
+  ]);
 
   const controllerButtons = [
-    { key: 'roll', label: 'Roll', icon: <AiOutlineThunderbolt />, onClick: handleRollDice },
+    { key: 'roll', label: 'Roll', icon: <AiOutlineThunderbolt />, onClick: handleRollDice, disabled: !canRoll || !canInteract },
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
   ];
 
@@ -621,7 +694,7 @@ export function LudoArenaGame({
                     <AiOutlineDrag /> drag
                   </span>
                   <span className="room-float-title">
-                    <AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} Local Match
+                    <AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} {mode === 'cpu' ? 'CPU Match' : 'Local Match'}
                   </span>
                   <button
                     className="room-float-toggle-btn"
@@ -658,7 +731,7 @@ export function LudoArenaGame({
                         )}
                       >
                         {hasWonMatch ? <AiOutlineCrown /> : isActiveTurn ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />}{' '}
-                        {participant.name} | {COLOR_META[participant.color].label} | Home {stats?.home ?? 0}/
+                        {participant.name}{participant.isCpu ? ' [CPU]' : ''} | {COLOR_META[participant.color].label} | Home {stats?.home ?? 0}/
                         {TOKENS_PER_PLAYER}
                       </p>
                     );
@@ -670,7 +743,7 @@ export function LudoArenaGame({
                     className="room-float-action-btn"
                     type="button"
                     onClick={handleRollDice}
-                    disabled={!canRoll}
+                    disabled={!canRoll || !canInteract}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -722,7 +795,7 @@ export function LudoArenaGame({
           <div className="ludo-topbar">
             <div className={classnames('ludo-turn-chip', currentTurnColor ? `ludo-turn-chip-${currentTurnColor}` : '')}>
               <AiOutlinePlayCircle />
-              <span>{winnerColor ? `${COLOR_META[winnerColor].label} wins` : `${currentParticipant?.name || 'Player'} to move`}</span>
+              <span>{winnerColor ? `${COLOR_META[winnerColor].label} wins` : `${currentParticipant?.name || 'Player'}${currentParticipant?.isCpu ? ' [CPU]' : ''} to move`}</span>
             </div>
             <div className="ludo-dice-chip">
               <AiOutlineThunderbolt /> Dice: <strong>{diceValue ?? '-'}</strong>
@@ -758,7 +831,7 @@ export function LudoArenaGame({
                 >
                   {tokensAtCell.map((token) => {
                     const isMovable = movableTokenIds.includes(token.id);
-                    const interactive = canSelectToken && isMovable;
+                    const interactive = canSelectToken && isMovable && canInteract;
                     return (
                       <button
                         key={token.id}
@@ -783,7 +856,7 @@ export function LudoArenaGame({
           </div>
 
           <div className="ludo-controls">
-            <button className="ludo-roll-btn" type="button" onClick={handleRollDice} disabled={!canRoll}>
+            <button className="ludo-roll-btn" type="button" onClick={handleRollDice} disabled={!canRoll || !canInteract}>
               <AiOutlineThunderbolt /> {canRoll ? 'Roll Dice' : 'Move a Token'}
             </button>
             <span className="ludo-controls-hint">

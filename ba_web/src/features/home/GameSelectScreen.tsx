@@ -217,16 +217,6 @@ export function GameSelectScreen({
             </div>
           </div>
         </button>
-
-        {isSelected ? (
-          <button className="choose-game-option-play choose-game-option-play-active" type="button" onClick={onContinue}>
-            <AiOutlineCheckCircle /> Play
-          </button>
-        ) : (
-          <button className="choose-game-option-play" type="button" onClick={() => onSelectGame(game.id)}>
-            Select
-          </button>
-        )}
       </article>
     );
   };
@@ -569,9 +559,6 @@ export function GameSelectScreen({
                     <span>{selectedDefinition.supportsCpu ? 'CPU Enabled' : 'CPU Off'}</span>
                   </div>
                 </div>
-                <button className="choose-game-step-btn choose-game-play-now-btn" type="button" onClick={onContinue}>
-                  <AiOutlineCheckCircle /> Play
-                </button>
               </div>
             ) : null}
           </section>

@@ -27,6 +27,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'neon-pong': { label: 'NEON', className: 'choose-game-thumb-neon-pong' },
   tetris: { label: 'TETRIS', className: 'choose-game-thumb-tetris' },
   'starfall-survivor': { label: 'STARFALL', className: 'choose-game-thumb-starfall-survivor' },
+  'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
 };
 

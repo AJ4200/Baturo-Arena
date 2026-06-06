@@ -1,4 +1,4 @@
-export type Screen = 'home' | 'game-type-select' | 'game-select' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
+export type Screen = 'home' | 'game-type-select' | 'game-select' | 'game-intro' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
 export type GameMode = 'online' | 'cpu' | 'offline';
 
@@ -24,6 +24,7 @@ export type GameType =
   | 'neon-pong'
   | 'tetris'
   | 'starfall-survivor'
+  | 'pulse-forge'
   | 'turbo-rush';
 
 export type GameDefinition = {
@@ -54,6 +55,7 @@ export type GameDefinition = {
     | 'solo-neon-pong'
     | 'solo-tetris'
     | 'solo-starfall'
+    | 'solo-pulse-forge'
     | 'air-hockey'
     | 'racing';
   winCondition?:
@@ -73,6 +75,7 @@ export type GameDefinition = {
     | 'neon-pong-score'
     | 'tetris-score'
     | 'starfall-survive'
+    | 'pulse-forge-stabilize'
     | 'air-hockey-score'
     | 'race-finish'
     | 'leap-on-score';

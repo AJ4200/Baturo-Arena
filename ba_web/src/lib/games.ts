@@ -269,6 +269,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'pulse-forge',
+    name: 'Pulse Forge',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Balance four volatile energy lanes, vent heat, and forge enough clean pulses before the reactor window closes.',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-pulse-forge',
+    winCondition: 'pulse-forge-stabilize',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'turbo-rush',
     name: 'Turbo Rush',
     minPlayers: 2,
@@ -462,6 +476,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
+    game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
@@ -513,6 +528,7 @@ export const applyMove = (
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
+    game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
@@ -662,6 +678,7 @@ export const evaluateBoard = (
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
+    game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish'
   ) {

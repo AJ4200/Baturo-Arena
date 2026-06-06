@@ -420,9 +420,10 @@ export function OnlineLeapOnArenaGame({
       </div>
 
       <AdaptiveControllerOverlay
-        title="Online Match"
-        subtitle={status}
+        title={`${gameLabel} Controls`}
+        subtitle={LEAP_INPUT_LABEL}
         buttons={[
+          { key: 'jump', label: ACTION_LABELS.jump, icon: <AiOutlinePlayCircle />, onClick: () => void handleAction('jump'), disabled: !canPlay },
           { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },
         ]}
       />
@@ -447,7 +448,7 @@ export function OnlineLeapOnArenaGame({
                     <AiOutlineDrag /> drag
                   </span>
                   <span className="room-float-title">
-                    <AiOutlineInfoCircle className="room-float-title-icon" /> {gameLabel} Room
+                    <AiOutlineInfoCircle className="room-float-title-icon" /> {room ? `${room.name} (${room.code}) | ${gameLabel}` : 'Loading room'}
                   </span>
                   <button
                     className="room-float-toggle-btn"
@@ -468,13 +469,32 @@ export function OnlineLeapOnArenaGame({
 
                 <div className="room-joined">
                   <p className="room-joined-title">
-                    <AiOutlineTeam /> Players ({room?.playersCount ?? 0})
+                    <AiOutlineTeam /> Joined Players ({room?.playersCount ?? 0}/{room?.maxPlayers ?? 4})
                   </p>
                   {room?.players.map((entry) => (
                     <p key={entry.playerId} className="room-joined-line">
                       <AiOutlineUser /> {entry.name} ({entry.symbol})
                     </p>
                   ))}
+                </div>
+
+                <div className="solo-float-stats">
+                  <div className="solo-float-stat">
+                    <span>Round</span>
+                    <strong>{boardState?.round ?? 0}</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>Timer</span>
+                    <strong>{((boardState?.timeMs ?? 0) / 1000).toFixed(1)}s</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>You</span>
+                    <strong>{yourSymbol ?? '-'}</strong>
+                  </div>
+                  <div className="solo-float-stat">
+                    <span>Status</span>
+                    <strong>{room?.status === 'playing' ? 'Live' : room?.winner ? 'Finished' : 'Waiting'}</strong>
+                  </div>
                 </div>
 
                 <div className="room-float-actions">

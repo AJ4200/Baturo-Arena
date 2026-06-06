@@ -15,6 +15,7 @@ import { SoloNeonPongGame } from '@/features/game/singleplayer/SoloNeonPongGame'
 import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBreakerGame';
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
+import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
@@ -268,6 +269,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
     );
   }
 
+  if (gameType === 'pulse-forge') {
+    return (
+      <SoloPulseForgeGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
   if (gameType === 'ludo' && mode === 'online') {
     if (!roomCode) {
       return null;
@@ -331,11 +347,13 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
     return (
       <LudoArenaGame
         player={player}
+        mode={mode}
         isMusicMuted={isMusicMuted}
         enableAnimations={enableAnimations}
         onToggleMusic={onToggleMusic}
         onToggleAnimations={onToggleAnimations}
         gameDefinitions={gameDefinitions}
+        cpuDifficulty={cpuDifficulty}
         participantNames={offlineParticipantNames}
         participantCount={offlineParticipantCount}
         onMatchComplete={onMatchComplete}

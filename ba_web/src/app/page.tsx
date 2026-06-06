@@ -6,6 +6,7 @@ import { AiOutlineLeft, AiOutlineClose } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
 import { FooterBar } from '@/features/home/FooterBar';
+import { GameIntroSplash } from '@/features/home/GameIntroSplash';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
 import { GameTypeSelectScreen } from '@/features/home/GameTypeSelectScreen';
 import { HistoryScreen } from '@/features/home/HistoryScreen';
@@ -283,6 +284,8 @@ export default function Home() {
   const [activeGameType, setActiveGameType] = useState<GameType>('tic-tac-two');
   const [selectedGameCategory, setSelectedGameCategory] = useState<GameTypeCategory>('all');
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>(FALLBACK_GAMES);
+  const [gameIntroTargetScreen, setGameIntroTargetScreen] = useState<Extract<Screen, 'lobby' | 'single-player-lobby'> | null>(null);
+  const [gameIntroPhase, setGameIntroPhase] = useState<'enter' | 'exit'>('enter');
   const [leaderboardCategory, setLeaderboardCategory] = useState<GameType | 'overall'>('overall');
   const [historyCategory, setHistoryCategory] = useState<GameType | 'all'>('all');
   const [playerName, setPlayerName] = useState('Player');
@@ -314,6 +317,7 @@ export default function Home() {
   const [dontShowSaveTipAgain, setDontShowSaveTipAgain] = useState(false);
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
+  const [isAppBooting, setIsAppBooting] = useState(true);
   const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
   const [isChatDockOpen, setIsChatDockOpen] = useState(false);
   const [areDockLaunchersVisible, setAreDockLaunchersVisible] = useState(false);
@@ -994,6 +998,25 @@ export default function Home() {
     [getGamesByCategory, selectedGameCategory]
   );
 
+  useEffect(() => {
+    if (screen !== 'game-intro' || !gameIntroTargetScreen) {
+      return;
+    }
+
+    setGameIntroPhase('enter');
+    const exitTimerId = window.setTimeout(() => {
+      setGameIntroPhase('exit');
+    }, 4350);
+    const completeTimerId = window.setTimeout(() => {
+      setScreen(gameIntroTargetScreen);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(exitTimerId);
+      window.clearTimeout(completeTimerId);
+    };
+  }, [gameIntroTargetScreen, screen]);
+
   const ensurePlayer = async (identity?: { playerId: string; name: string }) => {
     const savedPlayerId = identity?.playerId || window.localStorage.getItem(STORAGE_KEYS.playerId);
     const payload = await callApi<PlayerProfile>('/api/players/register', {
@@ -1220,48 +1243,53 @@ export default function Home() {
       setHistoryCategory(normalizedPreferredGame);
     }
 
-    refreshGames()
-      .then(() => {
-        const savedBackup = parseLocalBackup(window.localStorage.getItem(STORAGE_KEYS.localBackup));
-        if (savedBackup) {
-          setHasLocalSave(true);
-          setLastLocalSavedAt(savedBackup.savedAt);
-        }
-        setMatchHistory(parseMatchHistory(window.localStorage.getItem(STORAGE_KEYS.matchHistory)));
-      })
-      .catch(() => {
-        const savedBackup = parseLocalBackup(window.localStorage.getItem(STORAGE_KEYS.localBackup));
-        if (savedBackup) {
-          setHasLocalSave(true);
-          setLastLocalSavedAt(savedBackup.savedAt);
-        }
-        setMatchHistory(parseMatchHistory(window.localStorage.getItem(STORAGE_KEYS.matchHistory)));
-      });
-
-    if (validAuthToken) {
-      callApi<AuthSessionPayload>('/api/auth/session', undefined, false)
-        .then((payload) => {
-          applyAuthenticatedSession(payload);
-        })
-        .catch(() => {
-          clearStoredAuthSession();
-          saveGoogleAccount(null);
-          const storedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
-          if (storedPlayerId && storedPlayerId.startsWith('google:')) {
-            window.localStorage.removeItem(STORAGE_KEYS.playerId);
-            setPlayer(null);
-          }
-        });
-    }
-
     const shouldHideSaveTip = window.localStorage.getItem(STORAGE_KEYS.hideSaveTip);
     setShowSaveTip(shouldHideSaveTip !== 'true');
+    const syncLocalState = () => {
+      const savedBackup = parseLocalBackup(window.localStorage.getItem(STORAGE_KEYS.localBackup));
+      if (savedBackup) {
+        setHasLocalSave(true);
+        setLastLocalSavedAt(savedBackup.savedAt);
+      }
+      setMatchHistory(parseMatchHistory(window.localStorage.getItem(STORAGE_KEYS.matchHistory)));
+    };
 
-    refreshPublicRooms().catch(() => {
-      // Ignore initial lobby load failures.
-    });
-    refreshLeaderboard().catch(() => {
-      // Ignore initial leaderboard load failures.
+    const bootTasks: Promise<unknown>[] = [
+      refreshGames()
+        .then(() => {
+          syncLocalState();
+        })
+        .catch(() => {
+          syncLocalState();
+        }),
+      refreshPublicRooms().catch(() => {
+        // Ignore initial lobby load failures.
+      }),
+      refreshLeaderboard().catch(() => {
+        // Ignore initial leaderboard load failures.
+      }),
+    ];
+
+    if (validAuthToken) {
+      bootTasks.push(
+        callApi<AuthSessionPayload>('/api/auth/session', undefined, false)
+          .then((payload) => {
+            applyAuthenticatedSession(payload);
+          })
+          .catch(() => {
+            clearStoredAuthSession();
+            saveGoogleAccount(null);
+            const storedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
+            if (storedPlayerId && storedPlayerId.startsWith('google:')) {
+              window.localStorage.removeItem(STORAGE_KEYS.playerId);
+              setPlayer(null);
+            }
+          })
+      );
+    }
+
+    Promise.allSettled(bootTasks).finally(() => {
+      setIsAppBooting(false);
     });
   }, []);
 
@@ -1485,8 +1513,20 @@ export default function Home() {
           onContinue={() => {
             const selectedDefinition = findGameDefinition(selectedGame);
             setGameMode(getPreferredModeForGame(selectedGame, gameMode));
-            setScreen(selectedDefinition.supportsOnline ? 'lobby' : 'single-player-lobby');
+            setGameIntroTargetScreen(selectedDefinition.supportsOnline ? 'lobby' : 'single-player-lobby');
+            setScreen('game-intro');
           }}
+        />
+      );
+    }
+
+    if (screen === 'game-intro') {
+      const selectedDefinition = findGameDefinition(selectedGame);
+      return (
+        <GameIntroSplash
+          game={selectedDefinition}
+          phase={gameIntroPhase}
+          supportedModes={getSupportedModesForGame(selectedGame)}
         />
       );
     }
@@ -1724,11 +1764,11 @@ export default function Home() {
       className={classnames(isInMatch ? 'match-screen-root' : 'title-screen-root', !enableAnimations && 'motion-off')}
       style={matchThemeStyle}
     >
-      {!isInMatch ? <TopBar /> : null}
-      {renderScreen()}
-      <AppLoader active={activeRequests > 0} subtle={isInMatch} />
-      {saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
-      {showSaveTip ? (
+      {!isAppBooting && !isInMatch ? <TopBar /> : null}
+      {!isAppBooting ? renderScreen() : null}
+      <AppLoader active={isAppBooting || activeRequests > 0} subtle={!isAppBooting && isInMatch} />
+      {!isAppBooting && saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
+      {!isAppBooting && showSaveTip ? (
         <div className="save-tip-card">
           <p>
             Backups are local-only right now. Use Settings to save or load this device backup for your Baturo Arena lineup.
@@ -1751,6 +1791,7 @@ export default function Home() {
           </button>
         </div>
       ) : null}
+      {!isAppBooting ? (
       <div className={classnames('dock-launchers-shell', areDockLaunchersVisible && 'dock-launchers-shell-open')}>
         <button
           className={classnames('dock-launchers-reveal', areDockLaunchersVisible && 'dock-launchers-reveal-active')}
@@ -1874,13 +1915,14 @@ export default function Home() {
           />
         </div>
       </div>
-      <FooterBar
+      ) : null}
+      {!isAppBooting ? <FooterBar
         isInMatch={isInMatch}
         hasGoogleAccount={Boolean(googleAccount)}
         googleProfileLabel={googleAccount?.email || googleAccount?.name || null}
         hasLocalBackup={hasLocalSave}
         hasSavedGuestProfile={Boolean(player)}
-      />
+      /> : null}
     </main>
   );
 }

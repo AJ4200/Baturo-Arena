@@ -266,6 +266,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'pulse-forge': {
+    id: 'pulse-forge',
+    name: 'Pulse Forge',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Balance four volatile energy lanes, vent heat, and forge enough clean pulses before the reactor window closes.',
+    moveMode: 'solo-pulse-forge',
+    winCondition: 'pulse-forge-stabilize',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'turbo-rush': {
     id: 'turbo-rush',
     name: 'Turbo Rush',
@@ -547,6 +561,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
+    rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish'
   ) {
@@ -701,6 +716,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
+    rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo'
@@ -776,6 +792,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
+    rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo' ||
