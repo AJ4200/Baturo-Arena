@@ -1,16 +1,19 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import classnames from 'classnames';
 import {
-  AiOutlineArrowLeft,
   AiOutlineAppstore,
+  AiOutlineArrowLeft,
   AiOutlineCheckCircle,
+  AiOutlineCrown,
+  AiOutlineGlobal,
   AiOutlineRobot,
   AiOutlineTeam,
   AiOutlineThunderbolt,
+  AiOutlineTrophy,
 } from 'react-icons/ai';
-import type { GameTypeCategory, GameDefinition } from '@/types/game';
+import type { GameDefinition, GameTypeCategory } from '@/types/game';
 
 type GameTypeSelectScreenProps = {
   games: GameDefinition[];
@@ -23,9 +26,10 @@ type GameTypeSelectScreenProps = {
 type GameTypeOption = {
   id: GameTypeCategory;
   label: string;
-  shortDescription: string;
+  kicker: string;
   detail: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
+  tone: 'team' | 'signal' | 'solo' | 'catalog';
 };
 
 export function GameTypeSelectScreen({
@@ -35,9 +39,9 @@ export function GameTypeSelectScreen({
   onBack,
   onContinue,
 }: GameTypeSelectScreenProps) {
-  const getGameCountByCategory = useCallback(
-    (category: GameTypeCategory): number => {
-      return games.filter((game) => {
+  const getGamesForCategory = useCallback(
+    (category: GameTypeCategory) =>
+      games.filter((game) => {
         if (category === 'online-multiplayer') {
           return game.supportsOnline && game.minPlayers >= 2;
         }
@@ -45,145 +49,217 @@ export function GameTypeSelectScreen({
           return game.supportsOnline;
         }
         if (category === 'single-player') {
-          return game.maxPlayers === 1;
-        }
-        return true; // 'all'
-      }).length;
-    },
-    [games]
-  );
-
-  const gameTypeOptions: GameTypeOption[] = [
-    {
-      id: 'online-multiplayer',
-      label: 'Online Multiplayer',
-      shortDescription: `${getGameCountByCategory('online-multiplayer')} games`,
-      detail: 'Fast matchmaking and room-based online competition.',
-      icon: <AiOutlineTeam />,
-    },
-    {
-      id: 'all',
-      label: 'All Games',
-      shortDescription: `${getGameCountByCategory('all')} games`,
-      detail: 'Browse the full arena catalog in one view.',
-      icon: <AiOutlineAppstore />,
-    },
-    {
-      id: 'single-player',
-      label: 'Single Player',
-      shortDescription: `${getGameCountByCategory('single-player')} games`,
-      detail: 'Practice, puzzle runs, and skill-building sessions.',
-      icon: <AiOutlineRobot />,
-    },
-  ];
-  const getGamesForCategory = useCallback(
-    (category: GameTypeCategory) =>
-      games.filter((game) => {
-        if (category === 'online-multiplayer') {
-          return game.supportsOnline && game.minPlayers >= 2;
-        }
-        if (category === 'single-player') {
-          return game.maxPlayers === 1;
+          return game.supportsCpu;
         }
         return true;
       }),
     [games]
   );
+
+  const gameTypeOptions: GameTypeOption[] = useMemo(
+    () => [
+      {
+        id: 'online-multiplayer',
+        label: 'Multiplayer',
+        kicker: 'Room heat',
+        detail: 'Live rooms, rivals, table talk, and games built for shared pressure.',
+        icon: <AiOutlineTeam />,
+        tone: 'team',
+      },
+      {
+        id: 'online',
+        label: 'Online Ready',
+        kicker: 'Connected',
+        detail: 'Everything that can touch the network, from duels to live arena runs.',
+        icon: <AiOutlineGlobal />,
+        tone: 'signal',
+      },
+      {
+        id: 'single-player',
+        label: 'CPU & Solo',
+        kicker: 'Practice lab',
+        detail: 'Solo challenges, CPU matches, and warm-up lanes for sharpening.',
+        icon: <AiOutlineRobot />,
+        tone: 'solo',
+      },
+      {
+        id: 'all',
+        label: 'Full Catalog',
+        kicker: 'Everything',
+        detail: 'Open the whole shelf and choose by mood, mode, or pure curiosity.',
+        icon: <AiOutlineAppstore />,
+        tone: 'catalog',
+      },
+    ],
+    []
+  );
+
+  const selectedOption =
+    gameTypeOptions.find((option) => option.id === selectedCategory) || gameTypeOptions[0];
+  const selectedGames = getGamesForCategory(selectedOption.id);
+  const selectedGameSamples = selectedGames.slice(0, 5);
+  const totalGames = games.length;
+  const onlineGames = games.filter((game) => game.supportsOnline).length;
+  const cpuGames = games.filter((game) => game.supportsCpu).length;
+  const multiplayerGames = games.filter((game) => game.supportsOnline && game.minPlayers >= 2).length;
+
   const getCategoryActionLabel = useCallback((category: GameTypeCategory) => {
     if (category === 'single-player') {
-      return 'Start Solo Run';
+      return 'Enter Practice Lab';
     }
     if (category === 'online-multiplayer') {
-      return 'Start Multiplayer Queue';
+      return 'Find a Room';
     }
-    return 'Continue';
+    if (category === 'online') {
+      return 'Browse Online Games';
+    }
+    return 'Open Catalog';
   }, []);
 
-  const getCategoryActionHint = useCallback((category: GameTypeCategory) => {
-    if (category === 'single-player') {
-      return 'Jump into solo challenges and practice sessions.';
+  const getGameModeLabel = (game: GameDefinition) => {
+    if (game.supportsOnline && game.maxPlayers > 1) {
+      return 'Online';
     }
-    if (category === 'online-multiplayer') {
-      return 'Create or join a room from the next screen.';
+    if (game.supportsCpu) {
+      return 'CPU';
     }
-    return 'Browse and pick any available game.';
-  }, []);
+    return 'Local';
+  };
 
   return (
-    <section className="title-screen-content">
+    <section className="title-screen-content game-type-screen">
       <h1>
         <span>Select</span>
         <span>-</span>
         <span>Game Type</span>
       </h1>
 
-      <div className="lobby-card mt-8">
+      <div className="lobby-card game-type-shell mt-8">
         <div className="game-type-toolbar">
           <button className="lobby-back" type="button" onClick={onBack}>
             <AiOutlineArrowLeft /> Back
           </button>
+          <span className="game-type-toolbar-chip">
+            <AiOutlineThunderbolt /> {totalGames} games loaded
+          </span>
         </div>
 
-        <div className="game-type-banner">
-          <strong>Choose Your Arena Focus</strong>
-          <span>Pick the lane you want, then continue with that mode.</span>
+        <div className="game-type-hero">
+          <div className="game-type-hero-copy">
+            <span className="game-type-eyebrow">
+              <AiOutlineCrown /> Arena Routing
+            </span>
+            <strong>{selectedOption.label}</strong>
+            <p>{selectedOption.detail}</p>
+          </div>
+
+          <div className="game-type-hero-stats" aria-label="Catalog capability summary">
+            <span>
+              <AiOutlineAppstore /> {totalGames} Total
+            </span>
+            <span>
+              <AiOutlineGlobal /> {onlineGames} Online
+            </span>
+            <span>
+              <AiOutlineRobot /> {cpuGames} CPU
+            </span>
+            <span>
+              <AiOutlineTeam /> {multiplayerGames} Rooms
+            </span>
+          </div>
         </div>
 
-        <div className="game-type-grid">
-          {gameTypeOptions.map((option) => {
+        <div className="game-type-grid" role="list" aria-label="Game type categories">
+          {gameTypeOptions.map((option, optionIndex) => {
             const optionGames = getGamesForCategory(option.id);
             const isSelected = selectedCategory === option.id;
+            const topSamples = optionGames.slice(0, 3);
+            const optionFill = totalGames > 0 ? Math.max(14, Math.round((optionGames.length / totalGames) * 100)) : 14;
+
             return (
-              <div
+              <article
                 key={option.id}
                 className={classnames(
                   'game-type-card',
-                  'flex',
-                  'flex-col',
+                  `game-type-card-${option.tone}`,
                   isSelected && 'game-type-card-active'
                 )}
+                role="listitem"
               >
                 <button
                   className="game-type-card-select"
                   type="button"
                   onClick={() => onSelectCategory(option.id)}
+                  aria-pressed={isSelected}
                 >
                   <div className="game-type-card-top">
                     <div className="game-type-icon">{option.icon}</div>
-                    <span className="game-type-chip">{option.shortDescription}</span>
+                    <span className="game-type-chip">{option.kicker}</span>
                   </div>
-                  <strong>{option.label}</strong>
-                  <span>{option.detail}</span>
-                </button>
 
-                {isSelected ? (
-                  <div className="game-type-card-preview">
-                    <div className="game-type-card-preview-head">
-                      <span className="game-type-preview-pill">
-                        <AiOutlineThunderbolt /> {optionGames.length} Available
-                      </span>
-                      <p>{getCategoryActionHint(option.id)}</p>
-                    </div>
-                    <ul className="game-type-preview-list">
-                      {optionGames.slice(0, 3).map((game) => (
-                        <li key={game.id}>
-                          <span>{game.name}</span>
-                          <small>
-                            {game.minPlayers}-{game.maxPlayers} players
-                          </small>
-                        </li>
-                      ))}
-                      {optionGames.length > 3 ? <li>+ {optionGames.length - 3} more</li> : null}
-                    </ul>
-                    <button className="game-type-play-btn" type="button" onClick={onContinue}>
-                      <AiOutlineCheckCircle /> {getCategoryActionLabel(option.id)}
-                    </button>
+                  <div className="game-type-card-title-row">
+                    <small>0{optionIndex + 1}</small>
+                    <strong>{option.label}</strong>
                   </div>
-                ) : null}
-              </div>
+
+                  <span>{option.detail}</span>
+
+                  <div className="game-type-meter" aria-hidden="true">
+                    <span style={{ width: `${optionFill}%` }} />
+                  </div>
+
+                  <div className="game-type-card-meta">
+                    <small>{optionGames.length} games</small>
+                    <small>{topSamples[0]?.name || 'Coming soon'}</small>
+                  </div>
+                </button>
+              </article>
             );
           })}
         </div>
+
+        <section className={classnames('game-type-preview', `game-type-preview-${selectedOption.tone}`)}>
+          <div className="game-type-preview-head">
+            <span className="game-type-preview-label">
+              <AiOutlineTrophy /> Selected Lane
+            </span>
+            <strong>{selectedOption.label}</strong>
+            <span>{selectedOption.detail}</span>
+          </div>
+
+          <div className="game-type-preview-stats">
+            <span className="game-type-preview-pill">
+              <AiOutlineThunderbolt /> {selectedGames.length} Available
+            </span>
+            <span className="game-type-preview-pill">
+              <AiOutlineGlobal /> {selectedGames.filter((game) => game.supportsOnline).length} Online
+            </span>
+            <span className="game-type-preview-pill">
+              <AiOutlineRobot /> {selectedGames.filter((game) => game.supportsCpu).length} CPU
+            </span>
+          </div>
+
+          <ul className="game-type-preview-list">
+            {selectedGameSamples.map((game) => (
+              <li key={game.id}>
+                <span>{game.name}</span>
+                <small>
+                  {game.minPlayers}-{game.maxPlayers} players | {getGameModeLabel(game)}
+                </small>
+              </li>
+            ))}
+            {selectedGames.length > selectedGameSamples.length ? (
+              <li>
+                <span>More waiting</span>
+                <small>+ {selectedGames.length - selectedGameSamples.length} games</small>
+              </li>
+            ) : null}
+          </ul>
+
+          <button className="game-type-preview-cta" type="button" onClick={onContinue}>
+            <AiOutlineCheckCircle /> {getCategoryActionLabel(selectedOption.id)}
+          </button>
+        </section>
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 const { OAuth2Client } = require('google-auth-library');
 const HttpError = require('../errors/HttpError');
 const { googleClientId, authSessionTtlHours } = require('../config/env');
-const { upsertPlayer } = require('../repositories/playerRepository');
+const { getPlayerById, upsertPlayer } = require('../repositories/playerRepository');
 const {
   createSession,
   revokeSessionByToken,
@@ -213,7 +213,8 @@ async function fetchGoogleUserInfo(accessToken) {
 
 async function createGoogleSessionFromIdentity({ sub, name, email, picture }) {
   const playerId = `google:${sub}`;
-  const playerName = extractNameFromPayload({ name, email });
+  const existingPlayer = await withTransientRetry(() => getPlayerById(playerId));
+  const playerName = existingPlayer?.name || extractNameFromPayload({ name, email });
 
   const player = await withTransientRetry(() =>
     upsertPlayer({

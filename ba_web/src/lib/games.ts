@@ -83,7 +83,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     moveMode: 'ludo',
     winCondition: 'ludo-home',
     supportsOnline: true,
-    supportsCpu: false,
+    supportsCpu: true,
   },
   {
     id: 'leap-on',

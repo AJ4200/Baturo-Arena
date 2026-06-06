@@ -81,7 +81,7 @@ const GAME_RULES = {
     moveMode: 'ludo',
     winCondition: 'ludo-home',
     supportsOnline: true,
-    supportsCpu: false,
+    supportsCpu: true,
   },
   'leap-on': {
     id: 'leap-on',
