@@ -209,7 +209,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'air-hockey',
     winCondition: 'air-hockey-score',
-    supportsOnline: false,
+    supportsOnline: true,
     supportsCpu: true,
   },
   {

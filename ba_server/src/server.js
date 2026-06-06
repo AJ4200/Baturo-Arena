@@ -3,6 +3,7 @@ const http = require("http");
 const { port, dbInitRetryDelayMs } = require("./config/env");
 const { initDatabase } = require("./db");
 const { attachRacingWebSocket } = require("./websocket/racingSocket");
+const { attachAirHockeyWebSocket } = require("./websocket/airHockeySocket");
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -33,6 +34,7 @@ async function startServer() {
   await initializeDatabaseWithRetry();
   const server = http.createServer(app);
   attachRacingWebSocket(server);
+  attachAirHockeyWebSocket(server);
   server.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`baturo-arena api listening on http://localhost:${port}`);

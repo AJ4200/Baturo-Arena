@@ -180,6 +180,7 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
       <AirHockeyArenaGame
         player={player}
         mode={mode}
+        roomCode={roomCode}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
         enableAnimations={enableAnimations}
