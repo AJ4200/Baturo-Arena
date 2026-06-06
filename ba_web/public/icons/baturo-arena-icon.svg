@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title description">
+  <title id="title">Baturo Arena app icon</title>
+  <desc id="description">An emerald arcade joystick and game controller inside a glowing arena badge.</desc>
+  <defs>
+    <linearGradient id="bg" x1="76" y1="38" x2="438" y2="474" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#19284a"/>
+      <stop offset="0.48" stop-color="#071522"/>
+      <stop offset="1" stop-color="#063d35"/>
+    </linearGradient>
+    <linearGradient id="arena" x1="120" y1="92" x2="394" y2="424" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#45f2ad"/>
+      <stop offset="0.5" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#087f70"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="154" y1="197" x2="359" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#243760"/>
+      <stop offset="0.55" stop-color="#101c35"/>
+      <stop offset="1" stop-color="#09111f"/>
+    </linearGradient>
+    <radialGradient id="stick" cx="36%" cy="28%" r="72%">
+      <stop stop-color="#f8fffd"/>
+      <stop offset="0.18" stop-color="#7fffd0"/>
+      <stop offset="0.5" stop-color="#12c987"/>
+      <stop offset="1" stop-color="#08745f"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="#000814" flood-opacity="0.68"/>
+    </filter>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+  <rect x="27" y="27" width="458" height="458" rx="101" fill="none" stroke="#eafff8" stroke-opacity="0.88" stroke-width="8"/>
+  <path d="M256 66 421 157v190L256 446 91 347V157L256 66Z" fill="#02131a" stroke="#b9fff0" stroke-width="10" filter="url(#shadow)"/>
+  <path d="M256 84 403 166v170l-147 88-147-88V166L256 84Z" fill="url(#arena)" stroke="#073e38" stroke-width="8"/>
+  <path d="M256 109 380 178v145l-124 74-124-74V178l124-69Z" fill="url(#bg)" stroke="#8fffd8" stroke-opacity="0.58" stroke-width="4"/>
+
+  <g fill="#dffdf4" opacity="0.92">
+    <path d="m144 161 5 13 13 5-13 5-5 13-5-13-13-5 13-5 5-13Z"/>
+    <path d="m371 141 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z"/>
+    <circle cx="365" cy="350" r="5"/>
+    <circle cx="153" cy="335" r="4"/>
+  </g>
+
+  <path d="M149 229c-23 2-42 20-48 44l-17 67c-7 29 21 52 46 36l42-27h168l42 27c25 16 53-7 46-36l-17-67c-6-24-25-42-48-44l-58-5h-98l-58 5Z" fill="url(#panel)" stroke="#f0fff9" stroke-width="12" stroke-linejoin="round" filter="url(#shadow)"/>
+  <path d="M149 240c-18 2-32 15-37 36l-16 66c-3 12 8 23 19 16l45-29h192l45 29c11 7 22-4 19-16l-16-66c-5-21-19-34-37-36l-57-5H206l-57 5Z" fill="none" stroke="#35e6a2" stroke-opacity="0.55" stroke-width="5"/>
+
+  <g fill="#f7fffc" stroke="#06111d" stroke-width="6" stroke-linejoin="round">
+    <path d="M159 264h24v22h22v24h-22v22h-24v-22h-22v-24h22v-22Z"/>
+    <circle cx="344" cy="278" r="14"/>
+    <circle cx="375" cy="303" r="14"/>
+    <circle cx="313" cy="303" r="14"/>
+    <circle cx="344" cy="328" r="14"/>
+  </g>
+  <circle cx="344" cy="278" r="6" fill="#6dffd0"/>
+  <circle cx="375" cy="303" r="6" fill="#38cfff"/>
+  <circle cx="313" cy="303" r="6" fill="#f7d758"/>
+  <circle cx="344" cy="328" r="6" fill="#ff6e91"/>
+
+  <g filter="url(#shadow)">
+    <path d="M238 231h36l-5 62h-26l-5-62Z" fill="#eafff8" stroke="#07111e" stroke-width="8" stroke-linejoin="round"/>
+    <ellipse cx="256" cy="301" rx="45" ry="22" fill="#0a1426" stroke="#eafff8" stroke-width="8"/>
+    <circle cx="256" cy="191" r="49" fill="#04111e" stroke="#eafff8" stroke-width="10"/>
+    <circle cx="256" cy="191" r="37" fill="url(#stick)" stroke="#063c35" stroke-width="5"/>
+    <ellipse cx="244" cy="176" rx="10" ry="13" fill="#fff" opacity="0.8" transform="rotate(32 244 176)"/>
+  </g>
+
+  <path d="M205 363h102" stroke="#81ffda" stroke-width="10" stroke-linecap="round" filter="url(#glow)"/>
+</svg>
