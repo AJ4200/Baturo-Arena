@@ -25,11 +25,21 @@ export function MainMenu({
   return (
     <section className="title-screen-content">
       <div className="title-board-card title-board-card-hero">
-        <h1>
-          <span className="title-main-first">Baturo</span>
-          <span className="title-main-dash">-</span>
-          <span className="title-main-last">Arena</span>
-        </h1>
+        <div className="title-brand-lockup">
+          <img
+            className="title-brand-icon"
+            src="/icons/baturo-arena-icon.svg"
+            alt=""
+            width="128"
+            height="128"
+            aria-hidden="true"
+          />
+          <h1>
+            <span className="title-main-first">Baturo</span>
+            <span className="title-main-dash">-</span>
+            <span className="title-main-last">Arena</span>
+          </h1>
+        </div>
       </div>
 
       <motion.div
