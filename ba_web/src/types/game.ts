@@ -25,6 +25,7 @@ export type GameType =
   | 'tetris'
   | 'starfall-survivor'
   | 'pulse-forge'
+  | 'blackjack'
   | 'turbo-rush';
 
 export type GameDefinition = {
@@ -56,6 +57,7 @@ export type GameDefinition = {
     | 'solo-tetris'
     | 'solo-starfall'
     | 'solo-pulse-forge'
+    | 'solo-blackjack'
     | 'air-hockey'
     | 'racing';
   winCondition?:
@@ -76,6 +78,7 @@ export type GameDefinition = {
     | 'tetris-score'
     | 'starfall-survive'
     | 'pulse-forge-stabilize'
+    | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
     | 'leap-on-score';

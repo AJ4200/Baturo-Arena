@@ -16,6 +16,7 @@ import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBrea
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
 import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
+import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
@@ -179,6 +180,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
       <AirHockeyArenaGame
         player={player}
         mode={mode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'blackjack') {
+    return (
+      <SoloBlackjackGame
+        player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
         enableAnimations={enableAnimations}

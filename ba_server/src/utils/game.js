@@ -280,6 +280,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  blackjack: {
+    id: 'blackjack',
+    name: 'Blackjack',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Play classic twenty-one against the arena dealer. Read the table, manage your aces, and win five hands to take the match.',
+    moveMode: 'solo-blackjack',
+    winCondition: 'blackjack-five-wins',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'turbo-rush': {
     id: 'turbo-rush',
     name: 'Turbo Rush',
@@ -562,6 +576,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
+    rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish'
   ) {
@@ -717,6 +732,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-pulse-forge' ||
+    rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo'
@@ -793,6 +809,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-pulse-forge' ||
+    rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'ludo' ||

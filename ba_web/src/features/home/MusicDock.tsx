@@ -49,6 +49,7 @@ export function MusicDock(props: Props) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [pendingAutoplay, setPendingAutoplay] = useState(false);
 
   const activeTrack = tracks[activeTrackIndex] ?? null;
   const cover = activeTrack?.artSrc || GENERIC_ART_SRC;
@@ -59,6 +60,32 @@ export function MusicDock(props: Props) {
     audio.muted = isMuted;
     audio.volume = Math.min(1, Math.max(0, volume / 100));
   }, [isMuted, volume]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !activeTrack || isMuted) {
+      setPendingAutoplay(false);
+      return;
+    }
+
+    const tryAutoplay = () => {
+      if (!audio.paused) {
+        setPendingAutoplay(false);
+        return;
+      }
+
+      void audio
+        .play()
+        .then(() => {
+          setPendingAutoplay(false);
+        })
+        .catch(() => {
+          setPendingAutoplay(true);
+        });
+    };
+
+    tryAutoplay();
+  }, [activeTrack?.src, isMuted]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -75,6 +102,32 @@ export function MusicDock(props: Props) {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, []);
+
+  useEffect(() => {
+    if (!pendingAutoplay) {
+      return;
+    }
+
+    const retryAutoplay = () => {
+      const audio = audioRef.current;
+      if (!audio) {
+        return;
+      }
+
+      setPendingAutoplay(false);
+      void audio.play().catch(() => {
+        setPendingAutoplay(true);
+      });
+    };
+
+    window.addEventListener('pointerdown', retryAutoplay, { once: true });
+    window.addEventListener('keydown', retryAutoplay, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', retryAutoplay);
+      window.removeEventListener('keydown', retryAutoplay);
+    };
+  }, [pendingAutoplay]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -283,6 +336,7 @@ export function MusicDock(props: Props) {
       <audio
         ref={audioRef}
         src={activeTrack?.src}
+        autoPlay={!isMuted}
         onEnded={() => setIsPlaying(false)}
         onPause={() => setIsPlaying(false)}
         onPlay={() => setIsPlaying(true)}

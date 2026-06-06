@@ -28,6 +28,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   tetris: { label: 'TETRIS', className: 'choose-game-thumb-tetris' },
   'starfall-survivor': { label: 'STARFALL', className: 'choose-game-thumb-starfall-survivor' },
   'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },
+  blackjack: { label: 'BLACKJACK', className: 'choose-game-thumb-blackjack' },
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
 };
 

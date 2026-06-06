@@ -283,6 +283,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'blackjack',
+    name: 'Blackjack',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Play classic twenty-one against the arena dealer. Read the table, manage your aces, and win five hands to take the match.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-blackjack',
+    winCondition: 'blackjack-five-wins',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'turbo-rush',
     name: 'Turbo Rush',
     minPlayers: 2,
@@ -477,6 +491,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-pulse-forge' ||
+    game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
@@ -529,6 +544,7 @@ export const applyMove = (
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-pulse-forge' ||
+    game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'ludo' ||
@@ -679,6 +695,7 @@ export const evaluateBoard = (
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
     game.winCondition === 'pulse-forge-stabilize' ||
+    game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish'
   ) {
