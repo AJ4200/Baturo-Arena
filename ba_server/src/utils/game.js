@@ -207,7 +207,7 @@ const GAME_RULES = {
     description: 'Fast-paced table duel with real-time puck physics, rounds, and match scoring.',
     moveMode: 'air-hockey',
     winCondition: 'air-hockey-score',
-    supportsOnline: false,
+    supportsOnline: true,
     supportsCpu: true,
   },
   'space-invaders': {
