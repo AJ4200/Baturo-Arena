@@ -266,6 +266,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'rift-runner': {
+    id: 'rift-runner',
+    name: 'Rift Runner',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Blast through rift sentinels, recover their stolen cores, and phase across the arena before the vault seals.',
+    moveMode: 'solo-rift-runner',
+    winCondition: 'rift-runner-extract',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'pulse-forge': {
     id: 'pulse-forge',
     name: 'Pulse Forge',
@@ -575,6 +589,7 @@ function checkWinner(gameType, board) {
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
+    rules.winCondition === 'rift-runner-extract' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
@@ -731,6 +746,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
+    rules.moveMode === 'solo-rift-runner' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
@@ -808,6 +824,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
+    rules.moveMode === 'solo-rift-runner' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||

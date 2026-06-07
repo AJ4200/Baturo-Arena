@@ -1,4 +1,4 @@
-export type Screen = 'home' | 'game-type-select' | 'game-select' | 'game-intro' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
+export type Screen = 'home' | 'menu-intro' | 'game-type-select' | 'game-select' | 'game-intro' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
 
 export type GameMode = 'online' | 'cpu' | 'offline';
 
@@ -24,6 +24,7 @@ export type GameType =
   | 'neon-pong'
   | 'tetris'
   | 'starfall-survivor'
+  | 'rift-runner'
   | 'pulse-forge'
   | 'blackjack'
   | 'turbo-rush';
@@ -56,6 +57,7 @@ export type GameDefinition = {
     | 'solo-neon-pong'
     | 'solo-tetris'
     | 'solo-starfall'
+    | 'solo-rift-runner'
     | 'solo-pulse-forge'
     | 'solo-blackjack'
     | 'air-hockey'
@@ -77,6 +79,7 @@ export type GameDefinition = {
     | 'neon-pong-score'
     | 'tetris-score'
     | 'starfall-survive'
+    | 'rift-runner-extract'
     | 'pulse-forge-stabilize'
     | 'blackjack-five-wins'
     | 'air-hockey-score'

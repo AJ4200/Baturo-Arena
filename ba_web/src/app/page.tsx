@@ -14,6 +14,10 @@ import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
 import { MainMenu } from '@/features/home/MainMenu';
+import {
+  MenuDestinationSplash,
+  type MenuDestination,
+} from '@/features/home/MenuDestinationSplash';
 import { TopBar } from '@/features/home/TopBar';
 import { ChatDock } from '@/features/home/ChatDock';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
@@ -287,6 +291,9 @@ export default function Home() {
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>(FALLBACK_GAMES);
   const [gameIntroTargetScreen, setGameIntroTargetScreen] = useState<Extract<Screen, 'lobby' | 'single-player-lobby'> | null>(null);
   const [gameIntroPhase, setGameIntroPhase] = useState<'enter' | 'exit'>('enter');
+  const [menuIntroDestination, setMenuIntroDestination] = useState<MenuDestination>('game-type-select');
+  const [menuIntroPhase, setMenuIntroPhase] = useState<'enter' | 'exit'>('enter');
+  const [isMenuIntroWaitingForData, setIsMenuIntroWaitingForData] = useState(false);
   const [leaderboardCategory, setLeaderboardCategory] = useState<GameType | 'overall'>('overall');
   const [historyCategory, setHistoryCategory] = useState<GameType | 'all'>('all');
   const [playerName, setPlayerName] = useState('Player');
@@ -326,6 +333,7 @@ export default function Home() {
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
+  const menuIntroTransitionRef = useRef(0);
 
   const { activeRequests, runWithLoader, callApi } = useApiClient();
 
@@ -919,12 +927,51 @@ export default function Home() {
     setPublicRooms(payload.rooms);
   };
 
-  const refreshLeaderboard = async () => {
-    const payload = await callApi<LeaderboardPayload>('/api/players/leaderboard');
+  const refreshLeaderboard = async (showLoader = true) => {
+    const payload = await callApi<LeaderboardPayload>('/api/players/leaderboard', undefined, showLoader);
     setLeaderboard([
       { gameType: 'overall', name: 'Overall Arena', players: payload.overall },
       ...payload.byGame,
     ]);
+  };
+
+  const openMenuDestination = async (destination: MenuDestination) => {
+    const transitionId = menuIntroTransitionRef.current + 1;
+    menuIntroTransitionRef.current = transitionId;
+    setMenuIntroDestination(destination);
+    setMenuIntroPhase('enter');
+    setIsMenuIntroWaitingForData(destination === 'leaderboard');
+    setScreen('menu-intro');
+
+    const dataTask =
+      destination === 'leaderboard'
+        ? refreshLeaderboard(false).catch(() => {
+            setMessage('Could not load leaderboard');
+          })
+        : Promise.resolve();
+
+    await Promise.all([
+      dataTask,
+      new Promise<void>((resolve) => window.setTimeout(resolve, 1900)),
+    ]);
+
+    if (menuIntroTransitionRef.current !== transitionId) {
+      return;
+    }
+
+    setIsMenuIntroWaitingForData(false);
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
+
+    if (menuIntroTransitionRef.current !== transitionId) {
+      return;
+    }
+
+    setMenuIntroPhase('exit');
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 480));
+
+    if (menuIntroTransitionRef.current === transitionId) {
+      setScreen(destination);
+    }
   };
 
   const findGameDefinition = useCallback(
@@ -1470,15 +1517,22 @@ export default function Home() {
       return (
         <MainMenu
           enableAnimations={enableAnimations}
-          onPlay={() => setScreen('game-type-select')}
-          onLeaderboard={() => {
-            refreshLeaderboard().catch(() => {
-              setMessage('Could not load leaderboard');
-            });
-            setScreen('leaderboard');
-          }}
-          onHistory={() => setScreen('history')}
-          onSettings={() => setScreen('settings')}
+          onPlay={() => void openMenuDestination('game-type-select')}
+          onLeaderboard={() => void openMenuDestination('leaderboard')}
+          onHistory={() => void openMenuDestination('history')}
+          onSettings={() => void openMenuDestination('settings')}
+        />
+      );
+    }
+
+    if (screen === 'menu-intro') {
+      return (
+        <MenuDestinationSplash
+          destination={menuIntroDestination}
+          phase={menuIntroPhase}
+          isWaitingForData={isMenuIntroWaitingForData}
+          selectedCategory={selectedGameCategory}
+          gameCount={filteredGames.length}
         />
       );
     }
@@ -1505,7 +1559,7 @@ export default function Home() {
             if (!filtered.some((game) => game.id === selectedGame)) {
               setSelectedGame(filtered[0].id);
             }
-            setScreen('game-select');
+            void openMenuDestination('game-select');
           }}
         />
       );

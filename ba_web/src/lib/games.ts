@@ -269,6 +269,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'rift-runner',
+    name: 'Rift Runner',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Blast through rift sentinels, recover their stolen cores, and phase across the arena before the vault seals.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-rift-runner',
+    winCondition: 'rift-runner-extract',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'pulse-forge',
     name: 'Pulse Forge',
     minPlayers: 1,
@@ -490,6 +504,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
+    game.moveMode === 'solo-rift-runner' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -543,6 +558,7 @@ export const applyMove = (
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
+    game.moveMode === 'solo-rift-runner' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -694,6 +710,7 @@ export const evaluateBoard = (
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
+    game.winCondition === 'rift-runner-extract' ||
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||
