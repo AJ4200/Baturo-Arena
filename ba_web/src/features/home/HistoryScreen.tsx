@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import classnames from 'classnames';
-import { AiOutlineArrowLeft } from 'react-icons/ai';
+import {
+  AiOutlineArrowLeft,
+  AiOutlineCalendar,
+  AiOutlineClockCircle,
+  AiOutlineDelete,
+} from 'react-icons/ai';
+import { BiFilterAlt } from 'react-icons/bi';
+import { FaHandshake, FaTrophy } from 'react-icons/fa';
+import { MdOutlineSportsScore } from 'react-icons/md';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, GameType, MatchHistoryEntry } from '@/types/game';
 
@@ -74,143 +83,229 @@ export function HistoryScreen({ history, selectedGame, games, onBack, onClear, o
   };
 
   return (
-    <section className="title-screen-content">
-      <h1>
-        <span>His-</span>
-        <span>tory</span>
-      </h1>
+    <section className="title-screen-content history-screen">
+      <div className="history-screen-heading">
+        <h1>
+          <span>His-</span>
+          <span>tory</span>
+        </h1>
+      </div>
 
-      <div className="lobby-card mt-8">
-        <div className="lobby-row">
-          <button className="lobby-back" type="button" onClick={onBack}>
-            <AiOutlineArrowLeft /> Back
+      <div className="history-archive">
+        <div className="history-toolbar">
+          <button className="history-back-button" type="button" onClick={onBack}>
+            <AiOutlineArrowLeft aria-hidden="true" /> Back
           </button>
-          <select className="settings-select" value={selectedGame} onChange={(event) => onSelectGame(event.target.value as GameType | 'all')}>
-            <option value="all">All Games</option>
-            {games.map((game) => (
-              <option key={game.id} value={game.id}>
-                {game.name}
-              </option>
-            ))}
-          </select>
-          <select className="settings-select" value={sortOrder} onChange={(event) => setSortOrder(event.target.value as 'newest' | 'oldest')}>
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-          </select>
-        </div>
 
-        <div className="settings-item settings-item-save">
-          <p>{selectedGame === 'all' ? 'Recent Matches' : `Recent ${formatGameName(selectedGame, games)} Matches`}</p>
-          <div className="settings-save-actions">
-            <button className={classnames('lobby-btn', 'custome-shadow')} type="button" disabled={history.length === 0} onClick={onClear}>
-              Clear History
-            </button>
+          <div className="history-filter-group">
+            <BiFilterAlt aria-hidden="true" />
+            <label>
+              <span>Game</span>
+              <select
+                value={selectedGame}
+                onChange={(event) => onSelectGame(event.target.value as GameType | 'all')}
+              >
+                <option value="all">All Games</option>
+                {games.map((game) => (
+                  <option key={game.id} value={game.id}>
+                    {game.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Order</span>
+              <select
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value as 'newest' | 'oldest')}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
+            </label>
           </div>
         </div>
 
-        <div className="history-summary">
-          <span className="history-chip">Matches {summary.total}</span>
-          <span className="history-chip history-chip-win">Wins {summary.wins}</span>
-          <span className="history-chip history-chip-loss">Losses {summary.losses}</span>
-          <span className="history-chip history-chip-draw">Draws {summary.draws}</span>
-          <span className="history-chip">Win Rate {summary.winRate}%</span>
+        <div className="history-summary-grid">
+          <article className="history-stat history-stat-total">
+            <MdOutlineSportsScore aria-hidden="true" />
+            <span>
+              <small>Matches</small>
+              <strong>{summary.total}</strong>
+            </span>
+          </article>
+          <article className="history-stat history-stat-win">
+            <FaTrophy aria-hidden="true" />
+            <span>
+              <small>Wins</small>
+              <strong>{summary.wins}</strong>
+            </span>
+          </article>
+          <article className="history-stat history-stat-loss">
+            <span className="history-stat-mark" aria-hidden="true">X</span>
+            <span>
+              <small>Losses</small>
+              <strong>{summary.losses}</strong>
+            </span>
+          </article>
+          <article className="history-stat history-stat-draw">
+            <FaHandshake aria-hidden="true" />
+            <span>
+              <small>Draws</small>
+              <strong>{summary.draws}</strong>
+            </span>
+          </article>
+          <article className="history-stat history-stat-rate">
+            <span
+              className="history-stat-ring"
+              style={{ '--history-rate': `${summary.winRate * 3.6}deg` } as CSSProperties}
+            >
+              {summary.winRate}%
+            </span>
+            <span>
+              <small>Win rate</small>
+              <strong>{summary.total > 0 ? 'Form' : 'No data'}</strong>
+            </span>
+          </article>
         </div>
 
-        {sortedHistory.length === 0 ? (
-          <p className="settings-save-meta">No completed matches recorded yet for this category</p>
-        ) : (
-          <>
-            <ul className="settings-history-list">
-              {pageItems.map((entry) => (
-                <li key={entry.id} className="settings-history-item">
-                  <span className={classnames('settings-history-outcome', `outcome-${entry.outcome}`)}>{entry.outcome.toUpperCase()}</span>
-                  <span className="settings-history-opponent">
-                    {formatGameName(entry.gameType, games)} | {(entry.mode === 'offline' ? 'LOCAL' : entry.mode.toUpperCase())} vs {entry.opponent}
+        <section className="history-ledger">
+          <header className="history-ledger-head">
+            <div>
+              <span className="history-ledger-eyebrow">Local match archive</span>
+              <h2>
+                {selectedGame === 'all'
+                  ? 'Recent matches'
+                  : `${formatGameName(selectedGame, games)} matches`}
+              </h2>
+            </div>
+            <button
+              className="history-clear-button"
+              type="button"
+              disabled={history.length === 0}
+              onClick={onClear}
+            >
+              <AiOutlineDelete aria-hidden="true" /> Clear history
+            </button>
+          </header>
+
+          {sortedHistory.length === 0 ? (
+            <div className="history-empty">
+              <AiOutlineCalendar aria-hidden="true" />
+              <strong>No matches in this archive yet</strong>
+              <span>Completed games will be recorded here on this device.</span>
+            </div>
+          ) : (
+            <>
+              <ul className="history-match-list">
+                {pageItems.map((entry) => {
+                  const finishedAt = new Date(entry.finishedAt);
+                  return (
+                    <li key={entry.id} className={classnames('history-match', `history-match-${entry.outcome}`)}>
+                      <span className="history-match-rail" aria-hidden="true" />
+                      <span className="history-match-outcome">{entry.outcome}</span>
+                      <div className="history-match-copy">
+                        <span className="history-match-game">
+                          {formatGameName(entry.gameType, games)}
+                          <i>{entry.mode === 'offline' ? 'Local' : entry.mode}</i>
+                        </span>
+                        <strong>vs {entry.opponent}</strong>
+                      </div>
+                      <div className="history-match-date">
+                        <span>
+                          <AiOutlineCalendar aria-hidden="true" />
+                          {finishedAt.toLocaleDateString()}
+                        </span>
+                        <span>
+                          <AiOutlineClockCircle aria-hidden="true" />
+                          {finishedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="pagination-row pagination-row-rich history-pagination">
+                <div className="pagination-meta-card">
+                  <span className="pagination-info">
+                    Showing {pageStart}-{pageEnd} of {sortedHistory.length}
                   </span>
-                  <span className="settings-history-time">{new Date(entry.finishedAt).toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="pagination-row pagination-row-rich">
-              <div className="pagination-meta-card">
-                <span className="pagination-info">
-                  Showing {pageStart}-{pageEnd} of {sortedHistory.length}
-                </span>
-                <span className="pagination-subtle">
-                  Page {currentPage} of {totalPages}
-                </span>
-              </div>
-
-              <div className="pagination-controls pagination-controls-rich">
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={currentPage <= 1}
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                >
-                  Prev
-                </button>
-
-                <div className="pagination-page-list" aria-label="History pages">
-                  {visiblePages[0] > 1 ? (
-                    <>
-                      <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(1)}>
-                        1
-                      </button>
-                      {visiblePages[0] > 2 ? <span className="pagination-ellipsis">...</span> : null}
-                    </>
-                  ) : null}
-
-                  {visiblePages.map((pageNumber) => (
-                    <button
-                      key={pageNumber}
-                      className={classnames(
-                        'pagination-page-chip',
-                        currentPage === pageNumber && 'pagination-page-chip-active'
-                      )}
-                      type="button"
-                      onClick={() => setCurrentPage(pageNumber)}
-                      aria-current={currentPage === pageNumber ? 'page' : undefined}
-                    >
-                      {pageNumber}
-                    </button>
-                  ))}
-
-                  {visiblePages[visiblePages.length - 1] < totalPages ? (
-                    <>
-                      {visiblePages[visiblePages.length - 1] < totalPages - 1 ? (
-                        <span className="pagination-ellipsis">...</span>
-                      ) : null}
-                      <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(totalPages)}>
-                        {totalPages}
-                      </button>
-                    </>
-                  ) : null}
+                  <span className="pagination-subtle">
+                    Page {currentPage} of {totalPages}
+                  </span>
                 </div>
 
-                <button
-                  className="pagination-btn"
-                  type="button"
-                  disabled={currentPage >= totalPages}
-                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                >
-                  Next
-                </button>
-              </div>
+                <div className="pagination-controls pagination-controls-rich">
+                  <button
+                    className="pagination-btn"
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  >
+                    Prev
+                  </button>
 
-              <div className="pagination-size pagination-size-card">
-                <label>Items per page:</label>
-                <select className="settings-select" value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
+                  <div className="pagination-page-list" aria-label="History pages">
+                    {visiblePages[0] > 1 ? (
+                      <>
+                        <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(1)}>
+                          1
+                        </button>
+                        {visiblePages[0] > 2 ? <span className="pagination-ellipsis">...</span> : null}
+                      </>
+                    ) : null}
+
+                    {visiblePages.map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        className={classnames(
+                          'pagination-page-chip',
+                          currentPage === pageNumber && 'pagination-page-chip-active'
+                        )}
+                        type="button"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        aria-current={currentPage === pageNumber ? 'page' : undefined}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+
+                    {visiblePages[visiblePages.length - 1] < totalPages ? (
+                      <>
+                        {visiblePages[visiblePages.length - 1] < totalPages - 1 ? (
+                          <span className="pagination-ellipsis">...</span>
+                        ) : null}
+                        <button className="pagination-page-chip" type="button" onClick={() => setCurrentPage(totalPages)}>
+                          {totalPages}
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <button
+                    className="pagination-btn"
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  >
+                    Next
+                  </button>
+                </div>
+
+                <div className="pagination-size pagination-size-card">
+                  <label>Items per page:</label>
+                  <select value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
+                    <option value={5}>5</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </section>
       </div>
     </section>
   );

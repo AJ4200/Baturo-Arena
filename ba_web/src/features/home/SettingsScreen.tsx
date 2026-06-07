@@ -1,6 +1,5 @@
 import classnames from 'classnames';
 import {
-  AiFillSetting,
   AiOutlineArrowLeft,
   AiOutlineMuted,
   AiOutlineSound,
@@ -61,14 +60,10 @@ export function SettingsScreen({
   return (
     <section className="title-screen-content settings-screen">
       <div className="settings-screen-heading">
-        <span className="settings-screen-kicker">
-          <AiFillSetting aria-hidden="true" /> Tune your arena
-        </span>
         <h1>
           <span>Set-</span>
           <span>tings</span>
         </h1>
-        <p>Make every match look, sound, and play exactly your way.</p>
       </div>
 
       <div className="lobby-card settings-shell">

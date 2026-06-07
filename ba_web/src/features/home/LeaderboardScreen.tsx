@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import classnames from 'classnames';
-import { AiOutlineArrowLeft } from 'react-icons/ai';
+import {
+  AiOutlineArrowLeft,
+  AiOutlineReload,
+  AiOutlineSearch,
+  AiOutlineTeam,
+} from 'react-icons/ai';
+import { FaCrown, FaMedal, FaTrophy } from 'react-icons/fa';
+import { MdLeaderboard } from 'react-icons/md';
 import { formatGameName } from '@/lib/games';
 import type { GameDefinition, GameType, LeaderboardCategory } from '@/types/game';
 
@@ -68,6 +75,11 @@ export function LeaderboardScreen({
   }, [selectedCategory, playerQuery]);
 
   const pagePlayers = filteredPlayers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const categoryLeader = activeCategory?.players[0];
+  const recordedResults = activeCategory?.players.reduce(
+    (total, entry) => total + entry.wins + entry.losses + entry.draws,
+    0
+  ) || 0;
 
   const handleItemsPerPageChange = (value: number) => {
     setItemsPerPage(value);
@@ -75,91 +87,156 @@ export function LeaderboardScreen({
   };
 
   return (
-    <section className="title-screen-content">
-      <h1>
-        <span>Leader-</span>
-        <span>Board</span>
-      </h1>
+    <section className="title-screen-content leaderboard-screen">
+      <div className="leaderboard-screen-heading">
+        <h1>
+          <span>Leader-</span>
+          <span>Board</span>
+        </h1>
+      </div>
 
-      <div className="lobby-card mt-8">
-        <div className="lobby-row">
-          <button className="lobby-back" type="button" onClick={onBack}>
-            <AiOutlineArrowLeft /> Back
+      <div className="leaderboard-stage">
+        <div className="leaderboard-toolbar">
+          <button className="leaderboard-back-button" type="button" onClick={onBack}>
+            <AiOutlineArrowLeft aria-hidden="true" /> Back
           </button>
-          <select className="settings-select" value={selectedCategory} onChange={(event) => onSelectCategory(event.target.value as GameType | 'overall')}>
-            <option value="overall">Overall Arena</option>
-            {games.map((game) => (
-              <option key={game.id} value={game.id}>
-                {game.name}
-              </option>
-            ))}
-          </select>
-          <button className={classnames('lobby-btn', 'custome-shadow')} type="button" onClick={onRefresh}>
-            Refresh
+          <label className="leaderboard-category-select">
+            <MdLeaderboard aria-hidden="true" />
+            <span>Standings</span>
+            <select
+              value={selectedCategory}
+              onChange={(event) => onSelectCategory(event.target.value as GameType | 'overall')}
+            >
+              <option value="overall">Overall Arena</option>
+              {games.map((game) => (
+                <option key={game.id} value={game.id}>
+                  {game.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="leaderboard-refresh-button" type="button" onClick={onRefresh}>
+            <AiOutlineReload aria-hidden="true" /> Refresh
           </button>
         </div>
 
-        <div className="lobby-game-banner">
-          <strong>{activeCategory?.name || 'Overall Arena'}</strong>
-          <span>
-            {selectedCategory === 'overall'
-              ? 'Combined performance across every current Baturo Arena game.'
-              : `Stats filtered for ${formatGameName(selectedCategory, games)}.`}
-          </span>
-        </div>
+        <section className="leaderboard-spotlight">
+          <div className="leaderboard-spotlight-copy">
+            <span className="leaderboard-live-label">
+              <i aria-hidden="true" /> Live standings
+            </span>
+            <h2>{activeCategory?.name || 'Overall Arena'}</h2>
+            <p>
+              {selectedCategory === 'overall'
+                ? 'Every current Baturo Arena result, combined into one competitive table.'
+                : `${formatGameName(selectedCategory, games)} specialists fighting for the top rank.`}
+            </p>
+          </div>
 
-        <div className="leaderboard-tools">
-          <input
-            className="lobby-input leaderboard-search"
-            value={playerQuery}
-            onChange={(event) => setPlayerQuery(event.target.value)}
-            placeholder="Search player name"
-          />
-          <span className="leaderboard-count">
-            Showing {filteredPlayers.length}/{activeCategory?.players.length || 0}
+          <div className="leaderboard-spotlight-stats">
+            <article>
+              <AiOutlineTeam aria-hidden="true" />
+              <span>
+                <small>Ranked players</small>
+                <strong>{activeCategory?.players.length || 0}</strong>
+              </span>
+            </article>
+            <article>
+              <FaTrophy aria-hidden="true" />
+              <span>
+                <small>Top score</small>
+                <strong>{categoryLeader?.score || 0}</strong>
+              </span>
+            </article>
+            <article>
+              <FaMedal aria-hidden="true" />
+              <span>
+                <small>Results logged</small>
+                <strong>{recordedResults}</strong>
+              </span>
+            </article>
+          </div>
+        </section>
+
+        <div className="leaderboard-command-deck">
+          <label className="leaderboard-search-field">
+            <AiOutlineSearch aria-hidden="true" />
+            <input
+              value={playerQuery}
+              onChange={(event) => setPlayerQuery(event.target.value)}
+              placeholder="Search player name"
+              aria-label="Search player name"
+            />
+          </label>
+          <span className="leaderboard-result-count">
+            {filteredPlayers.length} of {activeCategory?.players.length || 0} players
           </span>
-          <div className="leaderboard-page-size pagination-size-card">
-            <label>Per page:</label>
-            <select className="settings-select" value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
+          <label className="leaderboard-page-size">
+            <span>Per page</span>
+            <select value={itemsPerPage} onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}>
               <option value={5}>5</option>
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-          </div>
+          </label>
         </div>
 
-        <div className="leaderboard-list">
+        <section className="leaderboard-board">
+          <div className="leaderboard-board-head" aria-hidden="true">
+            <span>Rank</span>
+            <span>Player</span>
+            <span>Record</span>
+            <span>Score</span>
+          </div>
+
           {!activeCategory || filteredPlayers.length === 0 ? (
-            <p>No players found yet.</p>
+            <div className="leaderboard-empty">
+              <MdLeaderboard aria-hidden="true" />
+              <strong>{playerQuery ? 'No player matches that search' : 'No ranked players yet'}</strong>
+              <span>{playerQuery ? 'Try another player name.' : 'Completed online matches will fill this board.'}</span>
+            </div>
           ) : (
             <>
               {pagePlayers.map((entry, idx) => {
                 const index = (currentPage - 1) * itemsPerPage + idx;
                 return (
-                  <div
+                  <article
                     key={`${activeCategory.gameType}-${entry.playerId}`}
                     className={classnames(
-                      'leaderboard-item',
-                      index === 0 && 'leaderboard-item-rank-1',
-                      index === 1 && 'leaderboard-item-rank-2',
-                      index === 2 && 'leaderboard-item-rank-3'
+                      'leaderboard-rank-row',
+                      index === 0 && 'leaderboard-rank-row-first',
+                      index === 1 && 'leaderboard-rank-row-second',
+                      index === 2 && 'leaderboard-rank-row-third'
                     )}
                   >
-                    <div className="leaderboard-rank">#{index + 1}</div>
-                    <img src={`https://robohash.org/${entry.name}`} alt={`${entry.name} avatar`} className="leaderboard-avatar" />
-                    <div className="leaderboard-meta">
-                      <p>{entry.name}</p>
-                      <p>
-                        <span className="lb-win">W {entry.wins}</span> | <span className="lb-loss">L {entry.losses}</span> | D {entry.draws}
-                      </p>
+                    <div className="leaderboard-rank-number">
+                      {index === 0 ? <FaCrown aria-hidden="true" /> : null}
+                      <strong>#{index + 1}</strong>
                     </div>
-                    <div className="leaderboard-score">{entry.score} pts</div>
-                  </div>
+                    <div className="leaderboard-player">
+                      <span className="leaderboard-avatar-frame">
+                        <img src={`https://robohash.org/${entry.name}`} alt={`${entry.name} avatar`} />
+                      </span>
+                      <span>
+                        <strong>{entry.name}</strong>
+                        <small>{index < 3 ? 'Podium contender' : 'Arena competitor'}</small>
+                      </span>
+                    </div>
+                    <div className="leaderboard-record" aria-label={`${entry.wins} wins, ${entry.losses} losses, ${entry.draws} draws`}>
+                      <span className="leaderboard-record-win">W {entry.wins}</span>
+                      <span className="leaderboard-record-loss">L {entry.losses}</span>
+                      <span className="leaderboard-record-draw">D {entry.draws}</span>
+                    </div>
+                    <div className="leaderboard-points">
+                      <strong>{entry.score}</strong>
+                      <small>points</small>
+                    </div>
+                  </article>
                 );
               })}
 
-              <div className="pagination-row pagination-row-rich">
+              <div className="pagination-row pagination-row-rich leaderboard-pagination">
                 <div className="pagination-meta-card">
                   <span className="pagination-info">
                     Showing {pageStart}-{pageEnd} of {filteredPlayers.length}
@@ -228,7 +305,7 @@ export function LeaderboardScreen({
               </div>
             </>
           )}
-        </div>
+        </section>
       </div>
     </section>
   );

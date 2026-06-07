@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import classnames from 'classnames';
 import {
   AiOutlineClose,
@@ -50,9 +51,30 @@ export function MusicDock(props: Props) {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [pendingAutoplay, setPendingAutoplay] = useState(false);
+  const [showNowPlayingToast, setShowNowPlayingToast] = useState(false);
+  const [isNowPlayingToastExiting, setIsNowPlayingToastExiting] = useState(false);
+  const toastExitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastRemoveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeTrack = tracks[activeTrackIndex] ?? null;
   const cover = activeTrack?.artSrc || GENERIC_ART_SRC;
+
+  const revealNowPlayingToast = () => {
+    if (!activeTrack) return;
+
+    if (toastExitTimerRef.current) clearTimeout(toastExitTimerRef.current);
+    if (toastRemoveTimerRef.current) clearTimeout(toastRemoveTimerRef.current);
+
+    setShowNowPlayingToast(true);
+    setIsNowPlayingToastExiting(false);
+    toastExitTimerRef.current = setTimeout(() => {
+      setIsNowPlayingToastExiting(true);
+      toastRemoveTimerRef.current = setTimeout(() => {
+        setShowNowPlayingToast(false);
+        setIsNowPlayingToastExiting(false);
+      }, 360);
+    }, 4200);
+  };
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -86,6 +108,15 @@ export function MusicDock(props: Props) {
 
     tryAutoplay();
   }, [activeTrack?.src, isMuted]);
+
+  useEffect(() => {
+    revealNowPlayingToast();
+
+    return () => {
+      if (toastExitTimerRef.current) clearTimeout(toastExitTimerRef.current);
+      if (toastRemoveTimerRef.current) clearTimeout(toastRemoveTimerRef.current);
+    };
+  }, [activeTrack?.id]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -135,6 +166,7 @@ export function MusicDock(props: Props) {
     if (audio.paused) {
       void audio.play();
       setIsPlaying(true);
+      revealNowPlayingToast();
     } else {
       audio.pause();
       setIsPlaying(false);
@@ -176,12 +208,36 @@ export function MusicDock(props: Props) {
     onVolumeChange(Math.min(100, Math.max(0, volume + delta)));
   };
 
+  const handleAudioPlay = () => {
+    setIsPlaying(true);
+    revealNowPlayingToast();
+  };
+
   const knobStyle: React.CSSProperties = {
     '--music-knob-sweep': `${Math.round((Math.max(0, Math.min(volume, 100)) / 100) * 240)}deg`,
   } as React.CSSProperties;
 
+  const nowPlayingToast =
+    showNowPlayingToast && activeTrack && typeof document !== 'undefined'
+      ? createPortal(
+          <aside
+            className={classnames('music-now-playing-toast', isNowPlayingToastExiting && 'exit')}
+            aria-live="polite"
+          >
+            <img src={cover} alt="" aria-hidden="true" />
+            <div>
+              <span>Now playing</span>
+              <strong>{activeTrack.title}</strong>
+              <small>{activeTrack.artist}</small>
+            </div>
+          </aside>,
+          document.body
+        )
+      : null;
+
   return (
-    <div className={classnames('music-dock', isOpen && 'music-dock-open')}>
+    <>
+      <div className={classnames('music-dock', isOpen && 'music-dock-open')}>
       {!isOpen && showLauncher && (
         <button className="music-dock-toggle" type="button" onClick={() => setIsOpen(true)} aria-label="Open music player">
           <IoMdMusicalNote />
@@ -339,8 +395,10 @@ export function MusicDock(props: Props) {
         autoPlay={!isMuted}
         onEnded={() => setIsPlaying(false)}
         onPause={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
+        onPlay={handleAudioPlay}
       />
-    </div>
+      </div>
+      {nowPlayingToast}
+    </>
   );
 }
