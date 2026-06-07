@@ -36,7 +36,10 @@ export function SettingsDock(props: SettingsDockProps) {
   return (
     <div className={classnames('settings-dock', isOpen && 'settings-dock-open')}>
       <button
-        className={classnames('settings-dock-launch', isOpen && 'settings-dock-launch-active')}
+        className={classnames(
+          'settings-dock-launch',
+          isOpen && 'settings-dock-launch-active'
+        )}
         type="button"
         aria-label={isOpen ? 'Close quick settings' : 'Open quick settings'}
         title={isOpen ? 'Close quick settings' : 'Quick Settings'}

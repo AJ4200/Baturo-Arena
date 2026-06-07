@@ -16,7 +16,12 @@ export function PwaRegistration() {
     }
 
     const registerServiceWorker = () => {
-      void navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      void navigator.serviceWorker
+        .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+        .then((registration) => registration.update())
+        .catch(() => {
+          // The app remains usable online if service worker registration is unavailable.
+        });
     };
 
     if (document.readyState === 'complete') {

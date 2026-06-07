@@ -26,17 +26,17 @@ export function MainMenu({
     <section className="title-screen-content">
       <div className="title-board-card title-board-card-hero">
         <div className="title-brand-lockup">
-          <img
-            className="title-brand-icon"
-            src="/icons/baturo-arena-icon.svg"
-            alt=""
-            width="128"
-            height="128"
-            aria-hidden="true"
-          />
           <h1>
             <span className="title-main-first">Baturo</span>
-            <span className="title-main-dash">-</span>
+            <span className="title-brand-mark" aria-hidden="true">
+              <img
+                className="title-brand-icon"
+                src="/icons/baturo-arena-icon.svg"
+                alt=""
+                width="144"
+                height="144"
+              />
+            </span>
             <span className="title-main-last">Arena</span>
           </h1>
         </div>

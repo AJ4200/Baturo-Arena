@@ -14,12 +14,14 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
       { url: "/icons/baturo-arena-icon.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/api/app-icon?size=32", sizes: "32x32", type: "image/png" },
-      { url: "/api/app-icon?size=16", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-48x48.png", sizes: "48x48", type: "image/png" },
     ],
-    shortcut: [{ url: "/api/app-icon?size=64", sizes: "64x64", type: "image/png" }],
-    apple: [{ url: "/api/app-icon?size=180", sizes: "180x180", type: "image/png" }],
+    shortcut: [{ url: "/icons/favicon-64x64.png", sizes: "64x64", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: {
     capable: true,
@@ -44,6 +46,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="ba-root-scroll">
+      <head>
+        <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#10b981" />
+      </head>
       <body>
         <PwaRegistration />
         <GlobalGameUISounds

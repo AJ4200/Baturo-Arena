@@ -5,6 +5,7 @@ import classnames from 'classnames';
 import { AiOutlineLeft, AiOutlineClose } from 'react-icons/ai';
 import ArenaGame from './ArenaGame';
 import { AppLoader } from '@/features/home/AppLoader';
+import { BackupNotice } from '@/features/home/BackupNotice';
 import { FooterBar } from '@/features/home/FooterBar';
 import { GameIntroSplash } from '@/features/home/GameIntroSplash';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
@@ -1293,6 +1294,13 @@ export default function Home() {
     });
   }, []);
 
+  const dismissBackupNotice = useCallback(() => {
+    if (dontShowSaveTipAgain) {
+      window.localStorage.setItem(STORAGE_KEYS.hideSaveTip, 'true');
+    }
+    setShowSaveTip(false);
+  }, [dontShowSaveTipAgain]);
+
   useEffect(() => {
     if (document.querySelector('script[data-google-identity]')) {
       return;
@@ -1769,27 +1777,15 @@ export default function Home() {
       <AppLoader active={isAppBooting || activeRequests > 0} subtle={!isAppBooting && isInMatch} />
       {!isAppBooting && saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
       {!isAppBooting && showSaveTip ? (
-        <div className="save-tip-card">
-          <p>
-            Backups are local-only right now. Use Settings to save or load this device backup for your Baturo Arena lineup.
-          </p>
-          <label className="save-tip-check custome-shadow-invert">
-            <input type="checkbox" checked={dontShowSaveTipAgain} onChange={(event) => setDontShowSaveTipAgain(event.target.checked)} />
-            Don&apos;t show again
-          </label>
-          <button
-            className={classnames('lobby-btn', 'custome-shadow')}
-            type="button"
-            onClick={() => {
-              if (dontShowSaveTipAgain) {
-                window.localStorage.setItem(STORAGE_KEYS.hideSaveTip, 'true');
-              }
-              setShowSaveTip(false);
-            }}
-          >
-            Got it
-          </button>
-        </div>
+        <BackupNotice
+          dontShowAgain={dontShowSaveTipAgain}
+          onDontShowAgainChange={setDontShowSaveTipAgain}
+          onDismiss={dismissBackupNotice}
+          onOpenSettings={() => {
+            dismissBackupNotice();
+            setScreen('settings');
+          }}
+        />
       ) : null}
       {!isAppBooting ? (
       <div className={classnames('dock-launchers-shell', areDockLaunchersVisible && 'dock-launchers-shell-open')}>
