@@ -13,6 +13,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'orbital-flip': { label: 'ORBIT', className: 'choose-game-thumb-orbital-flip' },
   'corner-clash': { label: 'CORNERS', className: 'choose-game-thumb-corner-clash' },
   checkers: { label: 'CHECKERS', className: 'choose-game-thumb-checkers' },
+  chess: { label: 'CHESS', className: 'choose-game-thumb-chess' },
   ludo: { label: 'LUDO', className: 'choose-game-thumb-ludo' },
   'leap-on': { label: 'LEAP', className: 'choose-game-thumb-leap-on' },
   '2048': { label: 'MERGE', className: 'choose-game-thumb-2048' },

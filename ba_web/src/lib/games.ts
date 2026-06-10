@@ -1,4 +1,4 @@
-import type { BoardCell, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
+import type { BoardCell, ChessPiece, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
 
 export const FALLBACK_GAMES: GameDefinition[] = [
   {
@@ -68,6 +68,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'checkers',
     winCondition: 'elimination',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: 'chess',
+    name: 'Chess',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Classic chess with checkmate, castling, en passant, and automatic queen promotion.',
+    rows: 8,
+    columns: 8,
+    connect: 0,
+    moveMode: 'chess',
+    winCondition: 'checkmate',
     supportsOnline: true,
     supportsCpu: true,
   },
@@ -363,6 +377,18 @@ export const createEmptyBoard = (gameType: GameType, games = FALLBACK_GAMES): Bo
     }
   }
 
+  if (game.id === 'chess') {
+    const blackBackRank: ChessPiece[] = ['OCRU', 'OCN', 'OCB', 'OCQ', 'OCKU', 'OCB', 'OCN', 'OCRU'];
+    const whiteBackRank: ChessPiece[] = ['XCRU', 'XCN', 'XCB', 'XCQ', 'XCKU', 'XCB', 'XCN', 'XCRU'];
+
+    blackBackRank.forEach((piece, column) => {
+      board[getCellIndex(0, column, game.columns)] = piece;
+      board[getCellIndex(1, column, game.columns)] = 'OCP';
+      board[getCellIndex(game.rows - 2, column, game.columns)] = 'XCP';
+      board[getCellIndex(game.rows - 1, column, game.columns)] = whiteBackRank[column];
+    });
+  }
+
   return board;
 };
 
@@ -489,6 +515,364 @@ export const getCheckersMoves = (
   return candidates.captures.length > 0 ? candidates.captures : candidates.regular;
 };
 
+type ChessOwner = 'X' | 'O';
+type ChessKind = 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king';
+
+export type ChessCandidateMove = { from: number; to: number };
+
+const isChessPiece = (cell: BoardCell): cell is ChessPiece =>
+  cell === 'XCP' ||
+  cell === 'XCPV' ||
+  cell === 'XCN' ||
+  cell === 'XCB' ||
+  cell === 'XCR' ||
+  cell === 'XCRU' ||
+  cell === 'XCQ' ||
+  cell === 'XCK' ||
+  cell === 'XCKU' ||
+  cell === 'OCP' ||
+  cell === 'OCPV' ||
+  cell === 'OCN' ||
+  cell === 'OCB' ||
+  cell === 'OCR' ||
+  cell === 'OCRU' ||
+  cell === 'OCQ' ||
+  cell === 'OCK' ||
+  cell === 'OCKU';
+
+const getChessOwner = (piece: ChessPiece): ChessOwner => (piece.startsWith('X') ? 'X' : 'O');
+
+const getChessKind = (piece: ChessPiece): ChessKind => {
+  const code = piece[2];
+  if (code === 'P') return 'pawn';
+  if (code === 'N') return 'knight';
+  if (code === 'B') return 'bishop';
+  if (code === 'R') return 'rook';
+  if (code === 'Q') return 'queen';
+  return 'king';
+};
+
+const isChessSquareAttacked = (
+  board: BoardCell[],
+  targetIndex: number,
+  attacker: ChessOwner,
+  rows: number,
+  columns: number
+): boolean => {
+  const targetRow = Math.floor(targetIndex / columns);
+  const targetColumn = targetIndex % columns;
+
+  for (let index = 0; index < board.length; index += 1) {
+    const piece = board[index];
+    if (!isChessPiece(piece) || getChessOwner(piece) !== attacker) {
+      continue;
+    }
+
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const rowDistance = targetRow - row;
+    const columnDistance = targetColumn - column;
+    const kind = getChessKind(piece);
+
+    if (kind === 'pawn') {
+      const direction = attacker === 'X' ? -1 : 1;
+      if (rowDistance === direction && Math.abs(columnDistance) === 1) {
+        return true;
+      }
+      continue;
+    }
+
+    if (kind === 'knight') {
+      if (
+        (Math.abs(rowDistance) === 2 && Math.abs(columnDistance) === 1) ||
+        (Math.abs(rowDistance) === 1 && Math.abs(columnDistance) === 2)
+      ) {
+        return true;
+      }
+      continue;
+    }
+
+    if (kind === 'king') {
+      if (Math.max(Math.abs(rowDistance), Math.abs(columnDistance)) === 1) {
+        return true;
+      }
+      continue;
+    }
+
+    const isStraight = rowDistance === 0 || columnDistance === 0;
+    const isDiagonal = Math.abs(rowDistance) === Math.abs(columnDistance);
+    if (
+      (kind === 'rook' && !isStraight) ||
+      (kind === 'bishop' && !isDiagonal) ||
+      (kind === 'queen' && !isStraight && !isDiagonal)
+    ) {
+      continue;
+    }
+
+    const rowStep = Math.sign(rowDistance);
+    const columnStep = Math.sign(columnDistance);
+    let scanRow = row + rowStep;
+    let scanColumn = column + columnStep;
+    let blocked = false;
+    while (scanRow !== targetRow || scanColumn !== targetColumn) {
+      if (board[getCellIndex(scanRow, scanColumn, columns)] !== null) {
+        blocked = true;
+        break;
+      }
+      scanRow += rowStep;
+      scanColumn += columnStep;
+    }
+    if (!blocked) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const applyChessMoveUnchecked = (
+  board: BoardCell[],
+  move: ChessCandidateMove,
+  rows: number,
+  columns: number
+): BoardCell[] => {
+  const movingPiece = board[move.from];
+  if (!isChessPiece(movingPiece)) {
+    return [...board];
+  }
+
+  const owner = getChessOwner(movingPiece);
+  const opponent: ChessOwner = owner === 'X' ? 'O' : 'X';
+  const kind = getChessKind(movingPiece);
+  const fromRow = Math.floor(move.from / columns);
+  const fromColumn = move.from % columns;
+  const toRow = Math.floor(move.to / columns);
+  const toColumn = move.to % columns;
+  const nextBoard = board.map((cell) => {
+    if (cell === 'XCPV') return 'XCP';
+    if (cell === 'OCPV') return 'OCP';
+    return cell;
+  });
+
+  nextBoard[move.from] = null;
+
+  if (kind === 'pawn' && board[move.to] === null && fromColumn !== toColumn) {
+    const capturedPawnIndex = getCellIndex(fromRow, toColumn, columns);
+    const capturedPawn = board[capturedPawnIndex];
+    if (
+      isChessPiece(capturedPawn) &&
+      getChessOwner(capturedPawn) === opponent &&
+      getChessKind(capturedPawn) === 'pawn' &&
+      capturedPawn.endsWith('PV')
+    ) {
+      nextBoard[capturedPawnIndex] = null;
+    }
+  }
+
+  if (kind === 'king' && Math.abs(toColumn - fromColumn) === 2) {
+    const rookFromColumn = toColumn > fromColumn ? columns - 1 : 0;
+    const rookToColumn = toColumn > fromColumn ? toColumn - 1 : toColumn + 1;
+    const rookFrom = getCellIndex(fromRow, rookFromColumn, columns);
+    const rookTo = getCellIndex(fromRow, rookToColumn, columns);
+    nextBoard[rookFrom] = null;
+    nextBoard[rookTo] = owner === 'X' ? 'XCR' : 'OCR';
+  }
+
+  let placedPiece: ChessPiece = movingPiece;
+  if (kind === 'pawn') {
+    if (toRow === 0 || toRow === rows - 1) {
+      placedPiece = owner === 'X' ? 'XCQ' : 'OCQ';
+    } else if (Math.abs(toRow - fromRow) === 2) {
+      placedPiece = owner === 'X' ? 'XCPV' : 'OCPV';
+    } else {
+      placedPiece = owner === 'X' ? 'XCP' : 'OCP';
+    }
+  } else if (kind === 'rook') {
+    placedPiece = owner === 'X' ? 'XCR' : 'OCR';
+  } else if (kind === 'king') {
+    placedPiece = owner === 'X' ? 'XCK' : 'OCK';
+  }
+
+  nextBoard[move.to] = placedPiece;
+  return nextBoard;
+};
+
+const getChessPseudoMoves = (
+  board: BoardCell[],
+  owner: ChessOwner,
+  rows: number,
+  columns: number
+): ChessCandidateMove[] => {
+  const moves: ChessCandidateMove[] = [];
+  const opponent: ChessOwner = owner === 'X' ? 'O' : 'X';
+
+  const addMove = (from: number, row: number, column: number): boolean => {
+    if (row < 0 || row >= rows || column < 0 || column >= columns) {
+      return false;
+    }
+    const to = getCellIndex(row, column, columns);
+    const target = board[to];
+    if (target === null) {
+      moves.push({ from, to });
+      return true;
+    }
+    if (
+      isChessPiece(target) &&
+      getChessOwner(target) === opponent &&
+      getChessKind(target) !== 'king'
+    ) {
+      moves.push({ from, to });
+    }
+    return false;
+  };
+
+  for (let index = 0; index < board.length; index += 1) {
+    const piece = board[index];
+    if (!isChessPiece(piece) || getChessOwner(piece) !== owner) {
+      continue;
+    }
+
+    const row = Math.floor(index / columns);
+    const column = index % columns;
+    const kind = getChessKind(piece);
+
+    if (kind === 'pawn') {
+      const direction = owner === 'X' ? -1 : 1;
+      const startRow = owner === 'X' ? rows - 2 : 1;
+      const oneRow = row + direction;
+      if (oneRow >= 0 && oneRow < rows && board[getCellIndex(oneRow, column, columns)] === null) {
+        moves.push({ from: index, to: getCellIndex(oneRow, column, columns) });
+        const twoRow = row + direction * 2;
+        if (row === startRow && board[getCellIndex(twoRow, column, columns)] === null) {
+          moves.push({ from: index, to: getCellIndex(twoRow, column, columns) });
+        }
+      }
+
+      for (const columnStep of [-1, 1]) {
+        const captureRow = row + direction;
+        const captureColumn = column + columnStep;
+        if (captureRow < 0 || captureRow >= rows || captureColumn < 0 || captureColumn >= columns) {
+          continue;
+        }
+        const captureIndex = getCellIndex(captureRow, captureColumn, columns);
+        const target = board[captureIndex];
+        if (
+          isChessPiece(target) &&
+          getChessOwner(target) === opponent &&
+          getChessKind(target) !== 'king'
+        ) {
+          moves.push({ from: index, to: captureIndex });
+          continue;
+        }
+        const adjacent = board[getCellIndex(row, captureColumn, columns)];
+        if (
+          target === null &&
+          isChessPiece(adjacent) &&
+          getChessOwner(adjacent) === opponent &&
+          getChessKind(adjacent) === 'pawn' &&
+          adjacent.endsWith('PV')
+        ) {
+          moves.push({ from: index, to: captureIndex });
+        }
+      }
+      continue;
+    }
+
+    if (kind === 'knight') {
+      for (const [rowStep, columnStep] of [
+        [-2, -1],
+        [-2, 1],
+        [-1, -2],
+        [-1, 2],
+        [1, -2],
+        [1, 2],
+        [2, -1],
+        [2, 1],
+      ]) {
+        addMove(index, row + rowStep, column + columnStep);
+      }
+      continue;
+    }
+
+    if (kind === 'king') {
+      for (let rowStep = -1; rowStep <= 1; rowStep += 1) {
+        for (let columnStep = -1; columnStep <= 1; columnStep += 1) {
+          if (rowStep !== 0 || columnStep !== 0) {
+            addMove(index, row + rowStep, column + columnStep);
+          }
+        }
+      }
+
+      const homeRow = owner === 'X' ? rows - 1 : 0;
+      if (piece.endsWith('KU') && row === homeRow && column === 4 && !isChessSquareAttacked(board, index, opponent, rows, columns)) {
+        for (const side of [-1, 1]) {
+          const rookColumn = side < 0 ? 0 : columns - 1;
+          const rook = board[getCellIndex(homeRow, rookColumn, columns)];
+          const expectedRook = owner === 'X' ? 'XCRU' : 'OCRU';
+          const clearColumns = side < 0 ? [1, 2, 3] : [5, 6];
+          const pathColumns = side < 0 ? [3, 2] : [5, 6];
+          if (
+            rook === expectedRook &&
+            clearColumns.every((clearColumn) => board[getCellIndex(homeRow, clearColumn, columns)] === null) &&
+            pathColumns.every(
+              (pathColumn) =>
+                !isChessSquareAttacked(
+                  board,
+                  getCellIndex(homeRow, pathColumn, columns),
+                  opponent,
+                  rows,
+                  columns
+                )
+            )
+          ) {
+            moves.push({ from: index, to: getCellIndex(homeRow, side < 0 ? 2 : 6, columns) });
+          }
+        }
+      }
+      continue;
+    }
+
+    const directions =
+      kind === 'bishop'
+        ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+        : kind === 'rook'
+          ? [[-1, 0], [1, 0], [0, -1], [0, 1]]
+          : [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+
+    for (const [rowStep, columnStep] of directions) {
+      let nextRow = row + rowStep;
+      let nextColumn = column + columnStep;
+      while (addMove(index, nextRow, nextColumn)) {
+        nextRow += rowStep;
+        nextColumn += columnStep;
+      }
+    }
+  }
+
+  return moves;
+};
+
+export const getChessMoves = (
+  gameType: GameType,
+  board: BoardCell[],
+  owner: ChessOwner,
+  games = FALLBACK_GAMES
+): ChessCandidateMove[] => {
+  const game = getGameDefinition(gameType, games);
+  if (game.moveMode !== 'chess') {
+    return [];
+  }
+
+  const opponent: ChessOwner = owner === 'X' ? 'O' : 'X';
+  return getChessPseudoMoves(board, owner, game.rows, game.columns).filter((move) => {
+    const nextBoard = applyChessMoveUnchecked(board, move, game.rows, game.columns);
+    const kingIndex = nextBoard.findIndex(
+      (cell) => isChessPiece(cell) && getChessOwner(cell) === owner && getChessKind(cell) === 'king'
+    );
+    return kingIndex >= 0 && !isChessSquareAttacked(nextBoard, kingIndex, opponent, game.rows, game.columns);
+  });
+};
+
 export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games = FALLBACK_GAMES): number[] => {
   const game = getGameDefinition(gameType, games);
 
@@ -515,7 +899,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     return [];
   }
 
-  if (game.moveMode === 'checkers') {
+  if (game.moveMode === 'checkers' || game.moveMode === 'chess') {
     return [];
   }
 
@@ -601,6 +985,20 @@ export const applyMove = (
       : movingPiece;
 
     return nextBoard;
+  }
+
+  if (game.moveMode === 'chess') {
+    if (typeof move !== 'object' || move === null || 'action' in move) {
+      return [...board];
+    }
+    const owner: ChessOwner = symbol.startsWith('O') ? 'O' : 'X';
+    const legalMove = getChessMoves(gameType, board, owner, games).find(
+      (candidate) => candidate.from === move.from && candidate.to === move.to
+    );
+    if (!legalMove) {
+      return [...board];
+    }
+    return applyChessMoveUnchecked(board, legalMove, game.rows, game.columns);
   }
 
   if (typeof move !== 'number' || !getAvailableMoves(gameType, board, games).includes(move)) {
@@ -693,9 +1091,36 @@ export const applyMove = (
 export const evaluateBoard = (
   gameType: GameType,
   board: BoardCell[],
-  games = FALLBACK_GAMES
+  games = FALLBACK_GAMES,
+  activeSymbol?: GameSymbol
 ): GameSymbol | 'draw' | null => {
   const game = getGameDefinition(gameType, games);
+  if (game.winCondition === 'checkmate') {
+    const xKing = board.findIndex(
+      (cell) => isChessPiece(cell) && getChessOwner(cell) === 'X' && getChessKind(cell) === 'king'
+    );
+    const oKing = board.findIndex(
+      (cell) => isChessPiece(cell) && getChessOwner(cell) === 'O' && getChessKind(cell) === 'king'
+    );
+    if (xKing < 0) return 'O';
+    if (oKing < 0) return 'X';
+
+    const symbolsToEvaluate: ChessOwner[] =
+      activeSymbol === 'X' || activeSymbol === 'O' ? [activeSymbol] : ['X', 'O'];
+    for (const symbol of symbolsToEvaluate) {
+      const moves = getChessMoves(gameType, board, symbol, games);
+      if (moves.length > 0) {
+        continue;
+      }
+      const kingIndex = symbol === 'X' ? xKing : oKing;
+      const opponent: ChessOwner = symbol === 'X' ? 'O' : 'X';
+      return isChessSquareAttacked(board, kingIndex, opponent, game.rows, game.columns)
+        ? opponent
+        : 'draw';
+    }
+    return null;
+  }
+
   if (
     game.winCondition === 'elimination' ||
     game.winCondition === 'ludo-home' ||

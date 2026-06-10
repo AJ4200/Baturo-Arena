@@ -70,6 +70,9 @@ const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } =>
   if (currentGameType === 'checkers') {
     return { x: 'Red Checkers', o: 'Blue Checkers' };
   }
+  if (currentGameType === 'chess') {
+    return { x: 'White', o: 'Black' };
+  }
   return { x: 'Player 1', o: 'Player 2' };
 };
 
@@ -122,10 +125,10 @@ export function CpuArenaGame({
   const canPlay = turn === 'X' && winner === null;
   const xResult = winner === 'X' ? 'winner' : winner === 'O' ? 'loser' : 'neutral';
   const oResult = winner === 'O' ? 'winner' : winner === 'X' ? 'loser' : 'neutral';
-  const showAdaptiveController = gameType !== 'checkers';
+  const showAdaptiveController = gameType !== 'checkers' && gameType !== 'chess';
 
   const applyBoardState = (nextBoard: BoardCell[], nextTurn: Symbol) => {
-    const result = normalizeCpuWinner(evaluateBoard(gameType, nextBoard, gameDefinitions));
+    const result = normalizeCpuWinner(evaluateBoard(gameType, nextBoard, gameDefinitions, nextTurn));
     setBoard(nextBoard);
     setTurn(nextTurn);
     setWinner(result);
@@ -141,7 +144,7 @@ export function CpuArenaGame({
       return;
     }
 
-    const result = normalizeCpuWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions));
+    const result = normalizeCpuWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions, 'O'));
     if (result) {
       setBoard(appliedBoard);
       setWinner(result);
@@ -188,7 +191,7 @@ export function CpuArenaGame({
     const timeoutId = window.setTimeout(() => {
       const move = getCpuMove(gameType, board, difficulty);
       if (move === null) {
-        const stalledResult = normalizeCpuWinner(evaluateBoard(gameType, board, gameDefinitions));
+        const stalledResult = normalizeCpuWinner(evaluateBoard(gameType, board, gameDefinitions, 'O'));
         if (stalledResult) {
           setWinner(stalledResult);
         }

@@ -1,5 +1,5 @@
-import { applyMove, evaluateBoard, getAvailableMoves, getCheckersMoves, getGameDefinition } from '@/lib/games';
-import type { CheckersCandidateMove } from '@/lib/games';
+import { applyMove, evaluateBoard, getAvailableMoves, getCheckersMoves, getChessMoves, getGameDefinition } from '@/lib/games';
+import type { CheckersCandidateMove, ChessCandidateMove } from '@/lib/games';
 import type { BoardCell, CpuDifficulty, GameMove, GameType } from '@/types/game';
 
 type Symbol = 'X' | 'O';
@@ -236,6 +236,80 @@ const getCheckersCpuMove = (board: Board, difficulty: CpuDifficulty): GameMove |
   return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
 };
 
+const scoreChessBoard = (board: Board): number => {
+  const values: Record<string, number> = {
+    P: 1,
+    N: 3,
+    B: 3.2,
+    R: 5,
+    Q: 9,
+    K: 100,
+  };
+
+  return board.reduce((score, cell, index) => {
+    if (typeof cell !== 'string' || (!cell.startsWith('XC') && !cell.startsWith('OC')) || cell.length < 3) {
+      return score;
+    }
+    const value = values[cell[2]] || 0;
+    const row = Math.floor(index / 8);
+    const column = index % 8;
+    const centerBonus = 0.12 * (3.5 - Math.abs(3.5 - row) + 3.5 - Math.abs(3.5 - column));
+    return score + (cell.startsWith('OC') ? value + centerBonus : -value - centerBonus);
+  }, 0);
+};
+
+const getChessMoveScore = (board: Board, move: ChessCandidateMove): number => {
+  const nextBoard = applyMove('chess', board, move, 'O');
+  const result = evaluateBoard('chess', nextBoard, undefined, 'X');
+  if (result === 'O') return 1000;
+  if (result === 'X') return -1000;
+  return scoreChessBoard(nextBoard) - getChessMoves('chess', nextBoard, 'X').length * 0.015;
+};
+
+const getChessCpuMove = (board: Board, difficulty: CpuDifficulty): GameMove | null => {
+  const moves = getChessMoves('chess', board, 'O');
+  if (moves.length === 0) {
+    return null;
+  }
+
+  if (difficulty === 'easy') {
+    const move = moves[Math.floor(Math.random() * moves.length)];
+    return { from: move.from, to: move.to };
+  }
+
+  if (difficulty === 'medium') {
+    const move = [...moves].sort((left, right) => getChessMoveScore(board, right) - getChessMoveScore(board, left))[0];
+    return move ? { from: move.from, to: move.to } : null;
+  }
+
+  let bestMove: ChessCandidateMove | null = null;
+  let bestWorstReplyScore = -Infinity;
+
+  for (const move of moves) {
+    const nextBoard = applyMove('chess', board, move, 'O');
+    const immediateResult = evaluateBoard('chess', nextBoard, undefined, 'X');
+    if (immediateResult === 'O') {
+      return { from: move.from, to: move.to };
+    }
+
+    const replies = getChessMoves('chess', nextBoard, 'X');
+    let worstReplyScore = replies.length === 0 ? getChessMoveScore(board, move) : Infinity;
+    for (const reply of replies) {
+      const replyBoard = applyMove('chess', nextBoard, reply, 'X');
+      const replyResult = evaluateBoard('chess', replyBoard, undefined, 'O');
+      const replyScore = replyResult === 'X' ? -1000 : replyResult === 'O' ? 1000 : scoreChessBoard(replyBoard);
+      worstReplyScore = Math.min(worstReplyScore, replyScore);
+    }
+
+    if (worstReplyScore > bestWorstReplyScore) {
+      bestWorstReplyScore = worstReplyScore;
+      bestMove = move;
+    }
+  }
+
+  return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
+};
+
 export const getCpuMove = (
   gameType: GameType,
   board: Board,
@@ -244,6 +318,10 @@ export const getCpuMove = (
   const game = getGameDefinition(gameType);
   if (game.moveMode === 'checkers') {
     return getCheckersCpuMove(board, difficulty);
+  }
+
+  if (game.moveMode === 'chess') {
+    return getChessCpuMove(board, difficulty);
   }
 
   if (

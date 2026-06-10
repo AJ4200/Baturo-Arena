@@ -10,6 +10,7 @@ export type GameType =
   | 'orbital-flip'
   | 'corner-clash'
   | 'checkers'
+  | 'chess'
   | 'ludo'
   | 'leap-on'
   | '2048'
@@ -44,6 +45,7 @@ export type GameDefinition = {
     | 'flip'
     | 'corner-flip'
     | 'checkers'
+    | 'chess'
     | 'ludo'
     | 'leap-on'
     | 'solo-2048'
@@ -67,6 +69,7 @@ export type GameDefinition = {
     | 'majority'
     | 'corners'
     | 'elimination'
+    | 'checkmate'
     | 'ludo-home'
     | 'target-2048'
     | 'sudoku-complete'
@@ -204,7 +207,27 @@ export type RoomPlayer = {
 
 export type CheckersPiece = 'XC' | 'XK' | 'OC' | 'OK';
 
-export type BoardCell = GameSymbol | CheckersPiece | null;
+export type ChessPiece =
+  | 'XCP'
+  | 'XCPV'
+  | 'XCN'
+  | 'XCB'
+  | 'XCR'
+  | 'XCRU'
+  | 'XCQ'
+  | 'XCK'
+  | 'XCKU'
+  | 'OCP'
+  | 'OCPV'
+  | 'OCN'
+  | 'OCB'
+  | 'OCR'
+  | 'OCRU'
+  | 'OCQ'
+  | 'OCK'
+  | 'OCKU';
+
+export type BoardCell = GameSymbol | CheckersPiece | ChessPiece | null;
 
 export type LudoBoardState = {
   mode: 'ludo';

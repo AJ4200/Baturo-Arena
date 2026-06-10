@@ -52,6 +52,15 @@ type ArenaGameProps = {
   offlineParticipantCount: number;
 };
 
+const SHARED_BOARD_GAME_TYPES = new Set<GameType>([
+  'tic-tac-two',
+  'connect-all-four',
+  'orbital-flip',
+  'corner-clash',
+  'checkers',
+  'chess',
+]);
+
 const ArenaGame: React.FC<ArenaGameProps> = ({
   mode,
   roomCode,
@@ -393,6 +402,10 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onLeave={onLeave}
       />
     );
+  }
+
+  if (!SHARED_BOARD_GAME_TYPES.has(gameType)) {
+    return null;
   }
 
   if (mode === 'cpu') {

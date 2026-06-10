@@ -64,6 +64,9 @@ const getPlayerLabels = (currentGameType: string | null | undefined): { x: strin
   if (currentGameType === 'checkers') {
     return { x: 'Red Checkers', o: 'Blue Checkers', y: 'Yellow Checkers', z: 'Purple Checkers' };
   }
+  if (currentGameType === 'chess') {
+    return { x: 'White', o: 'Black', y: 'Spectator', z: 'Spectator' };
+  }
   return { x: 'Player 1', o: 'Player 2', y: 'Player 3', z: 'Player 4' };
 };
 
@@ -333,7 +336,7 @@ export function OnlineArenaGame({
   }, [onMatchComplete, player.playerId, room, yourSymbol]);
 
   const roomStatusIcon = room?.status === 'waiting' ? <AiOutlineClockCircle /> : room?.status === 'playing' ? <AiOutlinePlayCircle /> : <AiOutlineCheckCircle />;
-  const showAdaptiveController = room?.gameType !== 'checkers';
+  const showAdaptiveController = room?.gameType !== 'checkers' && room?.gameType !== 'chess';
 
   const controllerButtons = [
     { key: 'rematch', label: 'Rematch', icon: <AiOutlineReload />, onClick: handleRematch },

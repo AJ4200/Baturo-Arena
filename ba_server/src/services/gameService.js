@@ -998,17 +998,17 @@ async function makeMove({ code, playerId, index, move }) {
       }
     }
   } else {
-    const isCheckers = room.game_type === 'checkers';
-    const parsedMove = isCheckers
+    const isBoardPieceMove = room.game_type === 'checkers' || room.game_type === 'chess';
+    const parsedMove = isBoardPieceMove
       ? {
           from: Number(move?.from),
           to: Number(move?.to),
         }
       : Number(index);
 
-    if (isCheckers) {
+    if (isBoardPieceMove) {
       if (!Number.isInteger(parsedMove.from) || !Number.isInteger(parsedMove.to)) {
-        throw new HttpError(400, 'Invalid checkers move');
+        throw new HttpError(400, `Invalid ${room.game_type} move`);
       }
     } else if (!Number.isInteger(parsedMove)) {
       throw new HttpError(400, 'Invalid move index');
@@ -1019,7 +1019,8 @@ async function makeMove({ code, playerId, index, move }) {
     }
 
     const board = applyMove(room.game_type, room.board, parsedMove, membership.symbol);
-    const winner = checkWinner(room.game_type, board);
+    const nextTurn = getNextTurnSymbol(room.turn, roomPlayers, maxPlayers);
+    const winner = checkWinner(room.game_type, board, nextTurn);
 
     if (winner) {
       await updateRoomState(room.id, {
@@ -1052,7 +1053,7 @@ async function makeMove({ code, playerId, index, move }) {
     } else {
       await updateRoomState(room.id, {
         board,
-        turn: getNextTurnSymbol(room.turn, roomPlayers, maxPlayers),
+        turn: nextTurn,
         status: 'playing',
         winner: null,
         resultRecorded: false,

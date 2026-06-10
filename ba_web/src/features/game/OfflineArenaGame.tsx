@@ -71,6 +71,9 @@ const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } =>
   if (currentGameType === 'checkers') {
     return { x: 'Red Checkers', o: 'Blue Checkers' };
   }
+  if (currentGameType === 'chess') {
+    return { x: 'White', o: 'Black' };
+  }
   return { x: 'Team X', o: 'Team O' };
 };
 
@@ -170,7 +173,7 @@ export function OfflineArenaGame({
   ];
 
   const canPlay = winner === null;
-  const showAdaptiveController = gameType !== 'checkers';
+  const showAdaptiveController = gameType !== 'checkers' && gameType !== 'chess';
 
   const advanceTeamTurnOffset = (symbol: Symbol) => {
     setTeamTurnOffsets((currentValue) => {
@@ -193,7 +196,8 @@ export function OfflineArenaGame({
       return;
     }
 
-    const result = normalizeOfflineWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions));
+    const nextTurn = turn === 'X' ? 'O' : 'X';
+    const result = normalizeOfflineWinner(evaluateBoard(gameType, appliedBoard, gameDefinitions, nextTurn));
     if (result) {
       setBoard(appliedBoard);
       setWinner(result);
@@ -202,7 +206,7 @@ export function OfflineArenaGame({
 
     advanceTeamTurnOffset(turn);
     setBoard(appliedBoard);
-    setTurn(turn === 'X' ? 'O' : 'X');
+    setTurn(nextTurn);
   };
 
   function handleRematch() {

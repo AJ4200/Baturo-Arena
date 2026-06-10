@@ -6,7 +6,7 @@ import Z from '@/components/game/tic-tac-two/Z';
 import { getGameDefinition } from '@/lib/games';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
-import type { BoardCell, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
+import type { BoardCell, ChessPiece, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
 
 type GameBoardProps = {
   gameType: GameType;
@@ -19,6 +19,23 @@ type GameBoardProps = {
 
 const isCheckersPiece = (cell: BoardCell): cell is 'XC' | 'XK' | 'OC' | 'OK' =>
   cell === 'XC' || cell === 'XK' || cell === 'OC' || cell === 'OK';
+
+const isChessPiece = (cell: BoardCell): cell is ChessPiece =>
+  typeof cell === 'string' &&
+  (cell.startsWith('XC') || cell.startsWith('OC')) &&
+  !isCheckersPiece(cell);
+
+const getChessPieceLabel = (piece: ChessPiece): string => {
+  const labels: Record<string, string> = {
+    P: '\u265F',
+    N: '\u265E',
+    B: '\u265D',
+    R: '\u265C',
+    Q: '\u265B',
+    K: '\u265A',
+  };
+  return labels[piece[2]] || '';
+};
 
 const getCellOwner = (cell: Exclude<BoardCell, null>): GameSymbol => {
   if (cell === 'Y' || cell === 'Z') {
@@ -46,6 +63,7 @@ export function GameBoard({
 }: GameBoardProps) {
   const game = getGameDefinition(gameType, gameDefinitions);
   const [selectedCheckersCell, setSelectedCheckersCell] = useState<number | null>(null);
+  const [selectedChessCell, setSelectedChessCell] = useState<number | null>(null);
   const pieceMotionProps = {
     initial: { scale: 0 },
     animate: { scale: 1 },
@@ -55,6 +73,9 @@ export function GameBoard({
   useEffect(() => {
     if (gameType !== 'checkers') {
       setSelectedCheckersCell(null);
+    }
+    if (gameType !== 'chess') {
+      setSelectedChessCell(null);
     }
   }, [gameType]);
 
@@ -66,6 +87,15 @@ export function GameBoard({
       setSelectedCheckersCell(null);
     }
   }, [board, selectedCheckersCell]);
+
+  useEffect(() => {
+    if (selectedChessCell === null) {
+      return;
+    }
+    if (!isChessPiece(board[selectedChessCell])) {
+      setSelectedChessCell(null);
+    }
+  }, [board, selectedChessCell]);
 
   const renderPiece = (cell: Exclude<BoardCell, null>) => {
     const owner = getCellOwner(cell);
@@ -88,6 +118,20 @@ export function GameBoard({
         >
           <span className="game-piece-checkers-disc" />
           {cell.endsWith('K') ? <span className="game-piece-checkers-crown" /> : null}
+        </motion.div>
+      );
+    }
+
+    if (gameType === 'chess' && isChessPiece(cell)) {
+      return (
+        <motion.div
+          className={classnames('marker', 'marker-chess-piece', ownerClass)}
+          initial={pieceMotionProps.initial}
+          animate={pieceMotionProps.animate}
+          transition={pieceMotionProps.transition}
+          aria-label={`${owner === 'X' ? 'White' : 'Black'} chess piece`}
+        >
+          {getChessPieceLabel(cell)}
         </motion.div>
       );
     }
@@ -230,6 +274,58 @@ export function GameBoard({
     ));
   }, [board, disabled, game.columns, game.moveMode, game.rows, interactiveSymbol, onMove, selectedCheckersCell]);
 
+  const chessBoard = useMemo(() => {
+    if (game.moveMode !== 'chess') {
+      return null;
+    }
+
+    return Array.from({ length: game.rows }).map((_, row) => (
+      <div key={row} className="board-row board-row-chess">
+        {Array.from({ length: game.columns }).map((__, column) => {
+          const cellIndex = row * game.columns + column;
+          const cell = board[cellIndex];
+          const owner = cell ? getCellOwner(cell) : null;
+          const isSelectablePiece =
+            !disabled &&
+            isChessPiece(cell) &&
+            (!interactiveSymbol || owner === interactiveSymbol);
+          const isSelected = selectedChessCell === cellIndex;
+
+          const handleChessClick = () => {
+            if (disabled) {
+              return;
+            }
+            if (isSelectablePiece) {
+              setSelectedChessCell(cellIndex);
+              return;
+            }
+            if (selectedChessCell !== null) {
+              onMove({ from: selectedChessCell, to: cellIndex });
+              setSelectedChessCell(null);
+            }
+          };
+
+          return (
+            <button
+              key={cellIndex}
+              className={classnames(
+                'square',
+                'square-chess',
+                isDarkSquare(cellIndex, game.columns) ? 'square-chess-dark' : 'square-chess-light',
+                isSelected && 'square-chess-selected'
+              )}
+              type="button"
+              disabled={disabled}
+              onClick={handleChessClick}
+            >
+              {cell ? renderPiece(cell) : null}
+            </button>
+          );
+        })}
+      </div>
+    ));
+  }, [board, disabled, game.columns, game.moveMode, game.rows, interactiveSymbol, onMove, selectedChessCell]);
+
   if (
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
@@ -269,6 +365,14 @@ export function GameBoard({
     return (
       <div className={classnames('board', 'board-grid', 'board-checkers')}>
         {checkersBoard}
+      </div>
+    );
+  }
+
+  if (game.moveMode === 'chess') {
+    return (
+      <div className={classnames('board', 'board-grid', 'board-chess')}>
+        {chessBoard}
       </div>
     );
   }

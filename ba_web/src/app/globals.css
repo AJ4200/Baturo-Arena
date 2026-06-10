@@ -6468,6 +6468,13 @@ h1 span:last-child {
     linear-gradient(150deg, #8c4a2f, #5f2e1e);
 }
 
+.choose-game-thumb-chess {
+  background:
+    radial-gradient(circle at 28% 68%, rgba(255, 255, 255, 0.94) 0 12px, transparent 13px),
+    radial-gradient(circle at 70% 30%, rgba(15, 23, 42, 0.94) 0 12px, transparent 13px),
+    conic-gradient(from 90deg, #d8c3a5 0 25%, #6b4f3a 0 50%, #d8c3a5 0 75%, #6b4f3a 0);
+}
+
 .choose-game-thumb-ludo {
   background:
     radial-gradient(circle at 22% 24%, rgba(255, 90, 90, 0.56), transparent 28%),
@@ -7210,6 +7217,69 @@ h1 span:last-child {
   border-radius: 50%;
   border: 3px solid rgba(255, 236, 154, 0.98);
   box-shadow: 0 0 8px rgba(255, 236, 154, 0.62);
+}
+
+.board-chess {
+  overflow: hidden;
+  border: 5px solid #302218;
+  border-radius: 14px;
+  background: #302218;
+  box-shadow: 0 18px 38px rgba(15, 10, 7, 0.28);
+}
+
+.board-row-chess {
+  display: flex;
+}
+
+.square-chess {
+  float: none;
+  width: 72px;
+  height: 72px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  line-height: 1;
+  transition: box-shadow 140ms ease, filter 140ms ease;
+}
+
+.square-chess-light {
+  background: #ead9bd;
+}
+
+.square-chess-dark {
+  background: #8a684f;
+}
+
+.square-chess:hover:enabled {
+  filter: brightness(1.08);
+}
+
+.square-chess-selected {
+  box-shadow: inset 0 0 0 5px #f5c84c;
+}
+
+.marker-chess-piece {
+  display: grid;
+  width: 78%;
+  height: 78%;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', 'Arial Unicode MS', serif;
+  font-size: 3.35rem;
+  font-weight: 900;
+  line-height: 1;
+  filter: drop-shadow(0 3px 2px rgba(30, 20, 14, 0.36));
+}
+
+.marker-chess-piece.piece-owner-x {
+  color: #fff8e7;
+  -webkit-text-stroke: 1.5px #2d2119;
+}
+
+.marker-chess-piece.piece-owner-o {
+  color: #211916;
+  -webkit-text-stroke: 1px #f4dfb8;
 }
 
 .board-orbital-flip .square {
@@ -9144,6 +9214,15 @@ h1 span:last-child {
     height: 54px;
   }
 
+  .square-chess {
+    width: 54px;
+    height: 54px;
+  }
+
+  .marker-chess-piece {
+    font-size: 2.55rem;
+  }
+
   .game-piece-connect-disc,
   .game-piece-orbital-core,
   .game-piece-corner-core,
@@ -9577,6 +9656,25 @@ h1 span:last-child {
 }
 
 /* Per-game carousel thumbnails — add new games in this block + gameCarouselThumbnails.ts */
+.choose-game-carousel-card .choose-game-thumb-chess,
+.choose-game-option-card .choose-game-thumb-chess {
+  border: 3px solid #000;
+  background:
+    radial-gradient(ellipse at 28% 72%, #fff9e8 0 9px, #cbbda5 10px 14px, transparent 15px),
+    linear-gradient(155deg, transparent 0 42%, #fff9e8 43% 59%, transparent 60%) 28% 58% / 24px 44px no-repeat,
+    radial-gradient(ellipse at 72% 28%, #211a17 0 9px, #070606 10px 14px, transparent 15px),
+    linear-gradient(155deg, transparent 0 42%, #211a17 43% 59%, transparent 60%) 72% 42% / 24px 44px no-repeat,
+    conic-gradient(from 90deg at 25% 25%, #d8c3a5 0 25%, #6b4f3a 0 50%, #d8c3a5 0 75%, #6b4f3a 0) 0 0 / 50% 50%;
+  box-shadow:
+    inset 0 0 24px rgba(255, 244, 218, 0.2),
+    0 0 18px rgba(92, 63, 42, 0.2);
+}
+
+.choose-game-carousel-card .choose-game-thumb-chess > span,
+.choose-game-option-card .choose-game-thumb-chess > span {
+  background: linear-gradient(160deg, rgba(50, 35, 25, 0.95), rgba(111, 78, 52, 0.92));
+}
+
 .choose-game-carousel-card .choose-game-thumb-neon-pong,
 .choose-game-option-card .choose-game-thumb-neon-pong {
   border: 3px solid #000;
