@@ -297,6 +297,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'dread-sector',
+    name: 'Dread Sector',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A clean-room retro raycaster. Purge the maze, recover supplies, and reach extraction alive.',
+    rows: 16,
+    columns: 16,
+    connect: 0,
+    moveMode: 'solo-dread-sector',
+    winCondition: 'dread-sector-extract',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'pulse-forge',
     name: 'Pulse Forge',
     minPlayers: 1,
@@ -889,6 +903,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-rift-runner' ||
+    game.moveMode === 'solo-dread-sector' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -943,6 +958,7 @@ export const applyMove = (
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-rift-runner' ||
+    game.moveMode === 'solo-dread-sector' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -1136,6 +1152,7 @@ export const evaluateBoard = (
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
     game.winCondition === 'rift-runner-extract' ||
+    game.winCondition === 'dread-sector-extract' ||
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||

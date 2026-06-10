@@ -16,6 +16,7 @@ import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBrea
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
 import { SoloRiftRunnerGame } from '@/features/game/singleplayer/SoloRiftRunnerGame';
+import { SoloDreadSectorGame } from '@/features/game/singleplayer/SoloDreadSectorGame';
 import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
@@ -299,6 +300,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'rift-runner') {
     return (
       <SoloRiftRunnerGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onToggleAnimations={onToggleAnimations}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'dread-sector') {
+    return (
+      <SoloDreadSectorGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

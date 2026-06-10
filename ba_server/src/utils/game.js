@@ -294,6 +294,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'dread-sector': {
+    id: 'dread-sector',
+    name: 'Dread Sector',
+    rows: 16,
+    columns: 16,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A clean-room retro raycaster. Purge the maze, recover supplies, and reach extraction alive.',
+    moveMode: 'solo-dread-sector',
+    winCondition: 'dread-sector-extract',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'pulse-forge': {
     id: 'pulse-forge',
     name: 'Pulse Forge',
@@ -953,6 +967,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'rift-runner-extract' ||
+    rules.winCondition === 'dread-sector-extract' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
@@ -1110,6 +1125,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-rift-runner' ||
+    rules.moveMode === 'solo-dread-sector' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
@@ -1204,6 +1220,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-rift-runner' ||
+    rules.moveMode === 'solo-dread-sector' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||

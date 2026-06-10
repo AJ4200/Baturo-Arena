@@ -26,6 +26,7 @@ export type GameType =
   | 'tetris'
   | 'starfall-survivor'
   | 'rift-runner'
+  | 'dread-sector'
   | 'pulse-forge'
   | 'blackjack'
   | 'turbo-rush';
@@ -60,6 +61,7 @@ export type GameDefinition = {
     | 'solo-tetris'
     | 'solo-starfall'
     | 'solo-rift-runner'
+    | 'solo-dread-sector'
     | 'solo-pulse-forge'
     | 'solo-blackjack'
     | 'air-hockey'
@@ -83,6 +85,7 @@ export type GameDefinition = {
     | 'tetris-score'
     | 'starfall-survive'
     | 'rift-runner-extract'
+    | 'dread-sector-extract'
     | 'pulse-forge-stabilize'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
