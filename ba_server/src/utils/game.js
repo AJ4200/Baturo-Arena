@@ -308,6 +308,20 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'echo-bloom': {
+    id: 'echo-bloom',
+    name: 'Echo Bloom',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A radial rhythm ritual. Strike inward pulses on the beat and grow a luminous flower from pure harmony.',
+    moveMode: 'solo-echo-bloom',
+    winCondition: 'echo-bloom-resonate',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'pulse-forge': {
     id: 'pulse-forge',
     name: 'Pulse Forge',
@@ -968,6 +982,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'rift-runner-extract' ||
     rules.winCondition === 'dread-sector-extract' ||
+    rules.winCondition === 'echo-bloom-resonate' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
@@ -1126,6 +1141,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-rift-runner' ||
     rules.moveMode === 'solo-dread-sector' ||
+    rules.moveMode === 'solo-echo-bloom' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
@@ -1221,6 +1237,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-starfall' ||
     rules.moveMode === 'solo-rift-runner' ||
     rules.moveMode === 'solo-dread-sector' ||
+    rules.moveMode === 'solo-echo-bloom' ||
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||

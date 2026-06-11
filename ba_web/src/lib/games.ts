@@ -311,6 +311,20 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'echo-bloom',
+    name: 'Echo Bloom',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A radial rhythm ritual. Strike inward pulses on the beat and grow a luminous flower from pure harmony.',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-echo-bloom',
+    winCondition: 'echo-bloom-resonate',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'pulse-forge',
     name: 'Pulse Forge',
     minPlayers: 1,
@@ -904,6 +918,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-rift-runner' ||
     game.moveMode === 'solo-dread-sector' ||
+    game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -959,6 +974,7 @@ export const applyMove = (
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-rift-runner' ||
     game.moveMode === 'solo-dread-sector' ||
+    game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
@@ -1153,6 +1169,7 @@ export const evaluateBoard = (
     game.winCondition === 'starfall-survive' ||
     game.winCondition === 'rift-runner-extract' ||
     game.winCondition === 'dread-sector-extract' ||
+    game.winCondition === 'echo-bloom-resonate' ||
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||

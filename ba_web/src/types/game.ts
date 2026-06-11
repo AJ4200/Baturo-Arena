@@ -27,6 +27,7 @@ export type GameType =
   | 'starfall-survivor'
   | 'rift-runner'
   | 'dread-sector'
+  | 'echo-bloom'
   | 'pulse-forge'
   | 'blackjack'
   | 'turbo-rush';
@@ -62,6 +63,7 @@ export type GameDefinition = {
     | 'solo-starfall'
     | 'solo-rift-runner'
     | 'solo-dread-sector'
+    | 'solo-echo-bloom'
     | 'solo-pulse-forge'
     | 'solo-blackjack'
     | 'air-hockey'
@@ -86,6 +88,7 @@ export type GameDefinition = {
     | 'starfall-survive'
     | 'rift-runner-extract'
     | 'dread-sector-extract'
+    | 'echo-bloom-resonate'
     | 'pulse-forge-stabilize'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
