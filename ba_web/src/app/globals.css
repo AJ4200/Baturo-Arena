@@ -4491,22 +4491,26 @@ h1 span:last-child {
 }
 
 .music-dock-track-btn {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   border: 2px solid rgba(0, 0, 0, 0.62);
   border-radius: 10px;
-  padding: 0.36rem 0.45rem;
+  padding: 0.42rem 0.5rem;
   background: rgba(255, 255, 255, 0.64);
   color: #111;
   text-align: left;
   display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .music-dock-track-btn:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.86);
+  transform: translateX(2px);
+  border-color: rgba(0, 0, 0, 0.78);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: -4px 5px 0 rgba(9, 61, 62, 0.12);
 }
 
 .music-dock-track-btn-active {
@@ -4516,14 +4520,79 @@ h1 span:last-child {
     linear-gradient(130deg, rgba(140, 255, 189, 0.48), rgba(162, 233, 255, 0.5));
 }
 
+.music-dock-track-btn-active::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(9, 78, 58, 0.9), rgba(7, 47, 75, 0.88));
+}
+
+.music-dock-track-btn-index {
+  width: 1.4rem;
+  flex: 0 0 1.4rem;
+  color: rgba(6, 54, 59, 0.7);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.music-dock-track-btn-copy {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
 .music-dock-track-btn strong {
   font-size: 0.8rem;
   line-height: 1.16;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.music-dock-track-btn span {
+.music-dock-track-btn-copy > span {
   font-size: 0.66rem;
   opacity: 0.78;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.music-dock-track-btn-playing {
+  height: 18px;
+  flex: 0 0 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.music-dock-track-btn-playing i {
+  width: 3px;
+  height: 45%;
+  border-radius: 999px;
+  background: rgba(8, 65, 57, 0.88);
+  transform-origin: center bottom;
+  animation: musicTrackPulse 760ms ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.music-dock-track-btn-playing i:nth-child(2) {
+  height: 85%;
+  animation-delay: -420ms;
+}
+
+.music-dock-track-btn-playing i:nth-child(3) {
+  height: 62%;
+  animation-delay: -180ms;
+}
+
+.music-dock-track-btn-playing.is-playing i {
+  animation-play-state: running;
 }
 
 .music-dock-tracklist-view {
@@ -4533,17 +4602,76 @@ h1 span:last-child {
 }
 
 .music-dock-tracklist-row {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem;
   border: 3px solid rgba(0, 0, 0, 0.88);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.96);
+  background:
+    linear-gradient(110deg, rgba(255, 255, 255, 0.94), rgba(239, 250, 250, 0.9)),
+    rgba(255, 255, 255, 0.96);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
 }
 
+.music-dock-tracklist-visualizer {
+  position: absolute;
+  inset: 0.6rem 0.7rem;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  opacity: 0.22;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18), #000 24%, #000 82%, rgba(0, 0, 0, 0.28));
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18), #000 24%, #000 82%, rgba(0, 0, 0, 0.28));
+}
+
+.music-dock-tracklist-visualizer span {
+  width: 4px;
+  height: 54%;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(5, 78, 62, 0.92) 0 4px,
+    transparent 4px 8px
+  );
+  transform: scaleY(0.48);
+  transform-origin: center;
+  animation: musicTracklistVisualizer 1.05s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+
+.music-dock-tracklist-visualizer span:nth-child(3n + 1) {
+  height: 82%;
+  animation-delay: -720ms;
+}
+
+.music-dock-tracklist-visualizer span:nth-child(3n + 2) {
+  height: 64%;
+  animation-delay: -360ms;
+}
+
+.music-dock-tracklist-visualizer span:nth-child(4n) {
+  height: 92%;
+  animation-duration: 880ms;
+}
+
+.music-dock-tracklist-row-playing .music-dock-tracklist-visualizer {
+  opacity: 0.3;
+}
+
+.music-dock-tracklist-row-playing .music-dock-tracklist-visualizer span {
+  animation-play-state: running;
+}
+
 .music-dock-tracklist-art-wrap {
+  position: relative;
+  z-index: 1;
   width: 62px;
   height: 62px;
   border: 3px solid #000;
@@ -4551,6 +4679,7 @@ h1 span:last-child {
   overflow: hidden;
   background: rgba(255, 255, 255, 0.95);
   flex-shrink: 0;
+  box-shadow: 4px 5px 0 rgba(5, 42, 48, 0.16);
 }
 
 .music-dock-tracklist-art {
@@ -4561,6 +4690,8 @@ h1 span:last-child {
 }
 
 .music-dock-tracklist-meta {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.14rem;
@@ -4585,12 +4716,74 @@ h1 span:last-child {
 }
 
 .music-dock-tracklist-row .music-dock-icon-btn-main {
+  position: relative;
+  z-index: 1;
   width: 46px;
   height: 46px;
+  box-shadow: 0 6px 14px rgba(4, 43, 48, 0.24);
 }
 
 .music-dock-expanded-list {
   margin-top: 0.5rem;
+}
+
+.music-dock-expanded-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  padding: 0 0.1rem;
+}
+
+.music-dock-expanded-list-head h4 {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.music-dock-expanded-list-head span {
+  border: 1px dashed rgba(0, 0, 0, 0.48);
+  border-radius: 999px;
+  padding: 0.08rem 0.42rem;
+  background: rgba(255, 255, 255, 0.52);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.music-dock-expanded-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.34rem;
+}
+
+@keyframes musicTracklistVisualizer {
+  0% {
+    transform: scaleY(0.34);
+  }
+
+  55% {
+    transform: scaleY(0.78);
+  }
+
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes musicTrackPulse {
+  from {
+    transform: scaleY(0.45);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
 }
 
 .music-dock-empty {

@@ -32,6 +32,7 @@ type Props = {
 };
 
 const GENERIC_ART_SRC = '/music/art/generic-cover.svg';
+const TRACKLIST_VISUALIZER_BARS = 18;
 
 const formatClock = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -265,7 +266,12 @@ export function MusicDock(props: Props) {
 
         {isTrackListMode ? (
           <div className="music-dock-tracklist-view">
-            <div className="music-dock-tracklist-row">
+            <div className={classnames('music-dock-tracklist-row', isPlaying && 'music-dock-tracklist-row-playing')}>
+              <div className="music-dock-tracklist-visualizer" aria-hidden="true">
+                {Array.from({ length: TRACKLIST_VISUALIZER_BARS }, (_, barIndex) => (
+                  <span key={barIndex} />
+                ))}
+              </div>
               <div className="music-dock-tracklist-art-wrap">
                 <img src={cover} alt={activeTrack ? `${activeTrack.title} artwork` : 'No track artwork'} className="music-dock-tracklist-art" />
               </div>
@@ -279,7 +285,10 @@ export function MusicDock(props: Props) {
             </div>
 
             <div className="music-dock-expanded-list">
-              <h4>Track List</h4>
+              <div className="music-dock-expanded-list-head">
+                <h4>Track List</h4>
+                <span>{tracks.length} tracks</span>
+              </div>
               {tracks.length ? (
                 <ul>
                   {tracks.map((track, trackIndex) => (
@@ -288,9 +297,20 @@ export function MusicDock(props: Props) {
                         type="button"
                         className={classnames('music-dock-track-btn', trackIndex === activeTrackIndex && 'music-dock-track-btn-active')}
                         onClick={() => selectTrackAtIndex(trackIndex)}
+                        aria-current={trackIndex === activeTrackIndex ? 'true' : undefined}
                       >
-                        <strong>{track.title}</strong>
-                        <span>{track.artist}</span>
+                        <span className="music-dock-track-btn-index">{String(trackIndex + 1).padStart(2, '0')}</span>
+                        <span className="music-dock-track-btn-copy">
+                          <strong>{track.title}</strong>
+                          <span>{track.artist}</span>
+                        </span>
+                        {trackIndex === activeTrackIndex ? (
+                          <span className={classnames('music-dock-track-btn-playing', isPlaying && 'is-playing')} aria-hidden="true">
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        ) : null}
                       </button>
                     </li>
                   ))}

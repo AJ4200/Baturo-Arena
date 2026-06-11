@@ -676,7 +676,7 @@ const applyChessMoveUnchecked = (
   const fromColumn = move.from % columns;
   const toRow = Math.floor(move.to / columns);
   const toColumn = move.to % columns;
-  const nextBoard = board.map((cell) => {
+  const nextBoard: BoardCell[] = board.map((cell) => {
     if (cell === 'XCPV') return 'XCP';
     if (cell === 'OCPV') return 'OCP';
     return cell;
@@ -1289,7 +1289,7 @@ export const evaluateBoard = (
     for (let column = 0; column < game.columns; column += 1) {
       const startIndex = getCellIndex(row, column, game.columns);
       const symbol = board[startIndex];
-      if (!symbol || isCheckersPiece(symbol)) {
+      if (!isCompetitiveSymbol(symbol)) {
         continue;
       }
       const owner = symbol;
