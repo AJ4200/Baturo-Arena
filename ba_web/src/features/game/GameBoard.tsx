@@ -332,6 +332,7 @@ export function GameBoard({
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
+    game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'ludo'
   ) {

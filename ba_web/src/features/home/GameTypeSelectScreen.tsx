@@ -7,6 +7,7 @@ import {
   AiOutlineArrowLeft,
   AiOutlineCheckCircle,
   AiOutlineCrown,
+  AiOutlineDesktop,
   AiOutlineGlobal,
   AiOutlineRobot,
   AiOutlineTeam,
@@ -97,11 +98,12 @@ export function GameTypeSelectScreen({
   const selectedOption =
     gameTypeOptions.find((option) => option.id === selectedCategory) || gameTypeOptions[0];
   const selectedGames = getGamesForCategory(selectedOption.id);
-  const selectedGameSamples = selectedGames.slice(0, 5);
+  const selectedGameSamples = selectedGames.slice(0, 6);
   const totalGames = games.length;
   const onlineGames = games.filter((game) => game.supportsOnline).length;
   const cpuGames = games.filter((game) => game.supportsCpu).length;
   const multiplayerGames = games.filter((game) => game.supportsOnline && game.minPlayers >= 2).length;
+  const categoryCount = new Set(games.map((game) => game.category)).size;
 
   const getCategoryActionLabel = useCallback((category: GameTypeCategory) => {
     if (category === 'single-player') {
@@ -116,14 +118,14 @@ export function GameTypeSelectScreen({
     return 'Open Catalog';
   }, []);
 
-  const getGameModeLabel = (game: GameDefinition) => {
+  const getGameMode = (game: GameDefinition) => {
     if (game.supportsOnline && game.maxPlayers > 1) {
-      return 'Online';
+      return { label: 'Online multiplayer', icon: <AiOutlineGlobal /> };
     }
     if (game.supportsCpu) {
-      return 'CPU';
+      return { label: 'CPU or solo', icon: <AiOutlineRobot /> };
     }
-    return 'Local';
+    return { label: 'Local multiplayer', icon: <AiOutlineDesktop /> };
   };
 
   return (
@@ -166,6 +168,9 @@ export function GameTypeSelectScreen({
             <span>
               <AiOutlineTeam /> {multiplayerGames} Rooms
             </span>
+            <span>
+              <AiOutlineAppstore /> {categoryCount} Categories
+            </span>
           </div>
         </div>
 
@@ -194,7 +199,13 @@ export function GameTypeSelectScreen({
                 >
                   <div className="game-type-card-top">
                     <div className="game-type-icon">{option.icon}</div>
-                    <span className="game-type-chip">{option.kicker}</span>
+                    <span className="game-type-chip">
+                      {isSelected ? (
+                        <>
+                          <AiOutlineCheckCircle /> Selected
+                        </>
+                      ) : option.kicker}
+                    </span>
                   </div>
 
                   <div className="game-type-card-title-row">
@@ -225,36 +236,49 @@ export function GameTypeSelectScreen({
             </span>
             <strong>{selectedOption.label}</strong>
             <span>{selectedOption.detail}</span>
+            <div className="game-type-preview-stats">
+              <span className="game-type-preview-pill">
+                <AiOutlineThunderbolt /> {selectedGames.length} Available
+              </span>
+              <span className="game-type-preview-pill">
+                <AiOutlineGlobal /> {selectedGames.filter((game) => game.supportsOnline).length} Online
+              </span>
+              <span className="game-type-preview-pill">
+                <AiOutlineRobot /> {selectedGames.filter((game) => game.supportsCpu).length} CPU
+              </span>
+            </div>
           </div>
 
-          <div className="game-type-preview-stats">
-            <span className="game-type-preview-pill">
-              <AiOutlineThunderbolt /> {selectedGames.length} Available
-            </span>
-            <span className="game-type-preview-pill">
-              <AiOutlineGlobal /> {selectedGames.filter((game) => game.supportsOnline).length} Online
-            </span>
-            <span className="game-type-preview-pill">
-              <AiOutlineRobot /> {selectedGames.filter((game) => game.supportsCpu).length} CPU
-            </span>
-          </div>
+          <div className="game-type-preview-games">
+            <div className="game-type-preview-games-head">
+              <strong>Games in this lane</strong>
+              <span>{selectedGames.length}</span>
+            </div>
 
-          <ul className="game-type-preview-list">
-            {selectedGameSamples.map((game) => (
-              <li key={game.id}>
-                <span>{game.name}</span>
-                <small>
-                  {game.minPlayers}-{game.maxPlayers} players | {getGameModeLabel(game)}
-                </small>
-              </li>
-            ))}
+            <ul className="game-type-preview-list">
+              {selectedGameSamples.map((game) => {
+                const mode = getGameMode(game);
+                return (
+                  <li key={game.id}>
+                    <span
+                      className="game-type-preview-game-mode"
+                      title={mode.label}
+                      aria-label={mode.label}
+                    >
+                      {mode.icon}
+                    </span>
+                    <span className="game-type-preview-game-name">{game.name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+
             {selectedGames.length > selectedGameSamples.length ? (
-              <li>
-                <span>More waiting</span>
-                <small>+ {selectedGames.length - selectedGameSamples.length} games</small>
-              </li>
+              <span className="game-type-preview-more">
+                + {selectedGames.length - selectedGameSamples.length} more games
+              </span>
             ) : null}
-          </ul>
+          </div>
 
           <button className="game-type-preview-cta" type="button" onClick={onContinue}>
             <AiOutlineCheckCircle /> {getCategoryActionLabel(selectedOption.id)}

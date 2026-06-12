@@ -22,6 +22,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'memory-match': { label: 'PAIRS', className: 'choose-game-thumb-memory-match' },
   'dino-run': { label: 'DODGE', className: 'choose-game-thumb-dino-run' },
   snake: { label: 'SNAKE', className: 'choose-game-thumb-snake' },
+  'maze-flux': { label: 'FLUX', className: 'choose-game-thumb-maze-flux' },
   brickbreaker: { label: 'BRICKS', className: 'choose-game-thumb-brickbreaker' },
   'air-hockey': { label: 'PUCK', className: 'choose-game-thumb-air-hockey' },
   'space-invaders': { label: 'INVADERS', className: 'choose-game-thumb-space-invaders' },

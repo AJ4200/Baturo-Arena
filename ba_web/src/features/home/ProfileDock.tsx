@@ -1,6 +1,7 @@
 'use client';
 
 import classnames from 'classnames';
+import { useEffect, useState } from 'react';
 import {
   AiOutlineCheckCircle,
   AiOutlineClockCircle,
@@ -8,6 +9,8 @@ import {
   AiOutlineLoading3Quarters,
   AiOutlineLogout,
   AiOutlineUser,
+  AiOutlineEdit,
+  AiOutlineSave,
 } from 'react-icons/ai';
 import { FcGoogle } from 'react-icons/fc';
 import type { PlayerProfile } from '@/types/game';
@@ -29,7 +32,7 @@ type ProfileDockProps = {
   onSignIn: () => void;
   onSignOut: () => void;
   onPlayerNameChange: (value: string) => void;
-  onSaveName: () => void;
+  onSaveName: (name?: string) => void;
 };
 
 export function ProfileDock({
@@ -46,7 +49,107 @@ export function ProfileDock({
 }: ProfileDockProps) {
   const isConnected = Boolean(account?.sub);
   const displayName = (playerProfile?.name || account?.name || playerName || 'Player').trim() || 'Player';
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(displayName);
   const profileAvatar = `https://robohash.org/${encodeURIComponent(displayName)}?size=160x160`;
+
+  useEffect(() => {
+    if (!isEditingName) {
+      setNameDraft(displayName);
+    }
+  }, [displayName, isEditingName, playerName]);
+
+  const beginNameEdit = () => {
+    setNameDraft(displayName);
+    setIsEditingName(true);
+  };
+
+  const cancelNameEdit = () => {
+    setNameDraft(displayName);
+    setIsEditingName(false);
+  };
+
+  const saveName = () => {
+    const nextName = nameDraft.trim();
+    if (!nextName) {
+      return;
+    }
+    onPlayerNameChange(nextName);
+    onSaveName(nextName);
+    setIsEditingName(false);
+  };
+
+  const nameEditor = (
+    <div className={classnames('profile-name-editor', 'profile-dock-name-editor', isEditingName && 'profile-name-editor-active')}>
+      {isEditingName ? (
+        <>
+          <input
+            className="profile-dock-input profile-name-editor-input"
+            value={nameDraft}
+            onChange={(event) => setNameDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                saveName();
+              }
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                cancelNameEdit();
+              }
+            }}
+            placeholder="Your arena name"
+            autoFocus
+          />
+          <button
+            className={classnames(
+              'lobby-btn',
+              'custome-shadow',
+              'profile-dock-auth-btn',
+              'profile-dock-name-action',
+              'profile-dock-name-action-save'
+            )}
+            type="button"
+            onClick={saveName}
+          >
+            <AiOutlineSave /> Save
+          </button>
+          <button
+            className={classnames(
+              'lobby-btn',
+              'custome-shadow',
+              'profile-dock-auth-btn',
+              'profile-dock-name-action',
+              'profile-dock-name-action-cancel'
+            )}
+            type="button"
+            onClick={cancelNameEdit}
+          >
+            <AiOutlineClose /> Cancel
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="profile-name-current">
+            <small>Arena Name</small>
+            <strong>{displayName}</strong>
+          </div>
+          <button
+            className={classnames(
+              'lobby-btn',
+              'custome-shadow',
+              'profile-dock-auth-btn',
+              'profile-dock-name-action',
+              'profile-dock-name-action-edit'
+            )}
+            type="button"
+            onClick={beginNameEdit}
+          >
+            <AiOutlineEdit /> {playerProfile ? 'Edit' : 'Set Name'}
+          </button>
+        </>
+      )}
+    </div>
+  );
   const profileStatus = (() => {
     if (isSigningIn) {
       return {
@@ -111,7 +214,7 @@ export function ProfileDock({
         {account ? (
           <div className="profile-dock-account">
             <img src={account.picture || profileAvatar} alt={`${displayName} avatar`} className="profile-dock-avatar" />
-            <strong>{displayName}</strong>
+            {nameEditor}
             <div className="profile-dock-status-wrap">
               <span
                 className={classnames(
@@ -150,7 +253,6 @@ export function ProfileDock({
                 <AiOutlineUser />
               </div>
             )}
-            <strong>{playerProfile ? displayName : 'Guest mode'}</strong>
             <div className="profile-dock-status-wrap">
               <span
                 className={classnames(
@@ -168,25 +270,7 @@ export function ProfileDock({
               <span className="public-room-pill">Offline Ready</span>
             </div>
             <span>Google sign-in is required only for online multiplayer.</span>
-            <input
-              className="profile-dock-input"
-              value={playerName}
-              onChange={(event) => onPlayerNameChange(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault();
-                  onSaveName();
-                }
-              }}
-              placeholder="Set guest name"
-            />
-            <button
-              className={classnames('lobby-btn', 'custome-shadow', 'profile-dock-auth-btn')}
-              type="button"
-              onClick={onSaveName}
-            >
-              Save Name
-            </button>
+            {nameEditor}
             {playerProfile ? <span>Player ID: {playerProfile.playerId} | Guest mode</span> : null}
             {playerProfile ? (
               <div className="profile-dock-stats">

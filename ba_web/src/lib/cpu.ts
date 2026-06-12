@@ -329,7 +329,8 @@ export const getCpuMove = (
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
-    game.moveMode === 'solo-dino'
+    game.moveMode === 'solo-dino' ||
+    game.moveMode === 'solo-maze-flux'
   ) {
     return null;
   }

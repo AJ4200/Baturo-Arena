@@ -1065,7 +1065,7 @@ export default function Home() {
     };
   }, [gameIntroTargetScreen, screen]);
 
-  const ensurePlayer = async (identity?: { playerId: string; name: string }) => {
+  const ensurePlayer = async (identity?: { playerId?: string; name?: string }) => {
     const savedPlayerId = identity?.playerId || window.localStorage.getItem(STORAGE_KEYS.playerId);
     const payload = await callApi<PlayerProfile>('/api/players/register', {
       method: 'POST',
@@ -1610,7 +1610,6 @@ export default function Home() {
           googleAccount={googleAccount}
           isLoading={isLoading}
           onBack={() => setScreen('game-select')}
-          onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
           onCpuDifficultyChange={applyCpuDifficulty}
           onOfflinePlayerCountChange={applyOfflineParticipantCount}
@@ -1618,8 +1617,8 @@ export default function Home() {
           onPlayerNameChange={setPlayerName}
           onRoomNameChange={setRoomName}
           onJoinCodeChange={setJoinCode}
-          onSaveName={() => {
-            ensurePlayer()
+          onSaveName={(name) => {
+            ensurePlayer(name ? { name } : undefined)
               .then((registeredPlayer) => {
                 setPlayer(registeredPlayer);
                 setMessage('Profile saved');
@@ -1661,7 +1660,6 @@ export default function Home() {
           isLoading={isLoading}
           isSinglePlayerMode={true}
           onBack={() => setScreen('game-select')}
-          onGameChange={setSelectedGame}
           onPlayModeChange={applyPlayMode}
           onCpuDifficultyChange={applyCpuDifficulty}
           onOfflinePlayerCountChange={applyOfflineParticipantCount}
@@ -1669,8 +1667,8 @@ export default function Home() {
           onPlayerNameChange={setPlayerName}
           onRoomNameChange={setRoomName}
           onJoinCodeChange={setJoinCode}
-          onSaveName={() => {
-            ensurePlayer()
+          onSaveName={(name) => {
+            ensurePlayer(name ? { name } : undefined)
               .then((registeredPlayer) => {
                 setPlayer(registeredPlayer);
                 setMessage('Profile saved');
@@ -1790,11 +1788,6 @@ export default function Home() {
             setIsMusicMuted(nextValue);
             window.localStorage.setItem(STORAGE_KEYS.musicMuted, String(nextValue));
           }}
-          onToggleAnimations={() => {
-            const nextValue = !enableAnimations;
-            setEnableAnimations(nextValue);
-            window.localStorage.setItem(STORAGE_KEYS.enableAnimations, String(nextValue));
-          }}
           onProfileUpdate={(updatedPlayer) => {
             setPlayer(updatedPlayer);
           }}
@@ -1864,8 +1857,8 @@ export default function Home() {
             onSignIn={startGoogleSignIn}
             onSignOut={signOutGoogle}
             onPlayerNameChange={setPlayerName}
-            onSaveName={() => {
-              ensurePlayer()
+            onSaveName={(name) => {
+              ensurePlayer(name ? { name } : undefined)
                 .then((registeredPlayer) => {
                   setPlayer(registeredPlayer);
                   setMessage('Profile saved');

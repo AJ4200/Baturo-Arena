@@ -1,6 +1,7 @@
 const GAME_RULES = {
   'tic-tac-two': {
     id: 'tic-tac-two',
+    category: 'board',
     name: 'Tic-Tac-Two',
     rows: 3,
     columns: 3,
@@ -15,6 +16,7 @@ const GAME_RULES = {
   },
   'connect-all-four': {
     id: 'connect-all-four',
+    category: 'board',
     name: 'Connect-All-Four',
     rows: 6,
     columns: 7,
@@ -29,6 +31,7 @@ const GAME_RULES = {
   },
   'orbital-flip': {
     id: 'orbital-flip',
+    category: 'board',
     name: 'Orbital-Flip',
     rows: 6,
     columns: 6,
@@ -43,6 +46,7 @@ const GAME_RULES = {
   },
   'corner-clash': {
     id: 'corner-clash',
+    category: 'board',
     name: 'Corner-Clash',
     rows: 5,
     columns: 5,
@@ -57,6 +61,7 @@ const GAME_RULES = {
   },
   checkers: {
     id: 'checkers',
+    category: 'board',
     name: 'Checkers',
     rows: 8,
     columns: 8,
@@ -71,6 +76,7 @@ const GAME_RULES = {
   },
   chess: {
     id: 'chess',
+    category: 'board',
     name: 'Chess',
     rows: 8,
     columns: 8,
@@ -85,6 +91,7 @@ const GAME_RULES = {
   },
   ludo: {
     id: 'ludo',
+    category: 'board',
     name: 'Ludo',
     rows: 15,
     columns: 15,
@@ -99,6 +106,7 @@ const GAME_RULES = {
   },
   'leap-on': {
     id: 'leap-on',
+    category: 'arcade',
     name: 'Leap',
     rows: 1,
     columns: 1,
@@ -113,6 +121,7 @@ const GAME_RULES = {
   },
   '2048': {
     id: '2048',
+    category: 'puzzle',
     name: '2048',
     rows: 4,
     columns: 4,
@@ -127,6 +136,7 @@ const GAME_RULES = {
   },
   sudoku: {
     id: 'sudoku',
+    category: 'puzzle',
     name: 'Sudoku',
     rows: 9,
     columns: 9,
@@ -141,6 +151,7 @@ const GAME_RULES = {
   },
   minesweeper: {
     id: 'minesweeper',
+    category: 'puzzle',
     name: 'Minesweeper',
     rows: 9,
     columns: 9,
@@ -155,6 +166,7 @@ const GAME_RULES = {
   },
   'memory-match': {
     id: 'memory-match',
+    category: 'puzzle',
     name: 'Memory-Match',
     rows: 4,
     columns: 4,
@@ -169,6 +181,7 @@ const GAME_RULES = {
   },
   'dino-run': {
     id: 'dino-run',
+    category: 'arcade',
     name: 'Dino-Run',
     rows: 1,
     columns: 1,
@@ -183,6 +196,7 @@ const GAME_RULES = {
   },
   snake: {
     id: 'snake',
+    category: 'arcade',
     name: 'Snake',
     rows: 20,
     columns: 20,
@@ -195,9 +209,25 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'maze-flux': {
+    id: 'maze-flux',
+    category: 'puzzle',
+    name: 'Maze Flux',
+    rows: 15,
+    columns: 17,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Route an energy core through an original neon circuit maze, recover every signal, and outmaneuver scanner drones.',
+    moveMode: 'solo-maze-flux',
+    winCondition: 'maze-flux-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 
   brickbreaker: {
     id: 'brickbreaker',
+    category: 'arcade',
     name: 'BrickBreaker',
     rows: 1,
     columns: 1,
@@ -212,6 +242,7 @@ const GAME_RULES = {
   },
   'air-hockey': {
     id: 'air-hockey',
+    category: 'sports',
     name: 'Air Hockey',
     rows: 1,
     columns: 1,
@@ -226,6 +257,7 @@ const GAME_RULES = {
   },
   'space-invaders': {
     id: 'space-invaders',
+    category: 'action',
     name: 'Space Invaders',
     rows: 1,
     columns: 1,
@@ -240,6 +272,7 @@ const GAME_RULES = {
   },
   'neon-pong': {
     id: 'neon-pong',
+    category: 'arcade',
     name: 'Neon Pong',
     rows: 1,
     columns: 1,
@@ -254,6 +287,7 @@ const GAME_RULES = {
   },
   tetris: {
     id: 'tetris',
+    category: 'arcade',
     name: 'Tetris',
     rows: 20,
     columns: 10,
@@ -268,6 +302,7 @@ const GAME_RULES = {
   },
   'starfall-survivor': {
     id: 'starfall-survivor',
+    category: 'action',
     name: 'Starfall Survivor',
     rows: 1,
     columns: 1,
@@ -282,6 +317,7 @@ const GAME_RULES = {
   },
   'rift-runner': {
     id: 'rift-runner',
+    category: 'action',
     name: 'Rift Runner',
     rows: 1,
     columns: 1,
@@ -296,6 +332,7 @@ const GAME_RULES = {
   },
   'dread-sector': {
     id: 'dread-sector',
+    category: 'action',
     name: 'Dread Sector',
     rows: 16,
     columns: 16,
@@ -310,6 +347,7 @@ const GAME_RULES = {
   },
   'echo-bloom': {
     id: 'echo-bloom',
+    category: 'rhythm',
     name: 'Echo Bloom',
     rows: 1,
     columns: 4,
@@ -324,6 +362,7 @@ const GAME_RULES = {
   },
   'pulse-forge': {
     id: 'pulse-forge',
+    category: 'arcade',
     name: 'Pulse Forge',
     rows: 1,
     columns: 4,
@@ -338,6 +377,7 @@ const GAME_RULES = {
   },
   blackjack: {
     id: 'blackjack',
+    category: 'cards',
     name: 'Blackjack',
     rows: 1,
     columns: 1,
@@ -352,6 +392,7 @@ const GAME_RULES = {
   },
   'turbo-rush': {
     id: 'turbo-rush',
+    category: 'racing',
     name: 'Turbo Rush',
     rows: 1,
     columns: 1,
@@ -975,6 +1016,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'memory-complete' ||
     rules.winCondition === 'dino-survive' ||
     rules.winCondition === 'snake-survive' ||
+    rules.winCondition === 'maze-flux-clear' ||
     rules.winCondition === 'space-invaders-clear' ||
     rules.winCondition === 'brickbreaker-clear' ||
     rules.winCondition === 'neon-pong-score' ||
@@ -1134,6 +1176,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-memory' ||
     rules.moveMode === 'solo-dino' ||
     rules.moveMode === 'solo-snake' ||
+    rules.moveMode === 'solo-maze-flux' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||
@@ -1230,6 +1273,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-memory' ||
     rules.moveMode === 'solo-dino' ||
     rules.moveMode === 'solo-snake' ||
+    rules.moveMode === 'solo-maze-flux' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-neon-pong' ||

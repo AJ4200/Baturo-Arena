@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
   AiOutlineReload,
@@ -39,7 +40,6 @@ type CpuArenaGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   difficulty: CpuDifficulty;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
@@ -83,7 +83,6 @@ export function CpuArenaGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   difficulty,
   onMatchComplete,
   onLeave,
@@ -278,16 +277,6 @@ export function CpuArenaGame({
                   </motion.button>
 
                   <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleAnimations}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Motion {enableAnimations ? 'On' : 'Off'}
-                  </motion.button>
-
-                  <motion.button
                     className="room-float-action-btn room-float-action-btn-danger"
                     type="button"
                     onClick={onLeave}
@@ -302,7 +291,7 @@ export function CpuArenaGame({
           </div>
         </motion.div>
 
-        <div className="board-stage-card">
+        <div className={classnames('board-stage-card', gameType === 'tic-tac-two' && 'board-stage-card-wobble')}>
           <GameBoard
             gameType={gameType}
             board={board}

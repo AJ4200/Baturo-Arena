@@ -18,8 +18,9 @@ import {
   AiOutlineUp,
   AiOutlineUnorderedList,
 } from 'react-icons/ai';
-import type { GameDefinition, GameType } from '@/types/game';
+import type { GameCategory, GameDefinition, GameType } from '@/types/game';
 import { getGameCarouselThumbnail } from '@/features/home/gameCarouselThumbnails';
+import { formatGameCategory } from '@/lib/games';
 
 type ChooseGameLayout = 'carousel' | 'list' | 'grid';
 
@@ -33,6 +34,8 @@ const CHOOSE_GAME_PAGE_SIZE: Record<Exclude<ChooseGameLayout, 'carousel'>, numbe
   list: 3,
   grid: 4,
 };
+
+type GameCategoryFilter = GameCategory | 'all';
 
 type GameSelectScreenProps = {
   games: GameDefinition[];
@@ -51,13 +54,22 @@ export function GameSelectScreen({
 }: GameSelectScreenProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<GameCategoryFilter>('all');
   const [layoutMode, setLayoutMode] = useState<ChooseGameLayout>('carousel');
   const [layoutPage, setLayoutPage] = useState(0);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const availableCategories = useMemo(
+    () => Array.from(new Set(games.map((game) => game.category))),
+    [games]
+  );
   const filteredGames = useMemo(
     () =>
       games.filter((game) => {
+        if (selectedCategory !== 'all' && game.category !== selectedCategory) {
+          return false;
+        }
+
         if (!normalizedSearchQuery) {
           return true;
         }
@@ -65,10 +77,11 @@ export function GameSelectScreen({
         return (
           game.name.toLowerCase().includes(normalizedSearchQuery) ||
           game.description.toLowerCase().includes(normalizedSearchQuery) ||
-          game.id.toLowerCase().includes(normalizedSearchQuery)
+          game.id.toLowerCase().includes(normalizedSearchQuery) ||
+          formatGameCategory(game.category).toLowerCase().includes(normalizedSearchQuery)
         );
       }),
-    [games, normalizedSearchQuery]
+    [games, normalizedSearchQuery, selectedCategory]
   );
   const selectedIndex =
     filteredGames.length === 0 ? -1 : Math.max(0, filteredGames.findIndex((game) => game.id === selectedGame));
@@ -209,6 +222,7 @@ export function GameSelectScreen({
             <strong>{game.name}</strong>
             <span>{game.description}</span>
             <div className="choose-game-option-pills">
+              <small>{formatGameCategory(game.category)}</small>
               <small>
                 <AiOutlineTeam /> {game.minPlayers}-{game.maxPlayers}
               </small>
@@ -372,6 +386,30 @@ export function GameSelectScreen({
             </button>
           </div>
         </div>
+        <div className="choose-game-category-bar" role="group" aria-label="Filter games by category">
+          <button
+            className={classnames('choose-game-category-chip', selectedCategory === 'all' && 'active')}
+            type="button"
+            onClick={() => setSelectedCategory('all')}
+            aria-pressed={selectedCategory === 'all'}
+          >
+            All <span>{games.length}</span>
+          </button>
+          {availableCategories.map((category) => {
+            const categoryCount = games.filter((game) => game.category === category).length;
+            return (
+              <button
+                key={category}
+                className={classnames('choose-game-category-chip', selectedCategory === category && 'active')}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                aria-pressed={selectedCategory === category}
+              >
+                {formatGameCategory(category)} <span>{categoryCount}</span>
+              </button>
+            );
+          })}
+        </div>
         <p className="choose-game-hint">
           <AiOutlineArrowRight /> Tip: use arrow keys to browse, switch layouts, then Enter to launch.
         </p>
@@ -470,6 +508,7 @@ export function GameSelectScreen({
                 </div>
                 <p>{selectedDefinition.description}</p>
                 <div className="choose-game-spotlight-pills">
+                  <span>{formatGameCategory(selectedDefinition.category)}</span>
                   <span>
                     <AiOutlineTeam /> {selectedDefinition.minPlayers}-{selectedDefinition.maxPlayers} players
                   </span>
@@ -552,6 +591,7 @@ export function GameSelectScreen({
                   <strong>{selectedDefinition.name}</strong>
                   <p>{selectedDefinition.description}</p>
                   <div className="choose-game-spotlight-pills">
+                    <span>{formatGameCategory(selectedDefinition.category)}</span>
                     <span>
                       <AiOutlineTeam /> {selectedDefinition.minPlayers}-{selectedDefinition.maxPlayers} players
                     </span>

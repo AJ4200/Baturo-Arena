@@ -3,6 +3,7 @@ const { listGameRules, getGameRules } = require('../utils/game');
 function toGameDefinition(rules) {
   return {
     id: rules.id,
+    category: rules.category,
     name: rules.name,
     minPlayers: rules.minPlayers,
     maxPlayers: rules.maxPlayers,

@@ -4,6 +4,16 @@ export type GameMode = 'online' | 'cpu' | 'offline';
 
 export type GameTypeCategory = 'online-multiplayer' | 'online' | 'single-player' | 'all';
 
+export type GameCategory =
+  | 'board'
+  | 'puzzle'
+  | 'arcade'
+  | 'action'
+  | 'sports'
+  | 'rhythm'
+  | 'cards'
+  | 'racing';
+
 export type GameType =
   | 'tic-tac-two'
   | 'connect-all-four'
@@ -19,6 +29,7 @@ export type GameType =
   | 'memory-match'
   | 'dino-run'
   | 'snake'
+  | 'maze-flux'
   | 'space-invaders'
   | 'brickbreaker'
   | 'air-hockey'
@@ -34,6 +45,7 @@ export type GameType =
 
 export type GameDefinition = {
   id: GameType;
+  category: GameCategory;
   name: string;
   minPlayers: number;
   maxPlayers: number;
@@ -56,6 +68,7 @@ export type GameDefinition = {
     | 'solo-memory'
     | 'solo-dino'
     | 'solo-snake'
+    | 'solo-maze-flux'
     | 'solo-space-invaders'
     | 'solo-brickbreaker'
     | 'solo-neon-pong'
@@ -81,6 +94,7 @@ export type GameDefinition = {
     | 'memory-complete'
     | 'dino-survive'
     | 'snake-survive'
+    | 'maze-flux-clear'
     | 'space-invaders-clear'
     | 'brickbreaker-clear'
     | 'neon-pong-score'
@@ -171,6 +185,7 @@ export type PublicRoom = {
   playersCount: number;
   maxPlayers: number;
   isPublic: boolean;
+  creatorPlayerId: string;
   creatorName: string;
   updatedAt: string;
   players: Array<{

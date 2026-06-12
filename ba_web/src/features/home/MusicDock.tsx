@@ -32,7 +32,7 @@ type Props = {
 };
 
 const GENERIC_ART_SRC = '/music/art/generic-cover.svg';
-const TRACKLIST_VISUALIZER_BARS = 18;
+const MUSIC_VISUALIZER_BARS = 22;
 
 const formatClock = (seconds: number) => {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -51,7 +51,9 @@ export function MusicDock(props: Props) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const volumePointerIdRef = useRef<number | null>(null);
   const [pendingAutoplay, setPendingAutoplay] = useState(false);
+  const [isAdjustingVolume, setIsAdjustingVolume] = useState(false);
   const [showNowPlayingToast, setShowNowPlayingToast] = useState(false);
   const [isNowPlayingToastExiting, setIsNowPlayingToastExiting] = useState(false);
   const toastExitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -86,7 +88,7 @@ export function MusicDock(props: Props) {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !activeTrack || isMuted) {
+    if (!audio || !activeTrack) {
       setPendingAutoplay(false);
       return;
     }
@@ -108,7 +110,7 @@ export function MusicDock(props: Props) {
     };
 
     tryAutoplay();
-  }, [activeTrack?.src, isMuted]);
+  }, [activeTrack?.id, activeTrack?.src]);
 
   useEffect(() => {
     revealNowPlayingToast();
@@ -165,8 +167,7 @@ export function MusicDock(props: Props) {
     const audio = audioRef.current;
     if (!audio) return;
     if (audio.paused) {
-      void audio.play();
-      setIsPlaying(true);
+      playCurrentAudio();
       revealNowPlayingToast();
     } else {
       audio.pause();
@@ -174,16 +175,37 @@ export function MusicDock(props: Props) {
     }
   };
 
-  const handlePrevious = () => {
-    setActiveTrackIndex((current) => (tracks.length ? (current - 1 + tracks.length) % tracks.length : current));
+  function playCurrentAudio() {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    setPendingAutoplay(false);
+    void audio.play().catch(() => {
+      setPendingAutoplay(true);
+    });
+  }
+
+  const changeTrack = (offset: number) => {
+    if (!tracks.length) return;
+
+    if (tracks.length === 1) {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      setCurrentTime(0);
+      playCurrentAudio();
+      return;
+    }
+
+    setActiveTrackIndex((current) => (current + offset + tracks.length) % tracks.length);
     setCurrentTime(0);
     setIsPlaying(true);
   };
 
-  const handleNext = () => {
-    setActiveTrackIndex((current) => (tracks.length ? (current + 1) % tracks.length : current));
-    setCurrentTime(0);
-    setIsPlaying(true);
+  const handlePrevious = () => changeTrack(-1);
+  const handleNext = () => changeTrack(1);
+
+  const handleTrackEnded = () => {
+    changeTrack(1);
   };
 
   const handleSeek = (event: ChangeEvent<HTMLInputElement>) => {
@@ -195,18 +217,80 @@ export function MusicDock(props: Props) {
   };
 
   const selectTrackAtIndex = (trackIndex: number) => {
+    if (trackIndex === activeTrackIndex) {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = 0;
+      setCurrentTime(0);
+      playCurrentAudio();
+      return;
+    }
+
     setActiveTrackIndex(trackIndex);
     setCurrentTime(0);
     setIsPlaying(true);
-    setTimeout(() => {
-      const audio = audioRef.current;
-      if (!audio) return;
-      void audio.play().catch(() => {});
-    }, 0);
   };
 
   const stepVolume = (delta: number) => {
     onVolumeChange(Math.min(100, Math.max(0, volume + delta)));
+  };
+
+  const updateVolumeFromPointer = (
+    element: HTMLElement,
+    clientX: number,
+    clientY: number
+  ) => {
+    const bounds = element.getBoundingClientRect();
+    const deltaX = clientX - (bounds.left + bounds.width / 2);
+    const deltaY = clientY - (bounds.top + bounds.height / 2);
+    let angle = (Math.atan2(deltaX, -deltaY) * 180) / Math.PI;
+    if (angle < 0) angle += 360;
+
+    let sweepAngle: number;
+    if (angle < 90) {
+      sweepAngle = angle + 360;
+    } else if (angle < 150) {
+      sweepAngle = 450;
+    } else if (angle < 210) {
+      sweepAngle = 210;
+    } else {
+      sweepAngle = angle;
+    }
+
+    const nextVolume = Math.round(((Math.min(450, Math.max(210, sweepAngle)) - 210) / 240) * 100);
+    onVolumeChange(nextVolume);
+  };
+
+  const handleVolumePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    volumePointerIdRef.current = event.pointerId;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setIsAdjustingVolume(true);
+    updateVolumeFromPointer(event.currentTarget, event.clientX, event.clientY);
+  };
+
+  const handleVolumePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (volumePointerIdRef.current !== event.pointerId) return;
+    updateVolumeFromPointer(event.currentTarget, event.clientX, event.clientY);
+  };
+
+  const stopVolumeAdjustment = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (volumePointerIdRef.current !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    volumePointerIdRef.current = null;
+    setIsAdjustingVolume(false);
+  };
+
+  const handleVolumeKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    let nextVolume: number | null = null;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowRight') nextVolume = volume + 5;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') nextVolume = volume - 5;
+    if (event.key === 'Home') nextVolume = 0;
+    if (event.key === 'End') nextVolume = 100;
+    if (nextVolume === null) return;
+
+    event.preventDefault();
+    onVolumeChange(Math.min(100, Math.max(0, nextVolume)));
   };
 
   const handleAudioPlay = () => {
@@ -216,6 +300,7 @@ export function MusicDock(props: Props) {
 
   const knobStyle: React.CSSProperties = {
     '--music-knob-sweep': `${Math.round((Math.max(0, Math.min(volume, 100)) / 100) * 240)}deg`,
+    '--music-knob-angle': `${210 + Math.round((Math.max(0, Math.min(volume, 100)) / 100) * 240)}deg`,
   } as React.CSSProperties;
 
   const nowPlayingToast =
@@ -268,7 +353,7 @@ export function MusicDock(props: Props) {
           <div className="music-dock-tracklist-view">
             <div className={classnames('music-dock-tracklist-row', isPlaying && 'music-dock-tracklist-row-playing')}>
               <div className="music-dock-tracklist-visualizer" aria-hidden="true">
-                {Array.from({ length: TRACKLIST_VISUALIZER_BARS }, (_, barIndex) => (
+                {Array.from({ length: MUSIC_VISUALIZER_BARS }, (_, barIndex) => (
                   <span key={barIndex} />
                 ))}
               </div>
@@ -322,7 +407,12 @@ export function MusicDock(props: Props) {
           </div>
         ) : (
           <>
-            <div className="music-dock-now-playing">
+            <div className={classnames('music-dock-now-playing', isPlaying && 'music-dock-now-playing-active')}>
+              <div className="music-dock-main-visualizer" aria-hidden="true">
+                {Array.from({ length: MUSIC_VISUALIZER_BARS }, (_, barIndex) => (
+                  <span key={barIndex} />
+                ))}
+              </div>
               <div className="music-dock-art-wrap">
                 <img src={cover} alt={activeTrack ? `${activeTrack.title} artwork` : 'No track artwork'} className="music-dock-art" />
               </div>
@@ -393,7 +483,30 @@ export function MusicDock(props: Props) {
                     <button className="music-dock-volume-step" type="button" onClick={() => stepVolume(-10)} aria-label="Lower volume">
                       -
                     </button>
-                    <div className={classnames('music-dock-volume-knob', isMuted && 'music-dock-volume-mute-active')} style={knobStyle}>
+                    <div
+                      className={classnames(
+                        'music-dock-volume-knob',
+                        isMuted && 'music-dock-volume-mute-active',
+                        isAdjustingVolume && 'music-dock-volume-knob-active'
+                      )}
+                      style={knobStyle}
+                      role="slider"
+                      tabIndex={0}
+                      aria-label="Music volume"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={volume}
+                      aria-valuetext={`${volume}%`}
+                      onPointerDown={handleVolumePointerDown}
+                      onPointerMove={handleVolumePointerMove}
+                      onPointerUp={stopVolumeAdjustment}
+                      onPointerCancel={stopVolumeAdjustment}
+                      onLostPointerCapture={() => {
+                        volumePointerIdRef.current = null;
+                        setIsAdjustingVolume(false);
+                      }}
+                      onKeyDown={handleVolumeKeyDown}
+                    >
                       <span>{volume}%</span>
                       <small>VOL</small>
                     </div>
@@ -413,7 +526,7 @@ export function MusicDock(props: Props) {
         ref={audioRef}
         src={activeTrack?.src}
         autoPlay={!isMuted}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={handleTrackEnded}
         onPause={() => setIsPlaying(false)}
         onPlay={handleAudioPlay}
       />

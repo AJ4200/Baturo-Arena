@@ -71,7 +71,6 @@ type SoloDreadSectorGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -450,7 +449,6 @@ export function SoloDreadSectorGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: SoloDreadSectorGameProps) {
@@ -896,9 +894,6 @@ export function SoloDreadSectorGame({
           <div>
             <button type="button" onClick={onToggleMusic}>
               <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-            </button>
-            <button type="button" onClick={onToggleAnimations}>
-              Motion {enableAnimations ? 'On' : 'Off'}
             </button>
             <button type="button" onClick={resetGame}>
               <AiOutlineReload /> Restart

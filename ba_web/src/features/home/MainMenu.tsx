@@ -47,17 +47,21 @@ export function MainMenu({
         animate={enableAnimations ? { y: [6, -6, 6] } : undefined}
         transition={enableAnimations ? { duration: 4, repeat: Infinity } : undefined}
       >
-        <button className={classnames('main-menu-btn', 'custome-shadow')} type="button" onClick={onPlay}>
-          <AiFillPlayCircle /> Play
+        <button className={classnames('main-menu-btn', 'main-menu-btn-play')} type="button" onClick={onPlay}>
+          <span className="main-menu-btn-icon"><AiFillPlayCircle /></span>
+          <span>Play</span>
         </button>
-        <button className={classnames('main-menu-btn', 'custome-shadow')} type="button" onClick={onLeaderboard}>
-          <AiOutlineTrophy /> Leaderboard
+        <button className={classnames('main-menu-btn', 'main-menu-btn-leaderboard')} type="button" onClick={onLeaderboard}>
+          <span className="main-menu-btn-icon"><AiOutlineTrophy /></span>
+          <span>Leaderboard</span>
         </button>
-        <button className={classnames('main-menu-btn', 'custome-shadow')} type="button" onClick={onHistory}>
-          <AiOutlineHistory /> History
+        <button className={classnames('main-menu-btn', 'main-menu-btn-history')} type="button" onClick={onHistory}>
+          <span className="main-menu-btn-icon"><AiOutlineHistory /></span>
+          <span>History</span>
         </button>
-        <button className={classnames('main-menu-btn', 'custome-shadow')} type="button" onClick={onSettings}>
-          <AiFillSetting /> Settings
+        <button className={classnames('main-menu-btn', 'main-menu-btn-settings')} type="button" onClick={onSettings}>
+          <span className="main-menu-btn-icon"><AiFillSetting /></span>
+          <span>Settings</span>
         </button>
       </motion.div>
     </section>

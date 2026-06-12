@@ -69,7 +69,6 @@ type AirHockeyArenaGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -229,7 +228,6 @@ export function AirHockeyArenaGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: AirHockeyArenaGameProps) {
@@ -1088,9 +1086,6 @@ export function AirHockeyArenaGame({
                 </button>
                 <button className="room-float-action-btn" type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-                </button>
-                <button className="room-float-action-btn" type="button" onClick={onToggleAnimations}>
-                  Motion {enableAnimations ? 'On' : 'Off'}
                 </button>
                 <button className="room-float-action-btn room-float-action-btn-danger" type="button" onClick={onLeave}>
                   Leave

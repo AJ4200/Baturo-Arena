@@ -63,7 +63,6 @@ type SoloLeapOnGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -245,7 +244,6 @@ export function SoloLeapOnGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: SoloLeapOnGameProps) {
@@ -605,16 +603,6 @@ export function SoloLeapOnGame({
                     whileTap={{ scale: 0.95 }}
                   >
                     <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-                  </motion.button>
-
-                  <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleAnimations}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Motion {enableAnimations ? 'On' : 'Off'}
                   </motion.button>
 
                   <motion.button

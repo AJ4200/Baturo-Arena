@@ -21,7 +21,6 @@ type SoloMemoryMatchGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -79,7 +78,6 @@ export function SoloMemoryMatchGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: SoloMemoryMatchGameProps) {
@@ -371,9 +369,6 @@ export function SoloMemoryMatchGame({
               <div className="solo-float-actions">
                 <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-                </button>
-                <button className={classnames('room-float-action-btn')} type="button" onClick={onToggleAnimations}>
-                  Motion {enableAnimations ? 'On' : 'Off'}
                 </button>
                 <button className={classnames('room-float-action-btn', 'room-float-action-btn-danger')} type="button" onClick={onLeave}>
                   Leave

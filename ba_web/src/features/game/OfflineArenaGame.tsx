@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
   AiOutlineArrowDown,
@@ -328,7 +329,7 @@ export function OfflineArenaGame({
           </div>
         </motion.div>
 
-        <div className="board-stage-card">
+        <div className={classnames('board-stage-card', gameType === 'tic-tac-two' && 'board-stage-card-wobble')}>
           <GameBoard
             gameType={gameType}
             board={board}

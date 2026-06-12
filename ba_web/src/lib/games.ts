@@ -1,8 +1,23 @@
-import type { BoardCell, ChessPiece, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
+import type { BoardCell, ChessPiece, GameCategory, GameDefinition, GameMove, GameSymbol, GameType } from '@/types/game';
+
+export const GAME_CATEGORY_LABELS: Record<GameCategory, string> = {
+  board: 'Board',
+  puzzle: 'Puzzle',
+  arcade: 'Arcade',
+  action: 'Action',
+  sports: 'Sports',
+  rhythm: 'Rhythm',
+  cards: 'Cards',
+  racing: 'Racing',
+};
+
+export const formatGameCategory = (category: GameCategory): string =>
+  GAME_CATEGORY_LABELS[category] || category;
 
 export const FALLBACK_GAMES: GameDefinition[] = [
   {
     id: 'tic-tac-two',
+    category: 'board',
     name: 'Tic-Tac-Two',
     minPlayers: 2,
     maxPlayers: 4,
@@ -17,6 +32,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'connect-all-four',
+    category: 'board',
     name: 'Connect-All-Four',
     minPlayers: 2,
     maxPlayers: 2,
@@ -31,6 +47,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'orbital-flip',
+    category: 'board',
     name: 'Orbital-Flip',
     minPlayers: 2,
     maxPlayers: 2,
@@ -45,6 +62,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'corner-clash',
+    category: 'board',
     name: 'Corner-Clash',
     minPlayers: 2,
     maxPlayers: 4,
@@ -59,6 +77,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'checkers',
+    category: 'board',
     name: 'Checkers',
     minPlayers: 2,
     maxPlayers: 2,
@@ -73,6 +92,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'chess',
+    category: 'board',
     name: 'Chess',
     minPlayers: 2,
     maxPlayers: 2,
@@ -87,6 +107,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'ludo',
+    category: 'board',
     name: 'Ludo',
     minPlayers: 2,
     maxPlayers: 4,
@@ -101,6 +122,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'leap-on',
+    category: 'arcade',
     name: 'Leap',
     minPlayers: 1,
     maxPlayers: 4,
@@ -115,6 +137,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: '2048',
+    category: 'puzzle',
     name: '2048',
     minPlayers: 1,
     maxPlayers: 1,
@@ -129,6 +152,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'sudoku',
+    category: 'puzzle',
     name: 'Sudoku',
     minPlayers: 1,
     maxPlayers: 1,
@@ -143,6 +167,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'minesweeper',
+    category: 'puzzle',
     name: 'Minesweeper',
     minPlayers: 1,
     maxPlayers: 1,
@@ -157,6 +182,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'memory-match',
+    category: 'puzzle',
     name: 'Memory-Match',
     minPlayers: 1,
     maxPlayers: 1,
@@ -171,6 +197,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'dino-run',
+    category: 'arcade',
     name: 'Dino-Run',
     minPlayers: 1,
     maxPlayers: 1,
@@ -185,6 +212,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'snake',
+    category: 'arcade',
     name: 'Snake',
     minPlayers: 1,
     maxPlayers: 1,
@@ -197,9 +225,25 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: false,
     supportsCpu: true,
   },
+  {
+    id: 'maze-flux',
+    category: 'puzzle',
+    name: 'Maze Flux',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Route an energy core through an original neon circuit maze, recover every signal, and outmaneuver scanner drones.',
+    rows: 15,
+    columns: 17,
+    connect: 0,
+    moveMode: 'solo-maze-flux',
+    winCondition: 'maze-flux-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
 
   {
     id: 'brickbreaker',
+    category: 'arcade',
     name: 'Brick Breaker',
     minPlayers: 1,
     maxPlayers: 1,
@@ -214,6 +258,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'air-hockey',
+    category: 'sports',
     name: 'Air Hockey',
     minPlayers: 2,
     maxPlayers: 2,
@@ -228,6 +273,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'space-invaders',
+    category: 'action',
     name: 'Space Invaders',
     minPlayers: 1,
     maxPlayers: 1,
@@ -242,6 +288,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'neon-pong',
+    category: 'arcade',
     name: 'Neon Pong',
     minPlayers: 1,
     maxPlayers: 1,
@@ -256,6 +303,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'tetris',
+    category: 'arcade',
     name: 'Tetris',
     minPlayers: 1,
     maxPlayers: 1,
@@ -270,6 +318,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'starfall-survivor',
+    category: 'action',
     name: 'Starfall Survivor',
     minPlayers: 1,
     maxPlayers: 1,
@@ -284,6 +333,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'rift-runner',
+    category: 'action',
     name: 'Rift Runner',
     minPlayers: 1,
     maxPlayers: 1,
@@ -298,6 +348,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'dread-sector',
+    category: 'action',
     name: 'Dread Sector',
     minPlayers: 1,
     maxPlayers: 1,
@@ -312,6 +363,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'echo-bloom',
+    category: 'rhythm',
     name: 'Echo Bloom',
     minPlayers: 1,
     maxPlayers: 1,
@@ -326,6 +378,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'pulse-forge',
+    category: 'arcade',
     name: 'Pulse Forge',
     minPlayers: 1,
     maxPlayers: 1,
@@ -340,6 +393,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'blackjack',
+    category: 'cards',
     name: 'Blackjack',
     minPlayers: 1,
     maxPlayers: 1,
@@ -354,6 +408,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
   },
   {
     id: 'turbo-rush',
+    category: 'racing',
     name: 'Turbo Rush',
     minPlayers: 2,
     maxPlayers: 4,
@@ -911,6 +966,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
     game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
@@ -967,6 +1023,7 @@ export const applyMove = (
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
     game.moveMode === 'solo-snake' ||
+    game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
@@ -1162,6 +1219,7 @@ export const evaluateBoard = (
     game.winCondition === 'memory-complete' ||
     game.winCondition === 'dino-survive' ||
     game.winCondition === 'snake-survive' ||
+    game.winCondition === 'maze-flux-clear' ||
     game.winCondition === 'space-invaders-clear' ||
     game.winCondition === 'brickbreaker-clear' ||
     game.winCondition === 'neon-pong-score' ||

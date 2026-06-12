@@ -26,7 +26,6 @@ type LudoArenaGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   gameDefinitions: GameDefinition[];
   cpuDifficulty: CpuDifficulty;
   participantNames: string[];
@@ -351,7 +350,6 @@ export function LudoArenaGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   gameDefinitions,
   cpuDifficulty,
   participantNames,
@@ -766,15 +764,6 @@ export function LudoArenaGame({
                     whileTap={{ scale: 0.95 }}
                   >
                     <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-                  </motion.button>
-                  <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleAnimations}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Motion {enableAnimations ? 'On' : 'Off'}
                   </motion.button>
                   <motion.button
                     className="room-float-action-btn room-float-action-btn-danger"

@@ -49,7 +49,6 @@ type SoloEchoBloomGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   onMatchComplete: (result: MatchResultEvent) => void;
   onLeave: () => void;
 };
@@ -321,7 +320,6 @@ export function SoloEchoBloomGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   onMatchComplete,
   onLeave,
 }: SoloEchoBloomGameProps) {
@@ -639,9 +637,6 @@ export function SoloEchoBloomGame({
                 <button className="room-float-action-btn" type="button" onClick={onToggleMusic}>
                   <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
                 </button>
-                <button className="room-float-action-btn" type="button" onClick={onToggleAnimations}>
-                  Motion {enableAnimations ? 'On' : 'Off'}
-                </button>
                 <button
                   className="room-float-action-btn room-float-action-btn-danger"
                   type="button"
@@ -714,9 +709,6 @@ export function SoloEchoBloomGame({
           <div>
             <button type="button" onClick={onToggleMusic}>
               <AiOutlineSound /> {isMusicMuted ? 'Unmute' : 'Mute'}
-            </button>
-            <button type="button" onClick={onToggleAnimations}>
-              Motion {enableAnimations ? 'On' : 'Off'}
             </button>
             <button type="button" onClick={startGame}><AiOutlineReload /> Restart</button>
             <button type="button" onClick={onLeave}>Exit</button>

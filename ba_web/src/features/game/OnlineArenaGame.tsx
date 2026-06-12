@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import classnames from 'classnames';
 import { motion } from 'framer-motion';
 import {
   AiOutlineReload,
@@ -41,7 +42,6 @@ type OnlineArenaGameProps = {
   isMusicMuted: boolean;
   enableAnimations: boolean;
   onToggleMusic: () => void;
-  onToggleAnimations: () => void;
   runWithLoader: <T>(task: () => Promise<T>, showLoader?: boolean) => Promise<T>;
   onProfileUpdate: (player: PlayerProfile) => void;
   onMatchComplete: (result: MatchResultEvent) => void;
@@ -99,7 +99,6 @@ export function OnlineArenaGame({
   isMusicMuted,
   enableAnimations,
   onToggleMusic,
-  onToggleAnimations,
   runWithLoader,
   onProfileUpdate,
   onMatchComplete,
@@ -433,16 +432,6 @@ export function OnlineArenaGame({
                   </motion.button>
 
                   <motion.button
-                    className="room-float-action-btn"
-                    type="button"
-                    onClick={onToggleAnimations}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Motion {enableAnimations ? 'On' : 'Off'}
-                  </motion.button>
-
-                  <motion.button
                     className="room-float-action-btn room-float-action-btn-danger"
                     type="button"
                     onClick={() => void handleLeave()}
@@ -459,7 +448,12 @@ export function OnlineArenaGame({
 
         {message ? <div className="status text-red-500">{message}</div> : null}
 
-        <div className="board-stage-card">
+        <div
+          className={classnames(
+            'board-stage-card',
+            room?.gameType === 'tic-tac-two' && 'board-stage-card-wobble'
+          )}
+        >
           <GameBoard
             gameType={room?.gameType || 'tic-tac-two'}
             board={(Array.isArray(room?.board) ? room?.board : []) as BoardCell[]}
