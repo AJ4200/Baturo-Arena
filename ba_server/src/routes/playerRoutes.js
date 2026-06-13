@@ -34,6 +34,7 @@ router.post(
       playerId: req.body.playerId,
       gameType: req.body.gameType,
       outcome: req.body.outcome,
+      clientResultId: req.body.clientResultId,
     });
     res.json(player);
   })

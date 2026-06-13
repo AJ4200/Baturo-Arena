@@ -41,6 +41,7 @@ export type GameType =
   | 'dread-sector'
   | 'echo-bloom'
   | 'pulse-forge'
+  | 'prism-relay'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -80,6 +81,7 @@ export type GameDefinition = {
     | 'solo-dread-sector'
     | 'solo-echo-bloom'
     | 'solo-pulse-forge'
+    | 'solo-prism-relay'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -107,6 +109,7 @@ export type GameDefinition = {
     | 'dread-sector-extract'
     | 'echo-bloom-resonate'
     | 'pulse-forge-stabilize'
+    | 'prism-relay-stabilize'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -156,6 +159,35 @@ export type LeapOnBoardState = {
 };
 
 export type CpuDifficulty = 'easy' | 'medium' | 'hard';
+
+export type PrismRelayColor = 'cyan' | 'magenta' | 'gold';
+
+export type PrismRelayPulse = {
+  id: number;
+  color: PrismRelayColor;
+  volatile: boolean;
+};
+
+export type PrismRelayNode = {
+  id: string;
+  color: PrismRelayColor;
+  charge: number;
+};
+
+export type PrismRelayState = {
+  phase: 'running' | 'won' | 'lost';
+  rotation: number;
+  nodes: PrismRelayNode[];
+  queue: PrismRelayPulse[];
+  routed: number;
+  target: number;
+  integrity: number;
+  combo: number;
+  score: number;
+  timeLeftMs: number;
+  pulseWindowMs: number;
+  event: string;
+};
 
 export type MatchOutcome = 'win' | 'loss' | 'draw';
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'baturo-arena-v3';
+const CACHE_NAME = 'baturo-arena-v4';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',

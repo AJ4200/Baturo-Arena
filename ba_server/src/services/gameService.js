@@ -1,9 +1,11 @@
+const crypto = require('crypto');
 const HttpError = require('../errors/HttpError');
 const {
   upsertPlayer,
   getPlayerById,
   incrementPlayerStats,
   incrementPlayerGameStats,
+  recordPlayerMatchResultOnce,
   listPlayersByScore,
   listPlayersByGameScore,
 } = require('../repositories/playerRepository');
@@ -756,7 +758,7 @@ async function registerPlayer({ playerId, name }) {
   return serializePlayer(player);
 }
 
-async function recordPlayerMatchResult({ playerId, gameType, outcome }) {
+async function recordPlayerMatchResult({ playerId, gameType, outcome, clientResultId }) {
   const player = await getPlayerById(playerId);
   if (!player) {
     throw new HttpError(400, 'Invalid playerId');
@@ -771,6 +773,12 @@ async function recordPlayerMatchResult({ playerId, gameType, outcome }) {
     throw new HttpError(400, 'Invalid outcome');
   }
 
+  const normalizedClientResultId =
+    String(clientResultId || '').trim() || `legacy:${crypto.randomUUID()}`;
+  if (normalizedClientResultId.length > 120) {
+    throw new HttpError(400, 'Invalid clientResultId');
+  }
+
   const delta =
     outcome === 'win'
       ? { wins: 1, losses: 0, draws: 0 }
@@ -778,8 +786,13 @@ async function recordPlayerMatchResult({ playerId, gameType, outcome }) {
         ? { wins: 0, losses: 1, draws: 0 }
         : { wins: 0, losses: 0, draws: 1 };
 
-  await incrementPlayerStats(playerId, delta);
-  await incrementPlayerGameStats(playerId, selectedGame.id, delta);
+  await recordPlayerMatchResultOnce(
+    playerId,
+    normalizedClientResultId,
+    selectedGame.id,
+    outcome,
+    delta
+  );
 
   const updatedPlayer = await getPlayerById(playerId);
   return serializePlayer(updatedPlayer);

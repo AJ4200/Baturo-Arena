@@ -467,18 +467,18 @@ export function GameSelectScreen({
               aria-label="Filter games by category"
             >
               {categoryOptions.map((category) => (
-              <button
-                key={category.id}
-                className={classnames(
-                  'choose-game-category-chip',
-                  selectedCategory === category.id && 'active'
-                )}
-                type="button"
-                onClick={(event) => selectCategory(category.id, event.currentTarget)}
-                aria-pressed={selectedCategory === category.id}
-              >
-                {category.label} <span>{category.count}</span>
-              </button>
+                <button
+                  key={category.id}
+                  className={classnames(
+                    'choose-game-category-chip',
+                    selectedCategory === category.id && 'active'
+                  )}
+                  type="button"
+                  onClick={(event) => selectCategory(category.id, event.currentTarget)}
+                  aria-pressed={selectedCategory === category.id}
+                >
+                  {category.label} <span>{category.count}</span>
+                </button>
               ))}
             </div>
           </div>

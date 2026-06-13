@@ -53,6 +53,75 @@ async function incrementPlayerGameStats(playerId, gameType, { wins = 0, losses =
   );
 }
 
+async function recordPlayerMatchResultOnce(
+  playerId,
+  clientResultId,
+  gameType,
+  outcome,
+  { wins = 0, losses = 0, draws = 0 }
+) {
+  const result = await run(
+    `WITH recorded AS (
+       INSERT INTO player_match_results (
+         player_id,
+         client_result_id,
+         game_type,
+         outcome
+       )
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT (player_id, client_result_id) DO NOTHING
+       RETURNING player_id
+     ),
+     overall_update AS (
+       UPDATE players
+       SET wins = wins + ?,
+           losses = losses + ?,
+           draws = draws + ?,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?
+         AND EXISTS (SELECT 1 FROM recorded)
+       RETURNING id
+     ),
+     game_update AS (
+       INSERT INTO player_game_stats (
+         player_id,
+         game_type,
+         wins,
+         losses,
+         draws,
+         updated_at
+       )
+       SELECT ?, ?, ?, ?, ?, CURRENT_TIMESTAMP
+       WHERE EXISTS (SELECT 1 FROM recorded)
+       ON CONFLICT (player_id, game_type)
+       DO UPDATE SET
+         wins = player_game_stats.wins + excluded.wins,
+         losses = player_game_stats.losses + excluded.losses,
+         draws = player_game_stats.draws + excluded.draws,
+         updated_at = CURRENT_TIMESTAMP
+       RETURNING player_id
+     )
+     SELECT EXISTS (SELECT 1 FROM recorded) AS recorded`,
+    [
+      playerId,
+      clientResultId,
+      gameType,
+      outcome,
+      wins,
+      losses,
+      draws,
+      playerId,
+      playerId,
+      gameType,
+      wins,
+      losses,
+      draws,
+    ]
+  );
+
+  return Boolean(result.rows[0]?.recorded);
+}
+
 async function listPlayersByScore() {
   return all(
     `SELECT
@@ -90,6 +159,7 @@ module.exports = {
   getPlayerById,
   incrementPlayerStats,
   incrementPlayerGameStats,
+  recordPlayerMatchResultOnce,
   listPlayersByScore,
   listPlayersByGameScore,
 };

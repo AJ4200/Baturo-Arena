@@ -133,6 +133,24 @@ async function runMigrations() {
   `);
 
   await run(`
+    CREATE TABLE IF NOT EXISTS player_match_results (
+      player_id TEXT NOT NULL,
+      client_result_id TEXT NOT NULL,
+      game_type TEXT NOT NULL,
+      outcome TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (player_id, client_result_id),
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+      CHECK (outcome IN ('win', 'loss', 'draw'))
+    )
+  `);
+
+  await run(`
+    CREATE INDEX IF NOT EXISTS idx_player_match_results_created_at
+    ON player_match_results(created_at)
+  `);
+
+  await run(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_raiburu_requests_pending_pair
     ON raiburu_requests (
       LEAST(requester_player_id, recipient_player_id),

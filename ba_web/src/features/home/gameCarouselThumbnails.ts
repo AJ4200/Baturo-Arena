@@ -33,6 +33,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'dread-sector': { label: 'DREAD', className: 'choose-game-thumb-dread-sector' },
   'echo-bloom': { label: 'ECHO', className: 'choose-game-thumb-echo-bloom' },
   'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },
+  'prism-relay': { label: 'PRISM', className: 'choose-game-thumb-prism-relay' },
   blackjack: { label: 'BLACKJACK', className: 'choose-game-thumb-blackjack' },
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
   'cipher-auction': { label: 'SEALED BIDS', className: 'choose-game-thumb-cipher-auction' },

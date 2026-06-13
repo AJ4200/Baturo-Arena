@@ -20,6 +20,7 @@ import { SoloRiftRunnerGame } from '@/features/game/singleplayer/SoloRiftRunnerG
 import { SoloDreadSectorGame } from '@/features/game/singleplayer/SoloDreadSectorGame';
 import { SoloEchoBloomGame } from '@/features/game/singleplayer/SoloEchoBloomGame';
 import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
+import { SoloPrismRelayGame } from '@/features/game/singleplayer/SoloPrismRelayGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
@@ -250,6 +251,8 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         roomCode={roomCode}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        cpuDifficulty={cpuDifficulty}
         onToggleMusic={onToggleMusic}
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
@@ -358,6 +361,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'pulse-forge') {
     return (
       <SoloPulseForgeGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'prism-relay') {
+    return (
+      <SoloPrismRelayGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

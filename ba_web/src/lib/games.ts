@@ -393,6 +393,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'prism-relay',
+    category: 'strategy',
+    name: 'Prism Relay',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Rotate a six-node prism, route color-matched pulses, and vent charged conduits before the relay lattice overloads.',
+    rows: 1,
+    columns: 6,
+    connect: 0,
+    moveMode: 'solo-prism-relay',
+    winCondition: 'prism-relay-stabilize',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'blackjack',
     category: 'cards',
     name: 'Blackjack',
@@ -435,7 +450,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     moveMode: 'cipher-auction',
     winCondition: 'cipher-score',
     supportsOnline: true,
-    supportsCpu: false,
+    supportsCpu: true,
   },
 ];
 
@@ -992,6 +1007,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-dread-sector' ||
     game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||
+    game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1050,6 +1066,7 @@ export const applyMove = (
     game.moveMode === 'solo-dread-sector' ||
     game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||
+    game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1247,6 +1264,7 @@ export const evaluateBoard = (
     game.winCondition === 'dread-sector-extract' ||
     game.winCondition === 'echo-bloom-resonate' ||
     game.winCondition === 'pulse-forge-stabilize' ||
+    game.winCondition === 'prism-relay-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||

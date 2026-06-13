@@ -29,6 +29,11 @@ import { useApiClient } from '@/hooks/useApiClient';
 import { STORAGE_KEYS } from '@/lib/constants';
 import { FALLBACK_GAMES } from '@/lib/games';
 import { getOfflineSeats } from '@/lib/offline';
+import {
+  enqueuePendingCpuResult,
+  readPendingCpuResults,
+  removePendingCpuResult,
+} from '@/lib/offlineSync';
 import { getRandomBrightColor } from '@/lib/random';
 import type {
   CpuDifficulty,
@@ -282,6 +287,14 @@ const APP_MUSIC_TRACKS: MusicTrack[] = [
 const GOOGLE_ONLINE_NOTICE_MESSAGE =
   'Sign in with Google to access online multiplayer. CPU and local play do not need an account.';
 
+const createLocalPlayerId = (): string => {
+  const randomId =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+  return `local:${randomId}`;
+};
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('home');
   const [gameMode, setGameMode] = useState<GameMode>('online');
@@ -332,6 +345,7 @@ export default function Home() {
   const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
+  const isCpuResultSyncingRef = useRef(false);
   const saveIndicatorTimeoutRef = useRef<number | null>(null);
   const menuIntroTransitionRef = useRef(0);
 
@@ -395,6 +409,30 @@ export default function Home() {
 
     return token;
   }, [clearStoredAuthSession]);
+
+  const ensureLocalCpuPlayer = useCallback((): PlayerProfile => {
+    if (player) {
+      return player;
+    }
+
+    const savedPlayerId =
+      window.localStorage.getItem(STORAGE_KEYS.playerId) || createLocalPlayerId();
+    const savedPlayerName =
+      window.localStorage.getItem(STORAGE_KEYS.playerName) || playerName || 'Player';
+    const localPlayer: PlayerProfile = {
+      playerId: savedPlayerId,
+      name: savedPlayerName,
+      wins: 0,
+      losses: 0,
+      draws: 0,
+    };
+
+    setPlayer(localPlayer);
+    setPlayerName(localPlayer.name);
+    window.localStorage.setItem(STORAGE_KEYS.playerId, localPlayer.playerId);
+    window.localStorage.setItem(STORAGE_KEYS.playerName, localPlayer.name);
+    return localPlayer;
+  }, [player, playerName]);
 
   const saveGoogleAccount = useCallback((account: GoogleAccount | null) => {
     setGoogleAccount(account);
@@ -880,33 +918,38 @@ export default function Home() {
         return nextValue;
       });
 
-      if (result.mode !== 'cpu' || !player) {
+      if (result.mode !== 'cpu') {
         return;
       }
 
-      callApi<PlayerProfile>(
-        '/api/players/result',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            playerId: player.playerId,
-            gameType: result.gameType,
-            outcome: result.outcome,
-          }),
-        },
-        false
-      )
-        .then((updatedPlayer) => {
-          setPlayer(updatedPlayer);
-          refreshLeaderboard().catch(() => {
-            // Ignore lightweight leaderboard refresh errors.
-          });
-        })
-        .catch(() => {
-          setMessage('Could not sync CPU score to leaderboard');
-        });
+      const resultPlayer = player || ensureLocalCpuPlayer();
+      setPlayer((currentValue) => {
+        if (!currentValue || currentValue.playerId !== resultPlayer.playerId) {
+          return currentValue;
+        }
+        return {
+          ...currentValue,
+          wins: currentValue.wins + (result.outcome === 'win' ? 1 : 0),
+          losses: currentValue.losses + (result.outcome === 'loss' ? 1 : 0),
+          draws: currentValue.draws + (result.outcome === 'draw' ? 1 : 0),
+        };
+      });
+
+      enqueuePendingCpuResult({
+        id: entry.id,
+        playerId: resultPlayer.playerId,
+        playerName: resultPlayer.name,
+        gameType: result.gameType,
+        outcome: result.outcome,
+        createdAt: entry.finishedAt,
+      });
+
+      window.dispatchEvent(new Event('baturo:cpu-result-queued'));
+      if (!navigator.onLine) {
+        showSaveIndicator('CPU result saved for sync');
+      }
     },
-    [callApi, player]
+    [ensureLocalCpuPlayer, player, showSaveIndicator]
   );
 
   const clearMatchHistory = useCallback(() => {
@@ -934,6 +977,95 @@ export default function Home() {
       ...payload.byGame,
     ]);
   };
+
+  const flushPendingCpuResults = useCallback(
+    async (announce = false) => {
+      if (
+        isCpuResultSyncingRef.current ||
+        typeof navigator === 'undefined' ||
+        !navigator.onLine
+      ) {
+        return;
+      }
+
+      const pendingResults = readPendingCpuResults();
+      if (pendingResults.length === 0) {
+        return;
+      }
+
+      isCpuResultSyncingRef.current = true;
+      let syncedCount = 0;
+      let latestPlayer: PlayerProfile | null = null;
+      const registeredPlayerIds = new Set<string>();
+
+      try {
+        for (const pendingResult of pendingResults) {
+          if (!registeredPlayerIds.has(pendingResult.playerId)) {
+            await callApi<PlayerProfile>(
+              '/api/players/register',
+              {
+                method: 'POST',
+                body: JSON.stringify({
+                  playerId: pendingResult.playerId,
+                  name: pendingResult.playerName,
+                }),
+              },
+              false
+            );
+            registeredPlayerIds.add(pendingResult.playerId);
+          }
+
+          latestPlayer = await callApi<PlayerProfile>(
+            '/api/players/result',
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                playerId: pendingResult.playerId,
+                gameType: pendingResult.gameType,
+                outcome: pendingResult.outcome,
+                clientResultId: pendingResult.id,
+              }),
+            },
+            false
+          );
+          removePendingCpuResult(pendingResult.id);
+          syncedCount += 1;
+        }
+
+        if (latestPlayer) {
+          const syncedPlayer = latestPlayer;
+          setPlayer((currentValue) =>
+            currentValue?.playerId === syncedPlayer.playerId ? syncedPlayer : currentValue
+          );
+        }
+
+        const leaderboardPayload = await callApi<LeaderboardPayload>(
+          '/api/players/leaderboard',
+          undefined,
+          false
+        ).catch(() => null);
+        if (leaderboardPayload) {
+          setLeaderboard([
+            { gameType: 'overall', name: 'Overall Arena', players: leaderboardPayload.overall },
+            ...leaderboardPayload.byGame,
+          ]);
+        }
+
+        if (announce && syncedCount > 0) {
+          showSaveIndicator(
+            `${syncedCount} CPU result${syncedCount === 1 ? '' : 's'} synced`
+          );
+        }
+      } catch (_error) {
+        if (announce && syncedCount === 0) {
+          showSaveIndicator('CPU results waiting for connection');
+        }
+      } finally {
+        isCpuResultSyncingRef.current = false;
+      }
+    },
+    [callApi, showSaveIndicator]
+  );
 
   const openMenuDestination = async (destination: MenuDestination) => {
     const transitionId = menuIntroTransitionRef.current + 1;
@@ -1233,11 +1365,19 @@ export default function Home() {
 
     try {
       setIsLoading(true);
-      await ensurePlayer();
+      if (navigator.onLine) {
+        try {
+          await ensurePlayer();
+        } catch (_error) {
+          ensureLocalCpuPlayer();
+          showSaveIndicator('Playing offline; progress will sync later');
+        }
+      } else {
+        ensureLocalCpuPlayer();
+        showSaveIndicator('Playing offline; progress will sync later');
+      }
       beginMatch('cpu', null, selectedGame);
       setMessage('');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Could not start CPU match');
     } finally {
       setIsLoading(false);
     }
@@ -1298,6 +1438,18 @@ export default function Home() {
       if (savedBackup) {
         setHasLocalSave(true);
         setLastLocalSavedAt(savedBackup.savedAt);
+        const savedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
+        if (savedPlayerId && savedBackup.player) {
+          setPlayer((currentValue) =>
+            currentValue || {
+              playerId: savedPlayerId,
+              name: savedBackup.player?.name || savedBackup.playerName || 'Player',
+              wins: savedBackup.player?.wins || 0,
+              losses: savedBackup.player?.losses || 0,
+              draws: savedBackup.player?.draws || 0,
+            }
+          );
+        }
       }
       setMatchHistory(parseMatchHistory(window.localStorage.getItem(STORAGE_KEYS.matchHistory)));
     };
@@ -1325,6 +1477,9 @@ export default function Home() {
             applyAuthenticatedSession(payload);
           })
           .catch(() => {
+            if (!navigator.onLine) {
+              return;
+            }
             clearStoredAuthSession();
             saveGoogleAccount(null);
             const storedPlayerId = window.localStorage.getItem(STORAGE_KEYS.playerId);
@@ -1340,6 +1495,21 @@ export default function Home() {
       setIsAppBooting(false);
     });
   }, []);
+
+  useEffect(() => {
+    const syncQueuedResults = () => {
+      void flushPendingCpuResults(true);
+    };
+
+    window.addEventListener('online', syncQueuedResults);
+    window.addEventListener('baturo:cpu-result-queued', syncQueuedResults);
+    void flushPendingCpuResults(false);
+
+    return () => {
+      window.removeEventListener('online', syncQueuedResults);
+      window.removeEventListener('baturo:cpu-result-queued', syncQueuedResults);
+    };
+  }, [flushPendingCpuResults]);
 
   const dismissBackupNotice = useCallback(() => {
     if (dontShowSaveTipAgain) {

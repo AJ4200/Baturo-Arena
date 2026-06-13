@@ -375,6 +375,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'prism-relay': {
+    id: 'prism-relay',
+    category: 'strategy',
+    name: 'Prism Relay',
+    rows: 1,
+    columns: 6,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Rotate a six-node prism, route color-matched pulses, and vent charged conduits before the relay lattice overloads.',
+    moveMode: 'solo-prism-relay',
+    winCondition: 'prism-relay-stabilize',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   blackjack: {
     id: 'blackjack',
     category: 'cards',
@@ -418,7 +433,7 @@ const GAME_RULES = {
     moveMode: 'cipher-auction',
     winCondition: 'cipher-score',
     supportsOnline: true,
-    supportsCpu: false,
+    supportsCpu: true,
   },
 };
 
@@ -1041,6 +1056,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'dread-sector-extract' ||
     rules.winCondition === 'echo-bloom-resonate' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
+    rules.winCondition === 'prism-relay-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
@@ -1202,6 +1218,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-dread-sector' ||
     rules.moveMode === 'solo-echo-bloom' ||
     rules.moveMode === 'solo-pulse-forge' ||
+    rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
@@ -1300,6 +1317,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-dread-sector' ||
     rules.moveMode === 'solo-echo-bloom' ||
     rules.moveMode === 'solo-pulse-forge' ||
+    rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||

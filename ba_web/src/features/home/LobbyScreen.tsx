@@ -525,7 +525,7 @@ export function LobbyScreen({
           </div>
         </div>
 
-        <div className="lobby-content-grid">
+        <div className={classnames('lobby-content-grid', playMode === 'cpu' && 'lobby-content-grid-cpu')}>
           <section className="lobby-panel lobby-panel-profile">
             <div className="lobby-panel-head lobby-panel-head-static">
               <span className="lobby-panel-icon lobby-panel-icon-profile"><AiOutlineUser /></span>

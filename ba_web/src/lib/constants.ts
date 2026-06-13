@@ -17,6 +17,7 @@ export const STORAGE_KEYS = {
   preferredGame: 'baruto_preferred_game',
   localBackup: 'baruto_local_backup_v2',
   matchHistory: 'baruto_match_history_v2',
+  pendingCpuResults: 'baruto_pending_cpu_results_v1',
   hideSaveTip: 'baruto_hide_save_tip',
   googleAccount: 'baruto_google_account_v1',
 };
