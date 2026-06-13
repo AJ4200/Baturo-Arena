@@ -8480,12 +8480,62 @@ h1 span:last-child {
   color: rgba(255, 255, 255, 0.76);
 }
 
+.choose-game-category-carousel {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.34rem;
+  margin: 0.18rem 0 0.62rem;
+}
+
+.choose-game-category-mask {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 2px solid #000;
+  background: rgba(255, 255, 255, 0.45);
+}
+
 .choose-game-category-bar {
   display: flex;
   gap: 0.38rem;
-  margin: 0.18rem 0 0.62rem;
-  padding: 0.18rem 0.08rem 0.32rem;
+  padding: 0.18rem 0.82rem 0.24rem;
   overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+.choose-game-category-nav {
+  width: 1.6rem;
+  height: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #111;
+  text-shadow: none;
+  transition: transform 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.choose-game-category-nav:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.choose-game-category-nav:disabled {
+  opacity: 0.34;
+  cursor: default;
+}
+
+.choose-game-category-nav:disabled {
+  opacity: 0.34;
+  cursor: default;
 }
 
 .choose-game-category-chip {
@@ -8495,7 +8545,7 @@ h1 span:last-child {
   gap: 0.38rem;
   border: 2px solid rgba(0, 0, 0, 0.72);
   border-radius: 999px;
-  padding: 0.3rem 0.62rem;
+  padding: 0.26rem 0.56rem;
   background: rgba(255, 255, 255, 0.68);
   color: #111;
   font-size: 0.72rem;
@@ -12807,6 +12857,26 @@ h1 span:last-child {
 .choose-game-carousel-card .choose-game-thumb-blackjack > span,
 .choose-game-option-card .choose-game-thumb-blackjack > span {
   background: rgba(28, 36, 31, 0.92);
+}
+
+.choose-game-carousel-card .choose-game-thumb-cipher-auction,
+.choose-game-option-card .choose-game-thumb-cipher-auction {
+  border: 3px solid #000;
+  background:
+    linear-gradient(90deg, transparent 0 12%, rgba(85, 230, 255, 0.92) 13% 15%, transparent 16% 43%, rgba(255, 110, 182, 0.92) 44% 46%, transparent 47% 74%, rgba(255, 214, 92, 0.94) 75% 77%, transparent 78%),
+    radial-gradient(circle at 14% 52%, #eaffff 0 7px, #2ccfe5 8px 12px, transparent 13px),
+    radial-gradient(circle at 45% 36%, #fff0f8 0 7px, #ed4a9b 8px 12px, transparent 13px),
+    radial-gradient(circle at 76% 62%, #fff9d5 0 7px, #e8b92d 8px 12px, transparent 13px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 12px),
+    linear-gradient(145deg, #050916, #17234d 52%, #092f35);
+  box-shadow:
+    inset 0 0 30px rgba(85, 230, 255, 0.16),
+    0 0 18px rgba(255, 110, 182, 0.18);
+}
+
+.choose-game-carousel-card .choose-game-thumb-cipher-auction > span,
+.choose-game-option-card .choose-game-thumb-cipher-auction > span {
+  background: linear-gradient(160deg, rgba(12, 20, 51, 0.96), rgba(8, 76, 78, 0.94));
 }
 
 /* === CAROUSEL VIEWFINDER (MATCH LOBBY CARD STYLE) === */
@@ -19471,5 +19541,482 @@ h1 span:last-child {
   .rift-runner-combat-strip > p {
     border-radius: 11px;
     padding: 0.42rem 0.5rem;
+  }
+}
+
+/* Cipher Auction */
+.cipher-auction-shell {
+  position: relative;
+  width: min(96vw, 1080px);
+  margin: 0.7rem auto 2rem;
+  overflow: hidden;
+  border: 4px solid #03050b;
+  border-radius: 24px;
+  padding: clamp(0.65rem, 1.8vw, 1rem);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(85, 230, 255, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 5%, rgba(255, 110, 182, 0.16), transparent 26%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 46px),
+    linear-gradient(145deg, #050916, #111b3b 54%, #082d34);
+  color: #fff;
+  box-shadow:
+    8px 10px 0 rgba(0, 0, 0, 0.34),
+    0 24px 54px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.cipher-auction-command,
+.cipher-auction-console,
+.cipher-auction-roundbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cipher-auction-command {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 0.15rem 0.2rem 0.8rem;
+}
+
+.cipher-auction-command h2 {
+  margin: 0.2rem 0 0.08rem;
+  font-size: clamp(1.3rem, 3vw, 2.15rem);
+}
+
+.cipher-auction-command p,
+.cipher-auction-console p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  text-shadow: none;
+}
+
+.cipher-auction-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #72f0ff;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cipher-auction-command-actions {
+  display: flex;
+  gap: 0.38rem;
+}
+
+.cipher-auction-command-actions button,
+.cipher-auction-console button,
+.cipher-auction-finale button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 2px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  transition: transform 150ms ease, background 150ms ease;
+}
+
+.cipher-auction-command-actions button:hover,
+.cipher-auction-console button:hover:not(:disabled),
+.cipher-auction-finale button:hover {
+  transform: translateY(-1px);
+  background: rgba(85, 230, 255, 0.18);
+}
+
+.cipher-auction-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.45rem;
+  margin: 0.72rem 0;
+}
+
+.cipher-auction-player {
+  --cipher-player: #55e6ff;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.48rem;
+  border: 2px solid color-mix(in srgb, var(--cipher-player) 55%, #05070d);
+  border-radius: 13px;
+  padding: 0.46rem 0.55rem;
+  background: color-mix(in srgb, var(--cipher-player) 11%, rgba(4, 8, 22, 0.9));
+}
+
+.cipher-auction-player-local {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cipher-player) 55%, transparent);
+}
+
+.cipher-auction-player-locked {
+  background: color-mix(in srgb, var(--cipher-player) 20%, rgba(4, 8, 22, 0.86));
+}
+
+.cipher-auction-rank {
+  width: 1.55rem;
+  height: 1.55rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--cipher-player);
+  color: #05070d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+.cipher-auction-player-name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cipher-auction-player-name small {
+  display: block;
+  margin-top: 0.08rem;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.57rem;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.cipher-auction-player > strong {
+  color: var(--cipher-player);
+  font-size: 1.2rem;
+}
+
+.cipher-auction-roundbar {
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0.3rem 0.45rem 0.3rem 0.65rem;
+  background: rgba(0, 0, 0, 0.24);
+  font-size: 0.72rem;
+}
+
+.cipher-auction-timer {
+  flex: 1;
+  height: 0.52rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cipher-auction-timer span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #55e6ff, #ff6eb6, #ffd65c);
+  transform-origin: left;
+  transition: transform 100ms linear;
+}
+
+.cipher-auction-vault-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0.72rem 0;
+}
+
+.cipher-auction-vault {
+  position: relative;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 3px solid #03050b;
+  border-radius: 18px;
+  padding: 0.7rem;
+  background:
+    radial-gradient(circle at 84% 8%, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(150deg, rgba(28, 42, 82, 0.96), rgba(6, 54, 59, 0.94));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.cipher-auction-vault-amplifier {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(255, 214, 92, 0.26), transparent 34%),
+    linear-gradient(150deg, #392b45, #6d421c);
+}
+
+.cipher-auction-vault-firewall {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(255, 110, 182, 0.25), transparent 34%),
+    linear-gradient(150deg, #37162f, #552032);
+}
+
+.cipher-auction-vault-won {
+  box-shadow:
+    inset 0 0 0 2px rgba(85, 230, 255, 0.58),
+    0 0 24px rgba(85, 230, 255, 0.24);
+}
+
+.cipher-auction-vault-tie {
+  animation: cipherAuctionAlarm 0.5s steps(2, end) infinite;
+}
+
+.cipher-auction-vault-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cipher-auction-vault-head > span {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #72f0ff;
+  font-size: 1.2rem;
+}
+
+.cipher-auction-vault-head small {
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: none;
+}
+
+.cipher-auction-vault-head h3 {
+  margin: 0.05rem 0 0;
+  overflow: hidden;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cipher-auction-vault-head > strong {
+  color: #ffd65c;
+  font-size: 1.12rem;
+}
+
+.cipher-auction-vault > p {
+  margin: 0.62rem 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.68rem;
+  text-shadow: none;
+}
+
+.cipher-auction-bid-control {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.cipher-auction-bid-control button {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.cipher-auction-bid-control button:disabled {
+  opacity: 0.32;
+}
+
+.cipher-auction-bid-control > strong {
+  display: grid;
+  place-items: center;
+  min-height: 5.2rem;
+  border: 2px dashed rgba(255, 255, 255, 0.28);
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font-size: clamp(2rem, 6vw, 3.8rem);
+}
+
+.cipher-auction-reveal {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cipher-auction-reveal span {
+  --cipher-player: #55e6ff;
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  border-left: 3px solid var(--cipher-player);
+  border-radius: 7px;
+  padding: 0.24rem 0.38rem;
+  background: rgba(0, 0, 0, 0.2);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.66rem;
+  text-shadow: none;
+}
+
+.cipher-auction-reveal span.winner {
+  background: color-mix(in srgb, var(--cipher-player) 22%, rgba(0, 0, 0, 0.28));
+  color: #fff;
+}
+
+.cipher-auction-reveal i {
+  width: 1.45rem;
+  height: 1.45rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--cipher-player);
+  color: #05070d;
+  font-style: normal;
+  font-weight: 900;
+  text-shadow: none;
+}
+
+.cipher-auction-reveal > strong {
+  margin-top: auto;
+  color: #ffd65c;
+  font-size: 0.7rem;
+}
+
+.cipher-auction-console {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 0.72rem;
+}
+
+.cipher-auction-console > div {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0 0.38rem;
+  align-items: center;
+}
+
+.cipher-auction-console > div span,
+.cipher-auction-console > div small {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 0.62rem;
+  text-shadow: none;
+}
+
+.cipher-auction-console > div strong {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  color: #72f0ff;
+  font-size: 1.7rem;
+}
+
+.cipher-auction-console button {
+  min-width: 8.5rem;
+  border-color: rgba(85, 230, 255, 0.5);
+  background: rgba(85, 230, 255, 0.14);
+}
+
+.cipher-auction-console button.is-locked {
+  border-color: rgba(255, 214, 92, 0.62);
+  background: rgba(255, 214, 92, 0.16);
+}
+
+.cipher-auction-console button:disabled {
+  opacity: 0.45;
+}
+
+.cipher-auction-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 5, 14, 0.74);
+  backdrop-filter: blur(7px);
+}
+
+.cipher-auction-finale {
+  width: min(92%, 480px);
+  border: 3px solid #03050b;
+  border-radius: 20px;
+  padding: 1.2rem;
+  background:
+    radial-gradient(circle at top, rgba(85, 230, 255, 0.22), transparent 45%),
+    linear-gradient(145deg, #17234d, #092f35);
+  text-align: center;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.42);
+}
+
+.cipher-auction-finale > svg {
+  color: #ffd65c;
+  font-size: 3rem;
+}
+
+.cipher-auction-finale > span {
+  display: block;
+  color: #72f0ff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.cipher-auction-finale h2 {
+  margin: 0.42rem 0 0.25rem;
+}
+
+.cipher-auction-finale p {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.78rem;
+  text-shadow: none;
+}
+
+.cipher-auction-finale > div {
+  display: flex;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+@keyframes cipherAuctionAlarm {
+  50% {
+    filter: brightness(1.35) saturate(1.35);
+  }
+}
+
+@media (max-width: 760px) {
+  .cipher-auction-vault-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cipher-auction-vault {
+    min-height: 190px;
+  }
+
+  .cipher-auction-command,
+  .cipher-auction-console {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cipher-auction-command-actions,
+  .cipher-auction-console button {
+    width: 100%;
+  }
+
+  .cipher-auction-command-actions button {
+    flex: 1;
   }
 }

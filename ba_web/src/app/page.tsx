@@ -1013,7 +1013,7 @@ export default function Home() {
       if (definition.supportsOnline) {
         modes.push('online');
       }
-      if (definition.maxPlayers > 1) {
+      if (definition.maxPlayers > 1 && definition.moveMode !== 'cipher-auction') {
         modes.push('offline');
       }
       return modes;
@@ -1124,8 +1124,8 @@ export default function Home() {
 
   const startOfflineMatch = async () => {
     const selectedDefinition = findGameDefinition(selectedGame);
-    if (selectedDefinition.maxPlayers <= 1) {
-      setMessage(`${selectedDefinition.name} is single-player only`);
+    if (selectedDefinition.maxPlayers <= 1 || selectedDefinition.moveMode === 'cipher-auction') {
+      setMessage(`${selectedDefinition.name} requires an online room`);
       return;
     }
 

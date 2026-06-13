@@ -405,6 +405,21 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  'cipher-auction': {
+    id: 'cipher-auction',
+    category: 'strategy',
+    name: 'Cipher Auction',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A realtime sealed-bid battle. Split signal chips across encrypted vaults, outread every rival, and land the highest uncontested bids.',
+    moveMode: 'cipher-auction',
+    winCondition: 'cipher-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
 };
 
 function getGameRules(gameType) {
@@ -1028,7 +1043,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'air-hockey-score' ||
-    rules.winCondition === 'race-finish'
+    rules.winCondition === 'race-finish' ||
+    rules.winCondition === 'cipher-score'
   ) {
     return null;
   }
@@ -1189,6 +1205,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
+    rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -1286,6 +1303,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
+    rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'
   ) {

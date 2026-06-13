@@ -334,6 +334,7 @@ export function GameBoard({
     game.moveMode === 'solo-dino' ||
     game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'racing' ||
+    game.moveMode === 'cipher-auction' ||
     game.moveMode === 'ludo'
   ) {
     return null;

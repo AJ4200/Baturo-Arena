@@ -12,7 +12,8 @@ export type GameCategory =
   | 'sports'
   | 'rhythm'
   | 'cards'
-  | 'racing';
+  | 'racing'
+  | 'strategy';
 
 export type GameType =
   | 'tic-tac-two'
@@ -41,7 +42,8 @@ export type GameType =
   | 'echo-bloom'
   | 'pulse-forge'
   | 'blackjack'
-  | 'turbo-rush';
+  | 'turbo-rush'
+  | 'cipher-auction';
 
 export type GameDefinition = {
   id: GameType;
@@ -80,7 +82,8 @@ export type GameDefinition = {
     | 'solo-pulse-forge'
     | 'solo-blackjack'
     | 'air-hockey'
-    | 'racing';
+    | 'racing'
+    | 'cipher-auction';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -107,6 +110,7 @@ export type GameDefinition = {
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
+    | 'cipher-score'
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

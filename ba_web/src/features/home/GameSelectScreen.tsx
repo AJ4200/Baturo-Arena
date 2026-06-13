@@ -57,11 +57,27 @@ export function GameSelectScreen({
   const [selectedCategory, setSelectedCategory] = useState<GameCategoryFilter>('all');
   const [layoutMode, setLayoutMode] = useState<ChooseGameLayout>('carousel');
   const [layoutPage, setLayoutPage] = useState(0);
+  const [categoryScrollState, setCategoryScrollState] = useState({
+    canScrollBack: false,
+    canScrollForward: false,
+  });
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const categoryTrackRef = useRef<HTMLDivElement | null>(null);
   const normalizedSearchQuery = searchQuery.trim().toLowerCase();
   const availableCategories = useMemo(
     () => Array.from(new Set(games.map((game) => game.category))),
     [games]
+  );
+  const categoryOptions = useMemo(
+    () => [
+      { id: 'all' as const, label: 'All', count: games.length },
+      ...availableCategories.map((category) => ({
+        id: category,
+        label: formatGameCategory(category),
+        count: games.filter((game) => game.category === category).length,
+      })),
+    ],
+    [availableCategories, games]
   );
   const filteredGames = useMemo(
     () =>
@@ -121,6 +137,32 @@ export function GameSelectScreen({
     }
   }, [layoutPage, safeLayoutPage]);
 
+  const refreshCategoryScrollState = useCallback(() => {
+    const track = categoryTrackRef.current;
+    if (!track) return;
+
+    const maxScrollLeft = Math.max(0, track.scrollWidth - track.clientWidth);
+    setCategoryScrollState({
+      canScrollBack: track.scrollLeft > 2,
+      canScrollForward: track.scrollLeft < maxScrollLeft - 2,
+    });
+  }, []);
+
+  useEffect(() => {
+    const track = categoryTrackRef.current;
+    if (!track) return;
+
+    const frameId = window.requestAnimationFrame(refreshCategoryScrollState);
+    track.addEventListener('scroll', refreshCategoryScrollState, { passive: true });
+    window.addEventListener('resize', refreshCategoryScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      track.removeEventListener('scroll', refreshCategoryScrollState);
+      window.removeEventListener('resize', refreshCategoryScrollState);
+    };
+  }, [categoryOptions.length, refreshCategoryScrollState]);
+
   useEffect(() => {
     if (layoutMode === 'carousel' || selectedIndex < 0) {
       return;
@@ -171,6 +213,25 @@ export function GameSelectScreen({
       selectLayoutPage(nextPage);
     },
     [filteredGames.length, layoutMode, moveSelection, safeLayoutPage, selectLayoutPage, totalPages]
+  );
+
+  const scrollCategories = useCallback((direction: -1 | 1) => {
+    const track = categoryTrackRef.current;
+    if (!track) return;
+
+    track.scrollBy({
+      left: direction * Math.max(170, track.clientWidth * 0.68),
+      behavior: 'smooth',
+    });
+  }, []);
+
+  const selectCategory = useCallback(
+    (category: GameCategoryFilter, button: HTMLButtonElement) => {
+      setSelectedCategory(category);
+      button.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      window.requestAnimationFrame(refreshCategoryScrollState);
+    },
+    [refreshCategoryScrollState]
   );
 
   const changeLayoutMode = useCallback(
@@ -386,29 +447,52 @@ export function GameSelectScreen({
             </button>
           </div>
         </div>
-        <div className="choose-game-category-bar" role="group" aria-label="Filter games by category">
+        <div className="choose-game-category-carousel">
           <button
-            className={classnames('choose-game-category-chip', selectedCategory === 'all' && 'active')}
+            className="choose-game-category-nav"
             type="button"
-            onClick={() => setSelectedCategory('all')}
-            aria-pressed={selectedCategory === 'all'}
+            onClick={() => scrollCategories(-1)}
+            disabled={!categoryScrollState.canScrollBack}
+            aria-label="Show previous game categories"
+            title="Previous categories"
           >
-            All <span>{games.length}</span>
+            <AiOutlineLeft />
           </button>
-          {availableCategories.map((category) => {
-            const categoryCount = games.filter((game) => game.category === category).length;
-            return (
+
+          <div className="choose-game-category-mask">
+            <div
+              ref={categoryTrackRef}
+              className="choose-game-category-bar"
+              role="group"
+              aria-label="Filter games by category"
+            >
+              {categoryOptions.map((category) => (
               <button
-                key={category}
-                className={classnames('choose-game-category-chip', selectedCategory === category && 'active')}
+                key={category.id}
+                className={classnames(
+                  'choose-game-category-chip',
+                  selectedCategory === category.id && 'active'
+                )}
                 type="button"
-                onClick={() => setSelectedCategory(category)}
-                aria-pressed={selectedCategory === category}
+                onClick={(event) => selectCategory(category.id, event.currentTarget)}
+                aria-pressed={selectedCategory === category.id}
               >
-                {formatGameCategory(category)} <span>{categoryCount}</span>
+                {category.label} <span>{category.count}</span>
               </button>
-            );
-          })}
+              ))}
+            </div>
+          </div>
+
+          <button
+            className="choose-game-category-nav"
+            type="button"
+            onClick={() => scrollCategories(1)}
+            disabled={!categoryScrollState.canScrollForward}
+            aria-label="Show more game categories"
+            title="More categories"
+          >
+            <AiOutlineRight />
+          </button>
         </div>
         <p className="choose-game-hint">
           <AiOutlineArrowRight /> Tip: use arrow keys to browse, switch layouts, then Enter to launch.

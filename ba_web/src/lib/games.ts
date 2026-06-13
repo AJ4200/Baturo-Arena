@@ -9,6 +9,7 @@ export const GAME_CATEGORY_LABELS: Record<GameCategory, string> = {
   rhythm: 'Rhythm',
   cards: 'Cards',
   racing: 'Racing',
+  strategy: 'Strategy',
 };
 
 export const formatGameCategory = (category: GameCategory): string =>
@@ -420,6 +421,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     winCondition: 'race-finish',
     supportsOnline: true,
     supportsCpu: true,
+  },
+  {
+    id: 'cipher-auction',
+    category: 'strategy',
+    name: 'Cipher Auction',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A realtime sealed-bid battle. Split signal chips across encrypted vaults, outread every rival, and land the highest uncontested bids.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'cipher-auction',
+    winCondition: 'cipher-score',
+    supportsOnline: true,
+    supportsCpu: false,
   },
 ];
 
@@ -979,6 +995,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
+    game.moveMode === 'cipher-auction' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1036,6 +1053,7 @@ export const applyMove = (
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
+    game.moveMode === 'cipher-auction' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1231,7 +1249,8 @@ export const evaluateBoard = (
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'air-hockey-score' ||
-    game.winCondition === 'race-finish'
+    game.winCondition === 'race-finish' ||
+    game.winCondition === 'cipher-score'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;

@@ -23,6 +23,7 @@ import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeG
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
+import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctionArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -237,6 +238,21 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onLeave={onLeave}
         offlineParticipantNames={offlineParticipantNames}
         offlineParticipantCount={offlineParticipantCount}
+      />
+    );
+  }
+
+  if (gameType === 'cipher-auction') {
+    return (
+      <CipherAuctionArenaGame
+        player={player}
+        mode={mode}
+        roomCode={roomCode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
       />
     );
   }

@@ -108,7 +108,8 @@ export function LobbyScreen({
   );
   const supportsOnline = selectedDefinition?.supportsOnline ?? true;
   const supportsCpu = selectedDefinition?.supportsCpu ?? true;
-  const supportsOffline = (selectedDefinition?.maxPlayers ?? 1) > 1;
+  const supportsOffline =
+    (selectedDefinition?.maxPlayers ?? 1) > 1 && selectedDefinition?.moveMode !== 'cipher-auction';
   const selectedGameName = formatGameName(selectedGame, games);
   const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
   const selectedGameCategory = selectedDefinition ? formatGameCategory(selectedDefinition.category) : 'Arcade';
