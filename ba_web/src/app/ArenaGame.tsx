@@ -30,6 +30,7 @@ import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGam
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctionArenaGame';
+import { CubeClashArenaGame } from '@/features/game/multiplayer/CubeClashArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -233,6 +234,24 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'turbo-rush') {
     return (
       <RacingArenaGame
+        player={player}
+        mode={mode}
+        roomCode={roomCode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+        offlineParticipantNames={offlineParticipantNames}
+        offlineParticipantCount={offlineParticipantCount}
+      />
+    );
+  }
+
+  if (gameType === 'cube-clash-3d') {
+    return (
+      <CubeClashArenaGame
         player={player}
         mode={mode}
         roomCode={roomCode}

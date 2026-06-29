@@ -6894,6 +6894,8 @@ h1 span:last-child {
 .motion-off .crate-shift-board-wrap,
 .motion-off .mole-bash-shell,
 .motion-off .mole-bash-board-wrap,
+.motion-off .cube-clash-shell,
+.motion-off .cube-clash-stage-wrap,
 .motion-off .air-hockey-shell,
 .motion-off .air-hockey-stage-wrap,
 .motion-off .starfall-shell,
@@ -9134,6 +9136,17 @@ h1 span:last-child {
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 31px),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 31px),
     linear-gradient(145deg, #284356, #5a7d4f 52%, #9a6336);
+}
+
+.choose-game-thumb-cube-clash-3d {
+  background:
+    linear-gradient(30deg, transparent 0 42%, rgba(255, 255, 255, 0.82) 43% 47%, transparent 48%) 34% 48% / 38px 38px no-repeat,
+    linear-gradient(150deg, rgba(34, 211, 238, 0.92) 0 21%, transparent 22%),
+    linear-gradient(30deg, transparent 0 52%, rgba(251, 113, 133, 0.92) 53% 72%, transparent 73%),
+    radial-gradient(circle at 50% 54%, rgba(250, 204, 21, 0.95) 0 8px, transparent 9px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 28px),
+    linear-gradient(145deg, #111827, #334155 52%, #0f766e);
 }
 
 .choose-game-thumb-blackjack {
@@ -13197,6 +13210,184 @@ h1 span:last-child {
   opacity: 0.84;
 }
 
+.cube-clash-shell {
+  width: min(94vw, 940px);
+  margin-top: 1rem;
+  border: 4px solid var(--match-outline, #000);
+  border-radius: 18px;
+  background: var(--match-surface, rgba(241, 246, 255, 0.92));
+  padding: 1rem;
+}
+
+.cube-clash-shell,
+.cube-clash-shell * {
+  text-shadow: none !important;
+  color: var(--match-text, #171717);
+}
+
+.cube-clash-hud {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.cube-clash-hud-card {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  border: 2px solid var(--match-outline, rgba(0, 0, 0, 0.33));
+  border-radius: 12px;
+  padding: 0.52rem 0.62rem;
+  background: var(--match-surface-soft, rgba(226, 237, 248, 0.88));
+}
+
+.cube-clash-hud-card-local {
+  background:
+    linear-gradient(135deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.94), var(--match-tint-medium, rgba(125, 173, 255, 0.34)));
+}
+
+.cube-clash-hud-card span,
+.cube-clash-hud-card i {
+  font-size: 0.75rem;
+  opacity: 0.78;
+}
+
+.cube-clash-hud-card span {
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.cube-clash-hud-card strong {
+  overflow: hidden;
+  font-size: 1.04rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cube-clash-hud-card i {
+  font-style: normal;
+  font-weight: 700;
+}
+
+.cube-clash-stage-wrap {
+  position: relative;
+  width: min(100%, 860px);
+  height: clamp(320px, 56vw, 560px);
+  margin: 0 auto;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 16px;
+  padding: 0.72rem;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(var(--match-light-rgb, 255, 255, 255), 0.28), transparent 32%),
+    linear-gradient(
+      180deg,
+      rgba(var(--match-dark-rgb, 18, 18, 18), 0.88),
+      rgba(var(--match-deep-rgb, 36, 36, 36), 0.94)
+    );
+}
+
+.cube-clash-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  border: 2px solid rgba(var(--match-light-rgb, 255, 255, 255), 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(var(--match-dark-rgb, 15, 23, 42), 0.92);
+}
+
+.cube-clash-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cube-clash-overlay {
+  position: absolute;
+  inset: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 18, 18, 18), 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.cube-clash-message {
+  width: min(88vw, 430px);
+  padding: 1.45rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  box-shadow: 0 18px 36px rgba(var(--match-dark-rgb, 0, 0, 0), 0.2);
+}
+
+.cube-clash-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(var(--match-base-rgb, 91, 242, 184), 0.2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cube-clash-status-pill-finished {
+  background: rgba(var(--match-base-rgb, 250, 204, 21), 0.24);
+}
+
+.cube-clash-message h2 {
+  margin: 0.9rem 0 0.65rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+}
+
+.cube-clash-message p {
+  margin: 0.45rem 0 0.95rem;
+  opacity: 0.84;
+}
+
+.cube-clash-message-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cube-clash-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.28);
+  border-radius: 10px;
+  padding: 0.62rem 0.9rem;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.94),
+      var(--match-tint-medium, rgba(125, 173, 255, 0.34))
+    );
+  font-weight: 700;
+}
+
+.cube-clash-action-btn-ghost {
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.82);
+}
+
+.cube-clash-inline-hint {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.84;
+}
+
 .solo-2048-board,
 .solo-sudoku-board,
 .solo-mines-board,
@@ -13212,6 +13403,7 @@ h1 span:last-child {
 .voxel-yard-stage-wrap,
 .crate-shift-board-wrap,
 .mole-bash-board-wrap,
+.cube-clash-stage-wrap,
 .air-hockey-stage-wrap,
 .starfall-stage-wrap,
 .tetris-stage-shell,
@@ -13341,6 +13533,7 @@ h1 span:last-child {
   .voxel-yard-hud,
   .crate-shift-hud,
   .mole-bash-hud,
+  .cube-clash-hud,
   .air-hockey-scoreboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -13358,6 +13551,7 @@ h1 span:last-child {
   .voxel-yard-shell,
   .crate-shift-shell,
   .mole-bash-shell,
+  .cube-clash-shell,
   .air-hockey-shell,
   .starfall-shell {
     width: min(100%, 96vw);
@@ -13394,6 +13588,12 @@ h1 span:last-child {
 
   .mole-bash-hole {
     border-radius: 14px;
+  }
+
+  .cube-clash-stage-wrap {
+    width: 100%;
+    height: min(72vw, 430px);
+    padding: 0.55rem;
   }
 
   .crate-shift-board {
@@ -14070,6 +14270,28 @@ h1 span:last-child {
 .choose-game-carousel-card .choose-game-thumb-mole-bash > span,
 .choose-game-option-card .choose-game-thumb-mole-bash > span {
   background: linear-gradient(160deg, rgba(35, 61, 82, 0.96), rgba(107, 73, 39, 0.92));
+}
+
+.choose-game-carousel-card .choose-game-thumb-cube-clash-3d,
+.choose-game-option-card .choose-game-thumb-cube-clash-3d {
+  border: 3px solid #000;
+  background:
+    linear-gradient(30deg, transparent 0 42%, rgba(255, 255, 255, 0.92) 43% 47%, transparent 48%) 32% 48% / 52px 52px no-repeat,
+    linear-gradient(150deg, rgba(34, 211, 238, 0.96) 0 23%, transparent 24%),
+    linear-gradient(30deg, transparent 0 52%, rgba(251, 113, 133, 0.96) 53% 74%, transparent 75%),
+    radial-gradient(circle at 50% 54%, rgba(250, 204, 21, 0.98) 0 10px, transparent 11px),
+    radial-gradient(circle at 72% 20%, rgba(255, 255, 255, 0.48), transparent 18%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 30px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.14) 0 2px, transparent 2px 30px),
+    linear-gradient(145deg, #0f172a, #334155 52%, #0f766e);
+  box-shadow:
+    inset 0 0 28px rgba(34, 211, 238, 0.12),
+    0 0 18px rgba(15, 118, 110, 0.22);
+}
+
+.choose-game-carousel-card .choose-game-thumb-cube-clash-3d > span,
+.choose-game-option-card .choose-game-thumb-cube-clash-3d > span {
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.96), rgba(15, 118, 110, 0.92));
 }
 
 .choose-game-carousel-card .choose-game-thumb-blackjack,

@@ -47,6 +47,7 @@ export type GameType =
   | 'voxel-yard'
   | 'crate-shift'
   | 'mole-bash'
+  | 'cube-clash-3d'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -92,6 +93,7 @@ export type GameDefinition = {
     | 'solo-voxel-yard'
     | 'solo-crate-shift'
     | 'solo-mole-bash'
+    | 'cube-clash-3d'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -125,6 +127,7 @@ export type GameDefinition = {
     | 'voxel-yard-build'
     | 'crate-shift-solve'
     | 'mole-bash-score'
+    | 'cube-clash-score'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'

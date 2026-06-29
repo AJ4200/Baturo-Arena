@@ -315,6 +315,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'cube-clash-3d': {
+    id: 'cube-clash-3d',
+    category: 'action',
+    name: 'Cube Clash 3D',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A 3D arena duel where two cube pilots dash for power cores, bump rivals off-line, and race to the score target.',
+    moveMode: 'cube-clash-3d',
+    winCondition: 'cube-clash-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
   'air-hockey': {
     id: 'air-hockey',
     category: 'sports',
@@ -1138,6 +1153,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'prism-relay-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
+    rules.winCondition === 'cube-clash-score' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
     rules.winCondition === 'cipher-score'
@@ -1305,6 +1321,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
+    rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
@@ -1409,6 +1426,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
+    rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||

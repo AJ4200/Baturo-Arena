@@ -333,6 +333,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'cube-clash-3d',
+    category: 'action',
+    name: 'Cube Clash 3D',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A 3D arena duel where two cube pilots dash for power cores, bump rivals off-line, and race to the score target.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'cube-clash-3d',
+    winCondition: 'cube-clash-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
+  {
     id: 'air-hockey',
     category: 'sports',
     name: 'Air Hockey',
@@ -1089,6 +1104,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
@@ -1153,6 +1169,7 @@ export const applyMove = (
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
@@ -1356,6 +1373,7 @@ export const evaluateBoard = (
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'prism-relay-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
+    game.winCondition === 'cube-clash-score' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||
     game.winCondition === 'cipher-score'
