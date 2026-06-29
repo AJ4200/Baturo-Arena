@@ -196,7 +196,7 @@ export function SoloPinballRushGame({
   const rightHeldRef = useRef(false);
   const plungerHeldRef = useRef(false);
   const lastTargetHitRef = useRef<Record<string, number>>({});
-  const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
+  const lastReportedOutcomeRef = useRef<'won' | 'lost' | null>(null);
   const gameLabel = formatGameName('pinball-rush', gameDefinitions);
 
   const statusLabel = useMemo(() => {

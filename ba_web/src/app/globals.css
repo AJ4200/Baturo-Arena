@@ -7227,13 +7227,13 @@ h1 span:last-child {
     rgba(var(--match-soft-light-rgb, 242, 242, 242), 0.18)
   );
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.32);
-  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
-    rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
-    skewY(10deg);
   animation: none;
 }
 
 .board-stage-card-wobble {
+  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
+    rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
+    skewY(10deg);
   animation: hoverAnimation 7s infinite;
 }
 
@@ -7311,9 +7311,6 @@ h1 span:last-child {
 .board {
   margin-top: 20px;
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.48);
-  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
-    rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
-    skewY(10deg);
   animation: none;
 }
 
@@ -10389,9 +10386,6 @@ h1 span:last-child {
 .solo-flappy-shell,
 .voxel-yard-shell {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.32);
-  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
-    rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
-    skewY(10deg);
   animation: none;
 }
 
@@ -13401,6 +13395,300 @@ h1 span:last-child {
   opacity: 0.84;
 }
 
+.pinball-rush-shell {
+  width: min(94vw, 760px);
+  margin-top: 1rem;
+  border: 4px solid var(--match-outline, #000);
+  border-radius: 18px;
+  background: var(--match-surface, rgba(241, 246, 255, 0.92));
+  padding: 1rem;
+}
+
+.pinball-rush-shell,
+.pinball-rush-shell * {
+  text-shadow: none !important;
+  color: var(--match-text, #171717);
+}
+
+.pinball-rush-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.pinball-rush-hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 2px solid var(--match-outline, rgba(0, 0, 0, 0.33));
+  border-radius: 12px;
+  padding: 0.45rem 0.55rem;
+  background: var(--match-surface-soft, rgba(226, 237, 248, 0.88));
+}
+
+.pinball-rush-hud-item span {
+  font-size: 0.76rem;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pinball-rush-hud-item strong {
+  font-size: 1.08rem;
+}
+
+.pinball-rush-table-wrap {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 18px;
+  padding: 0.7rem;
+  background:
+    radial-gradient(circle at 50% 8%, var(--match-tint-strong, rgba(250, 204, 21, 0.22)), transparent 34%),
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.9),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.72)
+    );
+}
+
+.pinball-rush-table {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 38px 38px 16px 16px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(var(--match-light-rgb, 255, 255, 255), 0.22), transparent 22%),
+    repeating-linear-gradient(90deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.08) 0 2px, transparent 2px 42px),
+    linear-gradient(180deg, rgba(var(--match-dark-rgb, 18, 18, 18), 0.9), rgba(var(--match-deep-rgb, 36, 36, 36), 0.96));
+}
+
+.pinball-rush-rail,
+.pinball-rush-launch-lane,
+.pinball-rush-plunger,
+.pinball-rush-target,
+.pinball-rush-bumper,
+.pinball-rush-ball,
+.pinball-rush-flipper {
+  position: absolute;
+  display: block;
+}
+
+.pinball-rush-rail {
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.76);
+  box-shadow: 0 0 14px rgba(var(--match-light-rgb, 255, 255, 255), 0.18);
+}
+
+.pinball-rush-rail-left {
+  left: 8%;
+  top: 11%;
+  width: 3.2%;
+  height: 64%;
+  transform: rotate(-8deg);
+  transform-origin: top center;
+}
+
+.pinball-rush-rail-right {
+  right: 8%;
+  top: 11%;
+  width: 3.2%;
+  height: 64%;
+  transform: rotate(8deg);
+  transform-origin: top center;
+}
+
+.pinball-rush-rail-top {
+  left: 28%;
+  top: 7%;
+  width: 44%;
+  height: 2.3%;
+  border-radius: 999px;
+}
+
+.pinball-rush-launch-lane {
+  right: 10.2%;
+  top: 36%;
+  width: 9.5%;
+  height: 57%;
+  border: 2px solid rgba(var(--match-light-rgb, 255, 255, 255), 0.5);
+  border-radius: 999px;
+  background: rgba(var(--match-dark-rgb, 15, 23, 42), 0.38);
+}
+
+.pinball-rush-plunger {
+  right: 12.2%;
+  bottom: 6%;
+  width: 5.8%;
+  height: 4.5%;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.44);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.96), var(--match-tint-strong, rgba(250, 204, 21, 0.7)));
+  transition: transform 0.08s ease;
+}
+
+.pinball-rush-target {
+  aspect-ratio: 1 / 1;
+  border: 3px solid rgba(var(--match-light-rgb, 255, 255, 255), 0.78);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(var(--match-light-rgb, 255, 255, 255), 0.96), transparent 24%),
+    var(--match-tint-strong, rgba(34, 211, 238, 0.76));
+  box-shadow:
+    0 0 22px rgba(var(--match-base-rgb, 34, 211, 238), 0.28),
+    inset 0 -8px rgba(var(--match-dark-rgb, 24, 24, 24), 0.18);
+  transform: translate(-50%, -50%);
+}
+
+.pinball-rush-target-dim {
+  opacity: 0.42;
+  filter: saturate(0.52);
+}
+
+.pinball-rush-bumper {
+  width: 11.5%;
+  aspect-ratio: 1 / 1;
+  border: 3px solid rgba(var(--match-light-rgb, 255, 255, 255), 0.74);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 30%, rgba(var(--match-light-rgb, 255, 255, 255), 0.94), transparent 24%),
+    linear-gradient(135deg, #22d3ee, #fb7185);
+  box-shadow: 0 0 20px rgba(251, 113, 133, 0.28);
+}
+
+.pinball-rush-bumper-a {
+  left: 31%;
+  top: 31%;
+}
+
+.pinball-rush-bumper-b {
+  right: 31%;
+  top: 31%;
+}
+
+.pinball-rush-bumper-c {
+  left: 44%;
+  top: 45%;
+}
+
+.pinball-rush-ball {
+  width: 4.3%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.36);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(var(--match-light-rgb, 255, 255, 255), 0.96), transparent 25%),
+    linear-gradient(135deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.92), rgba(var(--match-base-rgb, 250, 204, 21), 0.86));
+  box-shadow: 0 6px 14px rgba(var(--match-dark-rgb, 0, 0, 0), 0.36);
+}
+
+.pinball-rush-flipper {
+  bottom: 12.4%;
+  width: 24%;
+  height: 2.7%;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.42);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.96), var(--match-tint-medium, rgba(125, 173, 255, 0.64)));
+  transition: transform 0.06s linear;
+}
+
+.pinball-rush-flipper-left {
+  left: 30%;
+  transform-origin: 12% 50%;
+}
+
+.pinball-rush-flipper-right {
+  right: 30%;
+  transform-origin: 88% 50%;
+}
+
+.pinball-rush-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--match-dark-rgb, 18, 18, 18), 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.pinball-rush-message {
+  width: min(88%, 380px);
+  padding: 1.35rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  box-shadow: 0 18px 36px rgba(var(--match-dark-rgb, 0, 0, 0), 0.2);
+}
+
+.pinball-rush-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(var(--match-base-rgb, 250, 204, 21), 0.24);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pinball-rush-message h2 {
+  margin: 0.9rem 0 0.65rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+}
+
+.pinball-rush-message p {
+  margin: 0.45rem 0 0.95rem;
+  opacity: 0.84;
+}
+
+.pinball-rush-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.pinball-rush-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.28);
+  border-radius: 10px;
+  padding: 0.62rem 0.9rem;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.94),
+      var(--match-tint-medium, rgba(125, 173, 255, 0.34))
+    );
+  font-weight: 700;
+}
+
+.pinball-rush-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.pinball-rush-message-inline {
+  min-height: 1.35rem;
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.84;
+}
+
 .solo-2048-board,
 .solo-sudoku-board,
 .solo-mines-board,
@@ -13411,21 +13699,12 @@ h1 span:last-child {
 .solo-space-stage-wrap,
 .solo-brick-stage-wrap,
 .solo-neon-pong-stage-wrap,
-.solo-launch-stage-wrap,
-.solo-flappy-stage-wrap,
-.voxel-yard-stage-wrap,
-.crate-shift-board-wrap,
-.mole-bash-board-wrap,
-.cube-clash-stage-wrap,
 .air-hockey-stage-wrap,
 .starfall-stage-wrap,
 .tetris-stage-shell,
 .racing-stage-wrap,
 .blackjack-table {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.38);
-  transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
-    rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
-    skewY(10deg);
   animation: none;
 }
 
@@ -13546,6 +13825,7 @@ h1 span:last-child {
   .voxel-yard-hud,
   .crate-shift-hud,
   .mole-bash-hud,
+  .pinball-rush-hud,
   .cube-clash-hud,
   .air-hockey-scoreboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -13564,6 +13844,7 @@ h1 span:last-child {
   .voxel-yard-shell,
   .crate-shift-shell,
   .mole-bash-shell,
+  .pinball-rush-shell,
   .cube-clash-shell,
   .air-hockey-shell,
   .starfall-shell {
@@ -13601,6 +13882,11 @@ h1 span:last-child {
 
   .mole-bash-hole {
     border-radius: 14px;
+  }
+
+  .pinball-rush-table-wrap {
+    width: min(100%, 430px);
+    padding: 0.5rem;
   }
 
   .cube-clash-stage-wrap {
@@ -14283,6 +14569,28 @@ h1 span:last-child {
 .choose-game-carousel-card .choose-game-thumb-mole-bash > span,
 .choose-game-option-card .choose-game-thumb-mole-bash > span {
   background: linear-gradient(160deg, rgba(35, 61, 82, 0.96), rgba(107, 73, 39, 0.92));
+}
+
+.choose-game-carousel-card .choose-game-thumb-pinball-rush,
+.choose-game-option-card .choose-game-thumb-pinball-rush {
+  border: 3px solid #000;
+  background:
+    radial-gradient(circle at 50% 22%, rgba(250, 204, 21, 0.98) 0 11px, transparent 12px),
+    radial-gradient(circle at 34% 44%, rgba(34, 211, 238, 0.96) 0 10px, transparent 11px),
+    radial-gradient(circle at 66% 44%, rgba(251, 113, 133, 0.96) 0 10px, transparent 11px),
+    linear-gradient(28deg, transparent 0 38%, rgba(255, 255, 255, 0.94) 39% 43%, transparent 44%) 28% 72% / 48px 24px no-repeat,
+    linear-gradient(152deg, transparent 0 38%, rgba(255, 255, 255, 0.94) 39% 43%, transparent 44%) 72% 72% / 48px 24px no-repeat,
+    linear-gradient(90deg, transparent 0 79%, rgba(15, 23, 42, 0.86) 80% 86%, transparent 87%),
+    radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.48), transparent 18%),
+    linear-gradient(145deg, #111827, #334155 52%, #7c2d12);
+  box-shadow:
+    inset 0 0 28px rgba(250, 204, 21, 0.12),
+    0 0 18px rgba(124, 45, 18, 0.22);
+}
+
+.choose-game-carousel-card .choose-game-thumb-pinball-rush > span,
+.choose-game-option-card .choose-game-thumb-pinball-rush > span {
+  background: linear-gradient(160deg, rgba(17, 24, 39, 0.96), rgba(124, 45, 18, 0.92));
 }
 
 .choose-game-carousel-card .choose-game-thumb-cube-clash-3d,
