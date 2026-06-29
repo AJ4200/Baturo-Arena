@@ -300,6 +300,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'mole-bash': {
+    id: 'mole-bash',
+    category: 'arcade',
+    name: 'Mole Bash',
+    rows: 3,
+    columns: 3,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Tap quick pop-up targets across a 3x3 hole board, avoid decoys, and clear the score goal before the timer expires.',
+    moveMode: 'solo-mole-bash',
+    winCondition: 'mole-bash-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'air-hockey': {
     id: 'air-hockey',
     category: 'sports',
@@ -1113,6 +1128,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'flappy-wing-score' ||
     rules.winCondition === 'voxel-yard-build' ||
     rules.winCondition === 'crate-shift-solve' ||
+    rules.winCondition === 'mole-bash-score' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
@@ -1279,6 +1295,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-crate-shift' ||
+    rules.moveMode === 'solo-mole-bash' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
@@ -1382,6 +1399,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-crate-shift' ||
+    rules.moveMode === 'solo-mole-bash' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||

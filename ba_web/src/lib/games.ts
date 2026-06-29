@@ -318,6 +318,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'mole-bash',
+    category: 'arcade',
+    name: 'Mole Bash',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Tap quick pop-up targets across a 3x3 hole board, avoid decoys, and clear the score goal before the timer expires.',
+    rows: 3,
+    columns: 3,
+    connect: 0,
+    moveMode: 'solo-mole-bash',
+    winCondition: 'mole-bash-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'air-hockey',
     category: 'sports',
     name: 'Air Hockey',
@@ -1063,6 +1078,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-crate-shift' ||
+    game.moveMode === 'solo-mole-bash' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1126,6 +1142,7 @@ export const applyMove = (
     game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-crate-shift' ||
+    game.moveMode === 'solo-mole-bash' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1329,6 +1346,7 @@ export const evaluateBoard = (
     game.winCondition === 'flappy-wing-score' ||
     game.winCondition === 'voxel-yard-build' ||
     game.winCondition === 'crate-shift-solve' ||
+    game.winCondition === 'mole-bash-score' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||

@@ -46,6 +46,7 @@ export type GameType =
   | 'flappy-wing'
   | 'voxel-yard'
   | 'crate-shift'
+  | 'mole-bash'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -90,6 +91,7 @@ export type GameDefinition = {
     | 'solo-flappy-wing'
     | 'solo-voxel-yard'
     | 'solo-crate-shift'
+    | 'solo-mole-bash'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -122,6 +124,7 @@ export type GameDefinition = {
     | 'flappy-wing-score'
     | 'voxel-yard-build'
     | 'crate-shift-solve'
+    | 'mole-bash-score'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -210,6 +213,33 @@ export type CrateShiftState = {
   moves: number;
   pushes: number;
   status: 'playing' | 'won';
+};
+
+export type MoleBashStatus = 'ready' | 'playing' | 'won' | 'lost';
+
+export type MoleBashHoleKind = 'mole' | 'decoy';
+
+export type MoleBashHole = {
+  index: number;
+  kind: MoleBashHoleKind;
+  expiresAt: number;
+  hit: boolean;
+};
+
+export type MoleBashState = {
+  status: MoleBashStatus;
+  score: number;
+  bestScore: number;
+  combo: number;
+  bestCombo: number;
+  strikes: number;
+  hits: number;
+  misses: number;
+  timeLeftMs: number;
+  holes: MoleBashHole[];
+  nextSpawnAt: number;
+  round: number;
+  event: string;
 };
 
 export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait' | 'tick';
