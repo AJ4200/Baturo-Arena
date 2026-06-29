@@ -26,6 +26,7 @@ import { SoloFlappyWingGame } from '@/features/game/singleplayer/SoloFlappyWingG
 import { SoloVoxelYardGame } from '@/features/game/singleplayer/SoloVoxelYardGame';
 import { SoloCrateShiftGame } from '@/features/game/singleplayer/SoloCrateShiftGame';
 import { SoloMoleBashGame } from '@/features/game/singleplayer/SoloMoleBashGame';
+import { SoloPinballRushGame } from '@/features/game/singleplayer/SoloPinballRushGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
@@ -469,6 +470,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'mole-bash') {
     return (
       <SoloMoleBashGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'pinball-rush') {
+    return (
+      <SoloPinballRushGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

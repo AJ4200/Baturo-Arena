@@ -315,6 +315,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'pinball-rush': {
+    id: 'pinball-rush',
+    category: 'arcade',
+    name: 'Pinball Rush',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A physics-driven pinball table with flippers, bumpers, target banks, multipliers, and three balls to chase the table score.',
+    moveMode: 'solo-pinball-rush',
+    winCondition: 'pinball-rush-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'cube-clash-3d': {
     id: 'cube-clash-3d',
     category: 'action',
@@ -1144,6 +1159,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'voxel-yard-build' ||
     rules.winCondition === 'crate-shift-solve' ||
     rules.winCondition === 'mole-bash-score' ||
+    rules.winCondition === 'pinball-rush-score' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
@@ -1312,6 +1328,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-crate-shift' ||
     rules.moveMode === 'solo-mole-bash' ||
+    rules.moveMode === 'solo-pinball-rush' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
@@ -1417,6 +1434,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-crate-shift' ||
     rules.moveMode === 'solo-mole-bash' ||
+    rules.moveMode === 'solo-pinball-rush' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||

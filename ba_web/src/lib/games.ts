@@ -333,6 +333,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'pinball-rush',
+    category: 'arcade',
+    name: 'Pinball Rush',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A physics-driven pinball table with flippers, bumpers, target banks, multipliers, and three balls to chase the table score.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-pinball-rush',
+    winCondition: 'pinball-rush-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'cube-clash-3d',
     category: 'action',
     name: 'Cube Clash 3D',
@@ -1094,6 +1109,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-crate-shift' ||
     game.moveMode === 'solo-mole-bash' ||
+    game.moveMode === 'solo-pinball-rush' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1159,6 +1175,7 @@ export const applyMove = (
     game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-crate-shift' ||
     game.moveMode === 'solo-mole-bash' ||
+    game.moveMode === 'solo-pinball-rush' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1364,6 +1381,7 @@ export const evaluateBoard = (
     game.winCondition === 'voxel-yard-build' ||
     game.winCondition === 'crate-shift-solve' ||
     game.winCondition === 'mole-bash-score' ||
+    game.winCondition === 'pinball-rush-score' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||

@@ -48,6 +48,7 @@ export type GameType =
   | 'crate-shift'
   | 'mole-bash'
   | 'cube-clash-3d'
+  | 'pinball-rush'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -94,6 +95,7 @@ export type GameDefinition = {
     | 'solo-crate-shift'
     | 'solo-mole-bash'
     | 'cube-clash-3d'
+    | 'solo-pinball-rush'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -128,6 +130,7 @@ export type GameDefinition = {
     | 'crate-shift-solve'
     | 'mole-bash-score'
     | 'cube-clash-score'
+    | 'pinball-rush-score'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -242,6 +245,34 @@ export type MoleBashState = {
   holes: MoleBashHole[];
   nextSpawnAt: number;
   round: number;
+  event: string;
+};
+
+export type PinballRushStatus = 'ready' | 'playing' | 'won' | 'lost';
+
+export type PinballRushBallState = {
+  x: number;
+  y: number;
+  angle: number;
+};
+
+export type PinballRushTargetState = {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  active: boolean;
+};
+
+export type PinballRushState = {
+  status: PinballRushStatus;
+  ball: PinballRushBallState;
+  score: number;
+  bestScore: number;
+  lives: number;
+  multiplier: number;
+  targetsLit: number;
+  timeMs: number;
   event: string;
 };
 

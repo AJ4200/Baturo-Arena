@@ -347,6 +347,7 @@ export const getCpuMove = (
     game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-crate-shift' ||
     game.moveMode === 'solo-mole-bash' ||
+    game.moveMode === 'solo-pinball-rush' ||
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||

@@ -6894,6 +6894,8 @@ h1 span:last-child {
 .motion-off .crate-shift-board-wrap,
 .motion-off .mole-bash-shell,
 .motion-off .mole-bash-board-wrap,
+.motion-off .pinball-rush-shell,
+.motion-off .pinball-rush-table-wrap,
 .motion-off .cube-clash-shell,
 .motion-off .cube-clash-stage-wrap,
 .motion-off .air-hockey-shell,
@@ -9136,6 +9138,17 @@ h1 span:last-child {
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 2px, transparent 2px 31px),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 2px, transparent 2px 31px),
     linear-gradient(145deg, #284356, #5a7d4f 52%, #9a6336);
+}
+
+.choose-game-thumb-pinball-rush {
+  background:
+    radial-gradient(circle at 50% 22%, rgba(250, 204, 21, 0.96) 0 9px, transparent 10px),
+    radial-gradient(circle at 36% 44%, rgba(34, 211, 238, 0.92) 0 8px, transparent 9px),
+    radial-gradient(circle at 64% 44%, rgba(251, 113, 133, 0.92) 0 8px, transparent 9px),
+    linear-gradient(28deg, transparent 0 38%, rgba(255, 255, 255, 0.88) 39% 43%, transparent 44%) 28% 72% / 40px 22px no-repeat,
+    linear-gradient(152deg, transparent 0 38%, rgba(255, 255, 255, 0.88) 39% 43%, transparent 44%) 72% 72% / 40px 22px no-repeat,
+    linear-gradient(90deg, transparent 0 79%, rgba(15, 23, 42, 0.82) 80% 86%, transparent 87%),
+    linear-gradient(145deg, #172033, #334155 52%, #7c2d12);
 }
 
 .choose-game-thumb-cube-clash-3d {
