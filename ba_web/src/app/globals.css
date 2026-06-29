@@ -6884,6 +6884,10 @@ h1 span:last-child {
 .motion-off .solo-brick-stage-wrap,
 .motion-off .solo-neon-pong-shell,
 .motion-off .solo-neon-pong-stage-wrap,
+.motion-off .solo-launch-shell,
+.motion-off .solo-launch-stage-wrap,
+.motion-off .solo-flappy-shell,
+.motion-off .solo-flappy-stage-wrap,
 .motion-off .air-hockey-shell,
 .motion-off .air-hockey-stage-wrap,
 .motion-off .starfall-shell,
@@ -9080,6 +9084,23 @@ h1 span:last-child {
     linear-gradient(145deg, #111827, #0f766e 54%, #7c2d12);
 }
 
+.choose-game-thumb-sling-shot {
+  background:
+    radial-gradient(circle at 22% 72%, rgba(255, 255, 255, 0.96) 0 9px, transparent 10px),
+    linear-gradient(128deg, transparent 0 42%, rgba(255, 255, 255, 0.8) 43% 46%, transparent 47%) 26% 56% / 40% 28% no-repeat,
+    linear-gradient(90deg, transparent 0 62%, rgba(255, 221, 112, 0.82) 63% 67%, transparent 68% 77%, rgba(255, 221, 112, 0.82) 78% 82%, transparent 83%),
+    linear-gradient(155deg, #10203f, #0f766e 52%, #f59e0b);
+}
+
+.choose-game-thumb-flappy-wing {
+  background:
+    radial-gradient(circle at 28% 50%, rgba(255, 255, 255, 0.96) 0 12px, transparent 13px),
+    linear-gradient(90deg, transparent 0 64%, rgba(83, 189, 130, 0.86) 65% 73%, transparent 74%),
+    linear-gradient(90deg, transparent 0 80%, rgba(83, 189, 130, 0.86) 81% 89%, transparent 90%),
+    radial-gradient(circle at 74% 22%, rgba(255, 255, 255, 0.55), transparent 19%),
+    linear-gradient(160deg, #7dd3fc, #bae6fd 48%, #65a30d);
+}
+
 .choose-game-thumb-blackjack {
   background:
     linear-gradient(106deg, transparent 0 23%, rgba(255, 255, 255, 0.96) 24% 42%, transparent 43%),
@@ -10302,7 +10323,9 @@ h1 span:last-child {
 .solo-snake-shell,
 .maze-flux-shell,
 .solo-space-shell,
-.solo-neon-pong-shell {
+.solo-neon-pong-shell,
+.solo-launch-shell,
+.solo-flappy-shell {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.32);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -12148,6 +12171,332 @@ h1 span:last-child {
   font-size: 0.95rem;
 }
 
+.solo-launch-shell,
+.solo-flappy-shell {
+  width: min(94vw, 1040px);
+  margin-top: 1rem;
+  border: 4px solid var(--match-outline, #000);
+  border-radius: 18px;
+  background: var(--match-surface, rgba(241, 246, 255, 0.92));
+  padding: 1rem;
+}
+
+.solo-launch-shell,
+.solo-launch-shell *,
+.solo-flappy-shell,
+.solo-flappy-shell * {
+  text-shadow: none !important;
+  color: var(--match-text, #171717);
+}
+
+.solo-launch-hud,
+.solo-flappy-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.solo-launch-hud-item,
+.solo-flappy-hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 2px solid var(--match-outline, rgba(0, 0, 0, 0.33));
+  border-radius: 12px;
+  padding: 0.45rem 0.55rem;
+  background: var(--match-surface-soft, rgba(226, 237, 248, 0.88));
+}
+
+.solo-launch-hud-item span,
+.solo-flappy-hud-item span {
+  font-size: 0.76rem;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.solo-launch-hud-item strong,
+.solo-flappy-hud-item strong {
+  font-size: 1.08rem;
+}
+
+.solo-launch-stage-wrap,
+.solo-flappy-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  aspect-ratio: 11 / 6.35;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 16px;
+  padding: 0.85rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.88),
+      rgba(var(--match-soft-light-rgb, 226, 236, 248), 0.72)
+    );
+}
+
+.solo-launch-stage,
+.solo-flappy-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, var(--match-tint-strong, rgba(125, 211, 252, 0.18)), transparent 34%),
+    linear-gradient(180deg, rgba(var(--match-light-rgb, 245, 252, 255), 0.98), rgba(var(--match-soft-light-rgb, 208, 230, 244), 0.92) 58%, rgba(var(--match-base-rgb, 104, 168, 122), 0.5));
+}
+
+.solo-launch-skyline,
+.solo-launch-ground,
+.solo-launch-sling,
+.solo-launch-aim-line,
+.solo-launch-trajectory-dot,
+.solo-launch-target,
+.solo-launch-projectile,
+.solo-flappy-cloud,
+.solo-flappy-horizon,
+.solo-flappy-pipe,
+.solo-flappy-wing {
+  position: absolute;
+}
+
+.solo-launch-skyline {
+  inset: auto 0 16% 0;
+  height: 18%;
+  background:
+    linear-gradient(90deg, transparent 0 10%, rgba(var(--match-dark-rgb, 24, 24, 24), 0.16) 10% 16%, transparent 16% 26%, rgba(var(--match-dark-rgb, 24, 24, 24), 0.16) 26% 34%, transparent 34%),
+    linear-gradient(180deg, transparent, rgba(var(--match-dark-rgb, 24, 24, 24), 0.12));
+}
+
+.solo-launch-ground {
+  inset: auto 0 0 0;
+  height: 19%;
+  border-top: 3px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.38);
+  background:
+    repeating-linear-gradient(90deg, rgba(var(--match-dark-rgb, 24, 24, 24), 0.08) 0 22px, transparent 22px 44px),
+    rgba(var(--match-base-rgb, 68, 141, 94), 0.4);
+}
+
+.solo-launch-sling {
+  width: 4%;
+  height: 16%;
+  border-left: 6px solid rgba(var(--match-dark-rgb, 36, 24, 18), 0.88);
+  border-right: 6px solid rgba(var(--match-dark-rgb, 36, 24, 18), 0.88);
+  border-bottom: 10px solid rgba(var(--match-dark-rgb, 36, 24, 18), 0.88);
+  border-radius: 0 0 999px 999px;
+}
+
+.solo-launch-aim-line {
+  height: 3px;
+  transform-origin: left center;
+  border-radius: 999px;
+  background: rgba(var(--match-dark-rgb, 24, 24, 24), 0.62);
+}
+
+.solo-launch-trajectory-dot {
+  width: 0.75%;
+  aspect-ratio: 1 / 1;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: rgba(var(--match-dark-rgb, 24, 24, 24), 0.42);
+}
+
+.solo-launch-target {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.48);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.82), rgba(var(--match-base-rgb, 245, 191, 40), 0.58));
+  box-shadow: inset 0 1px rgba(var(--match-light-rgb, 255, 255, 255), 0.55);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.solo-launch-target-hp-2 {
+  background:
+    linear-gradient(135deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.9), rgba(var(--match-base-rgb, 236, 72, 153), 0.44));
+}
+
+.solo-launch-projectile {
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(var(--match-light-rgb, 255, 255, 255), 0.94), transparent 34%),
+    rgba(var(--match-dark-rgb, 24, 24, 24), 0.88);
+  box-shadow: 0 0 18px var(--match-tint-strong, rgba(255, 255, 255, 0.36));
+}
+
+.solo-flappy-cloud {
+  width: 16%;
+  height: 8%;
+  border-radius: 999px;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.62);
+}
+
+.solo-flappy-cloud-a {
+  left: 10%;
+  top: 13%;
+}
+
+.solo-flappy-cloud-b {
+  left: 48%;
+  top: 20%;
+  width: 20%;
+}
+
+.solo-flappy-cloud-c {
+  right: 9%;
+  top: 10%;
+}
+
+.solo-flappy-horizon {
+  inset: auto 0 0 0;
+  height: 16%;
+  border-top: 3px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.28);
+  background: rgba(var(--match-base-rgb, 68, 141, 94), 0.38);
+}
+
+.solo-flappy-pipe {
+  border: 3px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.5);
+  background:
+    linear-gradient(90deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.32), transparent 34%),
+    rgba(var(--match-base-rgb, 56, 189, 248), 0.52);
+}
+
+.solo-flappy-pipe-top {
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+}
+
+.solo-flappy-pipe-bottom {
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+.solo-flappy-wing {
+  border: 3px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.58);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 68% 34%, rgba(var(--match-dark-rgb, 24, 24, 24), 0.9) 0 6%, transparent 7%),
+    linear-gradient(135deg, rgba(var(--match-light-rgb, 255, 255, 255), 0.96), var(--match-tint-strong, rgba(251, 191, 36, 0.7)));
+  box-shadow: 0 9px 18px rgba(var(--match-dark-rgb, 24, 24, 24), 0.24);
+}
+
+.solo-flappy-wing span {
+  position: absolute;
+  left: -18%;
+  top: 44%;
+  width: 48%;
+  height: 32%;
+  border-radius: 999px;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.82);
+}
+
+.solo-launch-overlay,
+.solo-flappy-overlay {
+  position: absolute;
+  inset: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 18, 18, 18), 0.36);
+  backdrop-filter: blur(6px);
+}
+
+.solo-launch-message,
+.solo-flappy-message {
+  width: min(88vw, 420px);
+  padding: 1.5rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  box-shadow: 0 18px 36px rgba(var(--match-dark-rgb, 0, 0, 0), 0.2);
+}
+
+.solo-launch-status-pill,
+.solo-flappy-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.solo-launch-status-pill-ready,
+.solo-flappy-status-pill-ready {
+  background: var(--match-tint-soft, rgba(125, 211, 252, 0.18));
+}
+
+.solo-launch-status-pill-win,
+.solo-flappy-status-pill-win {
+  background: rgba(var(--match-base-rgb, 91, 242, 184), 0.18);
+}
+
+.solo-launch-status-pill-loss,
+.solo-flappy-status-pill-loss {
+  background: rgba(255, 111, 145, 0.16);
+}
+
+.solo-launch-message h2,
+.solo-flappy-message h2 {
+  margin: 0.9rem 0 0.7rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+}
+
+.solo-launch-message p,
+.solo-flappy-message p {
+  margin: 0.45rem 0;
+  opacity: 0.84;
+}
+
+.solo-launch-message-actions,
+.solo-flappy-message-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.95rem;
+}
+
+.solo-launch-action-btn,
+.solo-flappy-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.34rem;
+  min-width: 148px;
+  padding: 0.82rem 1rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.24);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.96),
+      var(--match-tint-medium, rgba(125, 173, 255, 0.34))
+    );
+  font-weight: 700;
+}
+
+.solo-launch-message-inline,
+.solo-flappy-message-inline {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.84;
+}
+
 .solo-2048-board,
 .solo-sudoku-board,
 .solo-mines-board,
@@ -12158,6 +12507,8 @@ h1 span:last-child {
 .solo-space-stage-wrap,
 .solo-brick-stage-wrap,
 .solo-neon-pong-stage-wrap,
+.solo-launch-stage-wrap,
+.solo-flappy-stage-wrap,
 .air-hockey-stage-wrap,
 .starfall-stage-wrap,
 .tetris-stage-shell,
@@ -12282,6 +12633,8 @@ h1 span:last-child {
   }
 
   .solo-brick-hud,
+  .solo-launch-hud,
+  .solo-flappy-hud,
   .air-hockey-scoreboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -12294,6 +12647,8 @@ h1 span:last-child {
   .solo-space-shell,
   .solo-brick-shell,
   .solo-neon-pong-shell,
+  .solo-launch-shell,
+  .solo-flappy-shell,
   .air-hockey-shell,
   .starfall-shell {
     width: min(100%, 96vw);
@@ -12305,7 +12660,9 @@ h1 span:last-child {
     padding: clamp(0.55rem, 1.4vh, 0.85rem);
   }
 
-  .solo-neon-pong-stage-wrap {
+  .solo-neon-pong-stage-wrap,
+  .solo-launch-stage-wrap,
+  .solo-flappy-stage-wrap {
     width: 100%;
     padding: 0.7rem;
   }
@@ -12862,6 +13219,46 @@ h1 span:last-child {
 .choose-game-carousel-card .choose-game-thumb-prism-relay > span,
 .choose-game-option-card .choose-game-thumb-prism-relay > span {
   background: linear-gradient(160deg, rgba(9, 24, 48, 0.96), rgba(79, 22, 69, 0.94));
+}
+
+.choose-game-carousel-card .choose-game-thumb-sling-shot,
+.choose-game-option-card .choose-game-thumb-sling-shot {
+  border: 3px solid #000;
+  background:
+    radial-gradient(circle at 21% 70%, #fff8d8 0 9px, #4b2f1a 10px 13px, transparent 14px),
+    linear-gradient(128deg, transparent 0 42%, rgba(255, 248, 216, 0.92) 43% 46%, transparent 47%) 26% 56% / 42% 30% no-repeat,
+    linear-gradient(78deg, transparent 0 35%, rgba(69, 35, 18, 0.9) 36% 42%, transparent 43%) 16% 56% / 22% 40% no-repeat,
+    linear-gradient(90deg, transparent 0 62%, rgba(255, 221, 112, 0.88) 63% 67%, transparent 68% 76%, rgba(255, 221, 112, 0.88) 77% 82%, transparent 83%),
+    radial-gradient(circle at 82% 20%, rgba(255, 255, 255, 0.48), transparent 20%),
+    linear-gradient(155deg, #0d1b37, #0f766e 54%, #d97706);
+  box-shadow:
+    inset 0 0 28px rgba(255, 221, 112, 0.15),
+    0 0 18px rgba(15, 118, 110, 0.18);
+}
+
+.choose-game-carousel-card .choose-game-thumb-sling-shot > span,
+.choose-game-option-card .choose-game-thumb-sling-shot > span {
+  background: linear-gradient(160deg, rgba(16, 32, 63, 0.95), rgba(146, 64, 14, 0.92));
+}
+
+.choose-game-carousel-card .choose-game-thumb-flappy-wing,
+.choose-game-option-card .choose-game-thumb-flappy-wing {
+  border: 3px solid #000;
+  background:
+    radial-gradient(circle at 28% 50%, #fff7c8 0 10px, #f8b84e 11px 15px, transparent 16px),
+    radial-gradient(ellipse at 22% 56%, rgba(255, 255, 255, 0.88) 0 10px, transparent 11px),
+    linear-gradient(90deg, transparent 0 61%, rgba(47, 151, 96, 0.92) 62% 72%, transparent 73%),
+    linear-gradient(90deg, transparent 0 80%, rgba(47, 151, 96, 0.92) 81% 91%, transparent 92%),
+    radial-gradient(circle at 74% 22%, rgba(255, 255, 255, 0.62), transparent 19%),
+    linear-gradient(160deg, #6dc8ff, #c7efff 48%, #7fb53d);
+  box-shadow:
+    inset 0 0 28px rgba(255, 255, 255, 0.22),
+    0 0 18px rgba(109, 200, 255, 0.22);
+}
+
+.choose-game-carousel-card .choose-game-thumb-flappy-wing > span,
+.choose-game-option-card .choose-game-thumb-flappy-wing > span {
+  background: linear-gradient(160deg, rgba(16, 86, 122, 0.95), rgba(47, 111, 51, 0.92));
 }
 
 .choose-game-carousel-card .choose-game-thumb-blackjack,

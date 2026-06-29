@@ -332,7 +332,22 @@ export function GameBoard({
     game.moveMode === 'solo-minesweeper' ||
     game.moveMode === 'solo-memory' ||
     game.moveMode === 'solo-dino' ||
+    game.moveMode === 'solo-snake' ||
     game.moveMode === 'solo-maze-flux' ||
+    game.moveMode === 'solo-space-invaders' ||
+    game.moveMode === 'solo-brickbreaker' ||
+    game.moveMode === 'solo-neon-pong' ||
+    game.moveMode === 'solo-tetris' ||
+    game.moveMode === 'solo-starfall' ||
+    game.moveMode === 'solo-rift-runner' ||
+    game.moveMode === 'solo-dread-sector' ||
+    game.moveMode === 'solo-echo-bloom' ||
+    game.moveMode === 'solo-pulse-forge' ||
+    game.moveMode === 'solo-prism-relay' ||
+    game.moveMode === 'solo-sling-shot' ||
+    game.moveMode === 'solo-flappy-wing' ||
+    game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'ludo'

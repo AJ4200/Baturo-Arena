@@ -21,6 +21,8 @@ import { SoloDreadSectorGame } from '@/features/game/singleplayer/SoloDreadSecto
 import { SoloEchoBloomGame } from '@/features/game/singleplayer/SoloEchoBloomGame';
 import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
 import { SoloPrismRelayGame } from '@/features/game/singleplayer/SoloPrismRelayGame';
+import { SoloSlingShotGame } from '@/features/game/singleplayer/SoloSlingShotGame';
+import { SoloFlappyWingGame } from '@/features/game/singleplayer/SoloFlappyWingGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
@@ -375,6 +377,34 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'prism-relay') {
     return (
       <SoloPrismRelayGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'sling-shot') {
+    return (
+      <SoloSlingShotGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'flappy-wing') {
+    return (
+      <SoloFlappyWingGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

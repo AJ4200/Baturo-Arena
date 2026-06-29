@@ -240,6 +240,36 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'sling-shot': {
+    id: 'sling-shot',
+    category: 'arcade',
+    name: 'Sling Shot',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Arc a limited set of shots through breakable target towers. Read the angle, tune the pull, and clear the stack.',
+    moveMode: 'solo-sling-shot',
+    winCondition: 'sling-shot-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'flappy-wing': {
+    id: 'flappy-wing',
+    category: 'arcade',
+    name: 'Flappy Wing',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Tap through tight sky gates, keep lift under control, and survive the scoring run without clipping a tower.',
+    moveMode: 'solo-flappy-wing',
+    winCondition: 'flappy-wing-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'air-hockey': {
     id: 'air-hockey',
     category: 'sports',
@@ -1049,6 +1079,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'maze-flux-clear' ||
     rules.winCondition === 'space-invaders-clear' ||
     rules.winCondition === 'brickbreaker-clear' ||
+    rules.winCondition === 'sling-shot-clear' ||
+    rules.winCondition === 'flappy-wing-score' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
@@ -1211,6 +1243,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-maze-flux' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'solo-sling-shot' ||
+    rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
@@ -1310,6 +1344,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-maze-flux' ||
     rules.moveMode === 'solo-space-invaders' ||
     rules.moveMode === 'solo-brickbreaker' ||
+    rules.moveMode === 'solo-sling-shot' ||
+    rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||

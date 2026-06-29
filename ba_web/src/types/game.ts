@@ -42,6 +42,8 @@ export type GameType =
   | 'echo-bloom'
   | 'pulse-forge'
   | 'prism-relay'
+  | 'sling-shot'
+  | 'flappy-wing'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -82,6 +84,8 @@ export type GameDefinition = {
     | 'solo-echo-bloom'
     | 'solo-pulse-forge'
     | 'solo-prism-relay'
+    | 'solo-sling-shot'
+    | 'solo-flappy-wing'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -110,6 +114,8 @@ export type GameDefinition = {
     | 'echo-bloom-resonate'
     | 'pulse-forge-stabilize'
     | 'prism-relay-stabilize'
+    | 'sling-shot-clear'
+    | 'flappy-wing-score'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -117,6 +123,52 @@ export type GameDefinition = {
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;
+};
+
+export type SlingShotStatus = 'ready' | 'aiming' | 'flying' | 'won' | 'lost';
+
+export type SlingShotTarget = {
+  id: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  hp: number;
+};
+
+export type SlingShotState = {
+  status: SlingShotStatus;
+  angle: number;
+  power: number;
+  shotsLeft: number;
+  score: number;
+  targets: SlingShotTarget[];
+  projectile: {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+  } | null;
+};
+
+export type FlappyWingStatus = 'ready' | 'flying' | 'won' | 'crashed';
+
+export type FlappyWingPipe = {
+  id: number;
+  x: number;
+  gapY: number;
+  passed: boolean;
+};
+
+export type FlappyWingState = {
+  status: FlappyWingStatus;
+  wingY: number;
+  velocityY: number;
+  pipes: FlappyWingPipe[];
+  score: number;
+  bestScore: number;
+  elapsedMs: number;
+  spawnTimer: number;
 };
 
 export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait' | 'tick';

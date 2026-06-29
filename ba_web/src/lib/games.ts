@@ -258,6 +258,36 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'sling-shot',
+    category: 'arcade',
+    name: 'Sling Shot',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Arc a limited set of shots through breakable target towers. Read the angle, tune the pull, and clear the stack.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-sling-shot',
+    winCondition: 'sling-shot-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'flappy-wing',
+    category: 'arcade',
+    name: 'Flappy Wing',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Tap through tight sky gates, keep lift under control, and survive the scoring run without clipping a tower.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-flappy-wing',
+    winCondition: 'flappy-wing-score',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'air-hockey',
     category: 'sports',
     name: 'Air Hockey',
@@ -999,6 +1029,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-snake' ||
     game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'solo-brickbreaker' ||
+    game.moveMode === 'solo-sling-shot' ||
+    game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1058,6 +1090,8 @@ export const applyMove = (
     game.moveMode === 'solo-snake' ||
     game.moveMode === 'solo-maze-flux' ||
     game.moveMode === 'solo-brickbreaker' ||
+    game.moveMode === 'solo-sling-shot' ||
+    game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1257,6 +1291,8 @@ export const evaluateBoard = (
     game.winCondition === 'maze-flux-clear' ||
     game.winCondition === 'space-invaders-clear' ||
     game.winCondition === 'brickbreaker-clear' ||
+    game.winCondition === 'sling-shot-clear' ||
+    game.winCondition === 'flappy-wing-score' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
