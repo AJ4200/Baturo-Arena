@@ -24,6 +24,7 @@ import { SoloPrismRelayGame } from '@/features/game/singleplayer/SoloPrismRelayG
 import { SoloSlingShotGame } from '@/features/game/singleplayer/SoloSlingShotGame';
 import { SoloFlappyWingGame } from '@/features/game/singleplayer/SoloFlappyWingGame';
 import { SoloVoxelYardGame } from '@/features/game/singleplayer/SoloVoxelYardGame';
+import { SoloCrateShiftGame } from '@/features/game/singleplayer/SoloCrateShiftGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
@@ -420,6 +421,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'voxel-yard') {
     return (
       <SoloVoxelYardGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'crate-shift') {
+    return (
+      <SoloCrateShiftGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

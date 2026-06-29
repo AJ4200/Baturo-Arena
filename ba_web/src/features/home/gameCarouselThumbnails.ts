@@ -37,6 +37,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'sling-shot': { label: 'SLING', className: 'choose-game-thumb-sling-shot' },
   'flappy-wing': { label: 'FLAP', className: 'choose-game-thumb-flappy-wing' },
   'voxel-yard': { label: 'VOXELS', className: 'choose-game-thumb-voxel-yard' },
+  'crate-shift': { label: 'CRATES', className: 'choose-game-thumb-crate-shift' },
   blackjack: { label: 'BLACKJACK', className: 'choose-game-thumb-blackjack' },
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
   'cipher-auction': { label: 'SEALED BIDS', className: 'choose-game-thumb-cipher-auction' },

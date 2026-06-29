@@ -45,6 +45,7 @@ export type GameType =
   | 'sling-shot'
   | 'flappy-wing'
   | 'voxel-yard'
+  | 'crate-shift'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -88,6 +89,7 @@ export type GameDefinition = {
     | 'solo-sling-shot'
     | 'solo-flappy-wing'
     | 'solo-voxel-yard'
+    | 'solo-crate-shift'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -119,6 +121,7 @@ export type GameDefinition = {
     | 'sling-shot-clear'
     | 'flappy-wing-score'
     | 'voxel-yard-build'
+    | 'crate-shift-solve'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -192,6 +195,21 @@ export type VoxelYardState = {
   placed: number;
   removed: number;
   status: 'building' | 'complete';
+};
+
+export type CrateShiftDirection = 'up' | 'down' | 'left' | 'right';
+
+export type CrateShiftCell = {
+  row: number;
+  column: number;
+};
+
+export type CrateShiftState = {
+  player: CrateShiftCell;
+  crates: CrateShiftCell[];
+  moves: number;
+  pushes: number;
+  status: 'playing' | 'won';
 };
 
 export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait' | 'tick';

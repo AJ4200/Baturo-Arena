@@ -303,6 +303,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'crate-shift',
+    category: 'puzzle',
+    name: 'Crate Shift',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Push crates through a walled warehouse and park every crate on a marked pad without trapping your route.',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    moveMode: 'solo-crate-shift',
+    winCondition: 'crate-shift-solve',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'air-hockey',
     category: 'sports',
     name: 'Air Hockey',
@@ -1047,6 +1062,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-sling-shot' ||
     game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-voxel-yard' ||
+    game.moveMode === 'solo-crate-shift' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1109,6 +1125,7 @@ export const applyMove = (
     game.moveMode === 'solo-sling-shot' ||
     game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-voxel-yard' ||
+    game.moveMode === 'solo-crate-shift' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1311,6 +1328,7 @@ export const evaluateBoard = (
     game.winCondition === 'sling-shot-clear' ||
     game.winCondition === 'flappy-wing-score' ||
     game.winCondition === 'voxel-yard-build' ||
+    game.winCondition === 'crate-shift-solve' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||

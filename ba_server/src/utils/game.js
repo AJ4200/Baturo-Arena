@@ -285,6 +285,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'crate-shift': {
+    id: 'crate-shift',
+    category: 'puzzle',
+    name: 'Crate Shift',
+    rows: 9,
+    columns: 9,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Push crates through a walled warehouse and park every crate on a marked pad without trapping your route.',
+    moveMode: 'solo-crate-shift',
+    winCondition: 'crate-shift-solve',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'air-hockey': {
     id: 'air-hockey',
     category: 'sports',
@@ -1097,6 +1112,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'sling-shot-clear' ||
     rules.winCondition === 'flappy-wing-score' ||
     rules.winCondition === 'voxel-yard-build' ||
+    rules.winCondition === 'crate-shift-solve' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
@@ -1262,6 +1278,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-sling-shot' ||
     rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-voxel-yard' ||
+    rules.moveMode === 'solo-crate-shift' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
@@ -1364,6 +1381,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-sling-shot' ||
     rules.moveMode === 'solo-flappy-wing' ||
     rules.moveMode === 'solo-voxel-yard' ||
+    rules.moveMode === 'solo-crate-shift' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
