@@ -288,6 +288,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'voxel-yard',
+    category: 'action',
+    name: 'Voxel Yard',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A compact 3D block-building sandbox. Select faces, place cubes, break upper blocks, and complete the yard build target.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-voxel-yard',
+    winCondition: 'voxel-yard-build',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'air-hockey',
     category: 'sports',
     name: 'Air Hockey',
@@ -1031,6 +1046,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-sling-shot' ||
     game.moveMode === 'solo-flappy-wing' ||
+    game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1092,6 +1108,7 @@ export const applyMove = (
     game.moveMode === 'solo-brickbreaker' ||
     game.moveMode === 'solo-sling-shot' ||
     game.moveMode === 'solo-flappy-wing' ||
+    game.moveMode === 'solo-voxel-yard' ||
     game.moveMode === 'solo-space-invaders' ||
     game.moveMode === 'solo-neon-pong' ||
     game.moveMode === 'solo-tetris' ||
@@ -1293,6 +1310,7 @@ export const evaluateBoard = (
     game.winCondition === 'brickbreaker-clear' ||
     game.winCondition === 'sling-shot-clear' ||
     game.winCondition === 'flappy-wing-score' ||
+    game.winCondition === 'voxel-yard-build' ||
     game.winCondition === 'neon-pong-score' ||
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||

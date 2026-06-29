@@ -270,6 +270,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'voxel-yard': {
+    id: 'voxel-yard',
+    category: 'action',
+    name: 'Voxel Yard',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'A compact 3D block-building sandbox. Select faces, place cubes, break upper blocks, and complete the yard build target.',
+    moveMode: 'solo-voxel-yard',
+    winCondition: 'voxel-yard-build',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'air-hockey': {
     id: 'air-hockey',
     category: 'sports',
@@ -1081,6 +1096,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'brickbreaker-clear' ||
     rules.winCondition === 'sling-shot-clear' ||
     rules.winCondition === 'flappy-wing-score' ||
+    rules.winCondition === 'voxel-yard-build' ||
     rules.winCondition === 'neon-pong-score' ||
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
@@ -1245,6 +1261,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-sling-shot' ||
     rules.moveMode === 'solo-flappy-wing' ||
+    rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||
@@ -1346,6 +1363,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-brickbreaker' ||
     rules.moveMode === 'solo-sling-shot' ||
     rules.moveMode === 'solo-flappy-wing' ||
+    rules.moveMode === 'solo-voxel-yard' ||
     rules.moveMode === 'solo-neon-pong' ||
     rules.moveMode === 'solo-tetris' ||
     rules.moveMode === 'solo-starfall' ||

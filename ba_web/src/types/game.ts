@@ -44,6 +44,7 @@ export type GameType =
   | 'prism-relay'
   | 'sling-shot'
   | 'flappy-wing'
+  | 'voxel-yard'
   | 'blackjack'
   | 'turbo-rush'
   | 'cipher-auction';
@@ -86,6 +87,7 @@ export type GameDefinition = {
     | 'solo-prism-relay'
     | 'solo-sling-shot'
     | 'solo-flappy-wing'
+    | 'solo-voxel-yard'
     | 'solo-blackjack'
     | 'air-hockey'
     | 'racing'
@@ -116,6 +118,7 @@ export type GameDefinition = {
     | 'prism-relay-stabilize'
     | 'sling-shot-clear'
     | 'flappy-wing-score'
+    | 'voxel-yard-build'
     | 'blackjack-five-wins'
     | 'air-hockey-score'
     | 'race-finish'
@@ -169,6 +172,26 @@ export type FlappyWingState = {
   bestScore: number;
   elapsedMs: number;
   spawnTimer: number;
+};
+
+export type VoxelBlockType = 'grass' | 'soil' | 'stone' | 'wood' | 'glass';
+
+export type VoxelBlock = {
+  id: string;
+  x: number;
+  y: number;
+  z: number;
+  type: VoxelBlockType;
+};
+
+export type VoxelYardState = {
+  blocks: VoxelBlock[];
+  selectedBlockId: string | null;
+  selectedType: VoxelBlockType;
+  score: number;
+  placed: number;
+  removed: number;
+  status: 'building' | 'complete';
 };
 
 export type LeapOnAction = 'jump' | 'dash' | 'block' | 'wait' | 'tick';

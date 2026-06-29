@@ -23,6 +23,7 @@ import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeG
 import { SoloPrismRelayGame } from '@/features/game/singleplayer/SoloPrismRelayGame';
 import { SoloSlingShotGame } from '@/features/game/singleplayer/SoloSlingShotGame';
 import { SoloFlappyWingGame } from '@/features/game/singleplayer/SoloFlappyWingGame';
+import { SoloVoxelYardGame } from '@/features/game/singleplayer/SoloVoxelYardGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
@@ -405,6 +406,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'flappy-wing') {
     return (
       <SoloFlappyWingGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'voxel-yard') {
+    return (
+      <SoloVoxelYardGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

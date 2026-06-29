@@ -6888,6 +6888,8 @@ h1 span:last-child {
 .motion-off .solo-launch-stage-wrap,
 .motion-off .solo-flappy-shell,
 .motion-off .solo-flappy-stage-wrap,
+.motion-off .voxel-yard-shell,
+.motion-off .voxel-yard-stage-wrap,
 .motion-off .air-hockey-shell,
 .motion-off .air-hockey-stage-wrap,
 .motion-off .starfall-shell,
@@ -9101,6 +9103,13 @@ h1 span:last-child {
     linear-gradient(160deg, #7dd3fc, #bae6fd 48%, #65a30d);
 }
 
+.choose-game-thumb-voxel-yard {
+  background:
+    linear-gradient(30deg, transparent 0 44%, rgba(255, 255, 255, 0.72) 45% 48%, transparent 49%) 26% 52% / 26px 26px repeat,
+    linear-gradient(150deg, rgba(78, 134, 86, 0.96) 0 30%, rgba(116, 77, 44, 0.94) 31% 62%, rgba(91, 105, 120, 0.94) 63%),
+    linear-gradient(155deg, #16324a, #2d8c6b 54%, #c9a14a);
+}
+
 .choose-game-thumb-blackjack {
   background:
     linear-gradient(106deg, transparent 0 23%, rgba(255, 255, 255, 0.96) 24% 42%, transparent 43%),
@@ -10325,7 +10334,8 @@ h1 span:last-child {
 .solo-space-shell,
 .solo-neon-pong-shell,
 .solo-launch-shell,
-.solo-flappy-shell {
+.solo-flappy-shell,
+.voxel-yard-shell {
   box-shadow: 6px 8px 6px 1px rgba(0, 0, 0, 0.32);
   transform: scaleX(1) scaleY(1) scaleZ(1) rotateX(-14deg) rotateY(-9deg)
     rotateZ(-9deg) translateX(0px) translateY(0px) translateZ(27px) skewX(-7deg)
@@ -12497,6 +12507,218 @@ h1 span:last-child {
   opacity: 0.84;
 }
 
+.voxel-yard-shell {
+  width: min(94vw, 1080px);
+  margin-top: 1rem;
+  border: 4px solid var(--match-outline, #000);
+  border-radius: 18px;
+  background: var(--match-surface, rgba(241, 246, 255, 0.92));
+  padding: 1rem;
+}
+
+.voxel-yard-shell,
+.voxel-yard-shell * {
+  text-shadow: none !important;
+  color: var(--match-text, #171717);
+}
+
+.voxel-yard-hud {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.8rem;
+}
+
+.voxel-yard-hud-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  border: 2px solid var(--match-outline, rgba(0, 0, 0, 0.33));
+  border-radius: 12px;
+  padding: 0.45rem 0.55rem;
+  background: var(--match-surface-soft, rgba(226, 237, 248, 0.88));
+}
+
+.voxel-yard-hud-item span {
+  font-size: 0.76rem;
+  opacity: 0.8;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.voxel-yard-hud-item strong {
+  font-size: 1.02rem;
+}
+
+.voxel-yard-stage-wrap {
+  position: relative;
+  width: min(100%, 980px);
+  margin: 0 auto;
+  aspect-ratio: 11 / 6.6;
+  border: 3px solid var(--match-outline, rgba(0, 0, 0, 0.44));
+  border-radius: 16px;
+  padding: 0.85rem;
+  background:
+    radial-gradient(circle at top right, var(--match-tint-strong, rgba(255, 255, 255, 0.28)), transparent 48%),
+    linear-gradient(
+      180deg,
+      rgba(var(--match-light-rgb, 246, 250, 255), 0.9),
+      rgba(var(--match-soft-light-rgb, 218, 235, 226), 0.76)
+    );
+}
+
+.voxel-yard-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  overflow: hidden;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 18% 14%, rgba(var(--match-light-rgb, 255, 255, 255), 0.62), transparent 18%),
+    linear-gradient(180deg, rgba(var(--match-light-rgb, 218, 241, 255), 0.95), rgba(var(--match-base-rgb, 77, 168, 126), 0.42));
+}
+
+.voxel-yard-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+
+.voxel-yard-overlay {
+  position: absolute;
+  inset: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 18, 18, 18), 0.36);
+  backdrop-filter: blur(6px);
+}
+
+.voxel-yard-message {
+  width: min(88vw, 420px);
+  padding: 1.5rem;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.22);
+  border-radius: 14px;
+  text-align: center;
+  background: rgba(var(--match-light-rgb, 255, 255, 255), 0.94);
+  box-shadow: 0 18px 36px rgba(var(--match-dark-rgb, 0, 0, 0), 0.2);
+}
+
+.voxel-yard-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(var(--match-base-rgb, 91, 242, 184), 0.2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.voxel-yard-message h2 {
+  margin: 0.9rem 0 0.7rem;
+  font-size: clamp(1.45rem, 3.4vw, 1.95rem);
+  font-weight: 700;
+}
+
+.voxel-yard-message p {
+  margin: 0.45rem 0 0.95rem;
+  opacity: 0.84;
+}
+
+.voxel-yard-hotbar {
+  display: grid;
+  grid-template-columns: 44px repeat(5, minmax(0, 1fr)) 44px;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
+.voxel-yard-hotbar-btn,
+.voxel-yard-hotbar-step,
+.voxel-yard-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.28);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--match-light-rgb, 255, 255, 255), 0.94),
+      var(--match-tint-medium, rgba(125, 173, 255, 0.34))
+    );
+  font-weight: 700;
+}
+
+.voxel-yard-hotbar-btn {
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.45rem;
+  font-size: 0.78rem;
+}
+
+.voxel-yard-hotbar-btn-active {
+  border-color: rgba(var(--match-dark-rgb, 24, 24, 24), 0.7);
+  box-shadow:
+    inset 0 0 0 2px rgba(var(--match-light-rgb, 255, 255, 255), 0.52),
+    0 0 0 3px var(--match-tint-medium, rgba(125, 173, 255, 0.32));
+}
+
+.voxel-yard-swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(var(--match-dark-rgb, 24, 24, 24), 0.4);
+  border-radius: 6px;
+  box-shadow: inset 0 1px rgba(var(--match-light-rgb, 255, 255, 255), 0.46);
+}
+
+.voxel-yard-swatch-grass {
+  background: linear-gradient(180deg, #6cc75f 0 48%, #8a5a34 49%);
+}
+
+.voxel-yard-swatch-soil {
+  background: repeating-linear-gradient(45deg, #8a5a34 0 7px, #6f4327 7px 14px);
+}
+
+.voxel-yard-swatch-stone {
+  background: linear-gradient(135deg, #c3cbd4, #7b8490);
+}
+
+.voxel-yard-swatch-wood {
+  background: repeating-linear-gradient(90deg, #c18442 0 8px, #8a5428 8px 16px);
+}
+
+.voxel-yard-swatch-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(88, 190, 255, 0.58));
+}
+
+.voxel-yard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.voxel-yard-action-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.voxel-yard-message-inline {
+  margin-top: 0.8rem;
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.84;
+}
+
 .solo-2048-board,
 .solo-sudoku-board,
 .solo-mines-board,
@@ -12509,6 +12731,7 @@ h1 span:last-child {
 .solo-neon-pong-stage-wrap,
 .solo-launch-stage-wrap,
 .solo-flappy-stage-wrap,
+.voxel-yard-stage-wrap,
 .air-hockey-stage-wrap,
 .starfall-stage-wrap,
 .tetris-stage-shell,
@@ -12635,6 +12858,7 @@ h1 span:last-child {
   .solo-brick-hud,
   .solo-launch-hud,
   .solo-flappy-hud,
+  .voxel-yard-hud,
   .air-hockey-scoreboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -12649,6 +12873,7 @@ h1 span:last-child {
   .solo-neon-pong-shell,
   .solo-launch-shell,
   .solo-flappy-shell,
+  .voxel-yard-shell,
   .air-hockey-shell,
   .starfall-shell {
     width: min(100%, 96vw);
@@ -12662,9 +12887,22 @@ h1 span:last-child {
 
   .solo-neon-pong-stage-wrap,
   .solo-launch-stage-wrap,
-  .solo-flappy-stage-wrap {
+  .solo-flappy-stage-wrap,
+  .voxel-yard-stage-wrap {
     width: 100%;
     padding: 0.7rem;
+  }
+
+  .voxel-yard-hotbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .voxel-yard-hotbar-step {
+    min-height: 40px;
+  }
+
+  .voxel-yard-stage {
+    min-height: 280px;
   }
 
   .solo-snake-board {
@@ -13259,6 +13497,24 @@ h1 span:last-child {
 .choose-game-carousel-card .choose-game-thumb-flappy-wing > span,
 .choose-game-option-card .choose-game-thumb-flappy-wing > span {
   background: linear-gradient(160deg, rgba(16, 86, 122, 0.95), rgba(47, 111, 51, 0.92));
+}
+
+.choose-game-carousel-card .choose-game-thumb-voxel-yard,
+.choose-game-option-card .choose-game-thumb-voxel-yard {
+  border: 3px solid #000;
+  background:
+    linear-gradient(30deg, transparent 0 44%, rgba(255, 255, 255, 0.82) 45% 48%, transparent 49%) 22% 52% / 30px 30px repeat,
+    linear-gradient(150deg, rgba(85, 145, 85, 0.96) 0 28%, rgba(129, 82, 44, 0.94) 29% 60%, rgba(110, 121, 132, 0.94) 61%),
+    radial-gradient(circle at 75% 20%, rgba(255, 246, 176, 0.68), transparent 18%),
+    linear-gradient(155deg, #12314a, #2c8d6a 52%, #caa14e);
+  box-shadow:
+    inset 0 0 28px rgba(255, 255, 255, 0.12),
+    0 0 18px rgba(44, 141, 106, 0.2);
+}
+
+.choose-game-carousel-card .choose-game-thumb-voxel-yard > span,
+.choose-game-option-card .choose-game-thumb-voxel-yard > span {
+  background: linear-gradient(160deg, rgba(19, 49, 74, 0.96), rgba(91, 72, 39, 0.92));
 }
 
 .choose-game-carousel-card .choose-game-thumb-blackjack,
