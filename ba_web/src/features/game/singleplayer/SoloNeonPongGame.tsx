@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
@@ -42,6 +43,14 @@ type SoloNeonPongGameProps = {
   onLeave: () => void;
 };
 
+type PongPhysicsRefs = {
+  engine: Matter.Engine;
+  ball: Matter.Body;
+  playerPaddle: Matter.Body;
+  cpuPaddle: Matter.Body;
+  pendingPaddleHit: 'player' | 'cpu' | null;
+};
+
 const STAGE_WIDTH = 900;
 const STAGE_HEIGHT = 560;
 const PADDLE_WIDTH = 12;
@@ -55,6 +64,7 @@ const PADDLE_SPEED = 420;
 const CPU_SPEED = 340;
 const BALL_BASE_SPEED = 300;
 const BEST_SCORE_STORAGE_KEY = 'baturo_neon_pong_best_wins';
+const MATTER_TICK_SECONDS = 1 / 60;
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
@@ -88,6 +98,120 @@ const launchBall = (rally: number, towardPlayer = Math.random() < 0.5): Pick<Pon
   };
 };
 
+const toMatterVelocity = (velocity: number): number => velocity * MATTER_TICK_SECONDS;
+
+const fromMatterVelocity = (velocity: number): number => velocity / MATTER_TICK_SECONDS;
+
+const setMatterBall = (
+  body: Matter.Body,
+  ball: Pick<PongState, 'ballX' | 'ballY' | 'ballVx' | 'ballVy'>
+): void => {
+  Matter.Body.setPosition(body, { x: ball.ballX, y: ball.ballY });
+  Matter.Body.setVelocity(body, {
+    x: toMatterVelocity(ball.ballVx),
+    y: toMatterVelocity(ball.ballVy),
+  });
+  Matter.Body.setAngularVelocity(body, 0);
+};
+
+const getMatterBall = (body: Matter.Body): Pick<PongState, 'ballX' | 'ballY' | 'ballVx' | 'ballVy'> => ({
+  ballX: body.position.x,
+  ballY: body.position.y,
+  ballVx: fromMatterVelocity(body.velocity.x),
+  ballVy: fromMatterVelocity(body.velocity.y),
+});
+
+const syncMatterPaddles = (refs: PongPhysicsRefs, playerY: number, cpuY: number): void => {
+  Matter.Body.setPosition(refs.playerPaddle, {
+    x: PADDLE_MARGIN + PADDLE_WIDTH / 2,
+    y: playerY + PADDLE_HEIGHT / 2,
+  });
+  Matter.Body.setPosition(refs.cpuPaddle, {
+    x: STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH / 2,
+    y: cpuY + PADDLE_HEIGHT / 2,
+  });
+};
+
+const resetPongMatterWorld = (refs: PongPhysicsRefs, state: PongState): void => {
+  refs.pendingPaddleHit = null;
+  syncMatterPaddles(refs, state.playerY, state.cpuY);
+  setMatterBall(refs.ball, state);
+};
+
+const createPongPhysics = (): PongPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const initial = createInitialState();
+  const ball = Matter.Bodies.circle(initial.ballX, initial.ballY, BALL_RADIUS, {
+    restitution: 1,
+    friction: 0,
+    frictionAir: 0,
+    inertia: Infinity,
+    label: 'ball',
+  });
+  const playerPaddle = Matter.Bodies.rectangle(
+    PADDLE_MARGIN + PADDLE_WIDTH / 2,
+    initial.playerY + PADDLE_HEIGHT / 2,
+    PADDLE_WIDTH,
+    PADDLE_HEIGHT,
+    {
+      isStatic: true,
+      restitution: 1.06,
+      friction: 0,
+      label: 'paddle:player',
+    }
+  );
+  const cpuPaddle = Matter.Bodies.rectangle(
+    STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH / 2,
+    initial.cpuY + PADDLE_HEIGHT / 2,
+    PADDLE_WIDTH,
+    PADDLE_HEIGHT,
+    {
+      isStatic: true,
+      restitution: 1.06,
+      friction: 0,
+      label: 'paddle:cpu',
+    }
+  );
+  const topWall = Matter.Bodies.rectangle(STAGE_WIDTH / 2, -12, STAGE_WIDTH, 24, {
+    isStatic: true,
+    restitution: 1,
+    friction: 0,
+    label: 'wall:top',
+  });
+  const bottomWall = Matter.Bodies.rectangle(STAGE_WIDTH / 2, STAGE_HEIGHT + 12, STAGE_WIDTH, 24, {
+    isStatic: true,
+    restitution: 1,
+    friction: 0,
+    label: 'wall:bottom',
+  });
+  const refs: PongPhysicsRefs = {
+    engine,
+    ball,
+    playerPaddle,
+    cpuPaddle,
+    pendingPaddleHit: null,
+  };
+
+  Matter.Composite.add(engine.world, [ball, playerPaddle, cpuPaddle, topWall, bottomWall]);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (!labels.includes('ball')) {
+        return;
+      }
+      if (labels.includes('paddle:player')) {
+        refs.pendingPaddleHit = 'player';
+      } else if (labels.includes('paddle:cpu')) {
+        refs.pendingPaddleHit = 'cpu';
+      }
+    });
+  });
+
+  return refs;
+};
+
 export function SoloNeonPongGame({
   player,
   gameDefinitions,
@@ -106,6 +230,7 @@ export function SoloNeonPongGame({
   const lastReportedOutcomeRef = useRef<MatchResultEvent['outcome'] | null>(null);
   const lastFrameRef = useRef<number | null>(null);
   const gameLoopRef = useRef<number | null>(null);
+  const physicsRef = useRef<PongPhysicsRefs | null>(null);
 
   const gameLabel = useMemo(() => formatGameName('neon-pong', gameDefinitions), [gameDefinitions]);
 
@@ -161,7 +286,11 @@ export function SoloNeonPongGame({
 
   const handleRestart = useCallback(() => {
     lastReportedOutcomeRef.current = null;
-    setState(createInitialState());
+    const nextState = createInitialState();
+    if (physicsRef.current) {
+      resetPongMatterWorld(physicsRef.current, nextState);
+    }
+    setState(nextState);
   }, []);
 
   const handleLaunch = useCallback(() => {
@@ -170,6 +299,14 @@ export function SoloNeonPongGame({
         return current;
       }
       const velocity = launchBall(current.rally);
+      if (physicsRef.current) {
+        physicsRef.current.pendingPaddleHit = null;
+        syncMatterPaddles(physicsRef.current, current.playerY, current.cpuY);
+        setMatterBall(physicsRef.current.ball, {
+          ...createCenteredBall(),
+          ...velocity,
+        });
+      }
       return {
         ...current,
         status: 'playing',
@@ -207,6 +344,10 @@ export function SoloNeonPongGame({
       if (current.status !== 'playing') {
         return current;
       }
+      const refs = physicsRef.current;
+      if (!refs) {
+        return current;
+      }
 
       const deltaSeconds = deltaMs / 1000;
       let playerY = current.playerY;
@@ -231,49 +372,23 @@ export function SoloNeonPongGame({
       const cpuStep = clamp(cpuDelta, -CPU_SPEED * deltaSeconds, CPU_SPEED * deltaSeconds);
       cpuY = clamp(cpuY + cpuStep, PADDLE_MIN_Y, PADDLE_MAX_Y);
 
-      let ballX = current.ballX + current.ballVx * deltaSeconds;
-      let ballY = current.ballY + current.ballVy * deltaSeconds;
-      let ballVx = current.ballVx;
-      let ballVy = current.ballVy;
+      syncMatterPaddles(refs, playerY, cpuY);
+      Matter.Engine.update(refs.engine, deltaMs);
 
-      if (ballY - BALL_RADIUS <= 0) {
-        ballY = BALL_RADIUS;
-        ballVy = Math.abs(ballVy);
-      } else if (ballY + BALL_RADIUS >= STAGE_HEIGHT) {
-        ballY = STAGE_HEIGHT - BALL_RADIUS;
-        ballVy = -Math.abs(ballVy);
-      }
+      let { ballX, ballY, ballVx, ballVy } = getMatterBall(refs.ball);
+      const paddleHit = refs.pendingPaddleHit;
+      refs.pendingPaddleHit = null;
 
-      const playerPaddleX = PADDLE_MARGIN;
-      const cpuPaddleX = STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH;
-
-      const hitsPaddle = (
-        side: 'player' | 'cpu',
-        paddleX: number,
-        paddleY: number
-      ): boolean => {
-        const movingToward =
-          side === 'player' ? ballVx < 0 && ballX - BALL_RADIUS <= paddleX + PADDLE_WIDTH : ballVx > 0 && ballX + BALL_RADIUS >= paddleX;
-        if (!movingToward) {
-          return false;
-        }
-
-        const withinY = ballY + BALL_RADIUS >= paddleY && ballY - BALL_RADIUS <= paddleY + PADDLE_HEIGHT;
-        return withinY;
-      };
-
-      if (hitsPaddle('player', playerPaddleX, playerY)) {
-        ballX = playerPaddleX + PADDLE_WIDTH + BALL_RADIUS;
-        ballVx = Math.abs(ballVx) * 1.04;
-        const hitOffset = (ballY - (playerY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+      if (paddleHit) {
+        const paddleY = paddleHit === 'player' ? playerY : cpuY;
+        const hitOffset = (ballY - (paddleY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
+        ballVx = Math.abs(ballVx) * 1.04 * (paddleHit === 'player' ? 1 : -1);
         ballVy += hitOffset * 140;
-      }
-
-      if (hitsPaddle('cpu', cpuPaddleX, cpuY)) {
-        ballX = cpuPaddleX - BALL_RADIUS;
-        ballVx = -Math.abs(ballVx) * 1.04;
-        const hitOffset = (ballY - (cpuY + PADDLE_HEIGHT / 2)) / (PADDLE_HEIGHT / 2);
-        ballVy += hitOffset * 140;
+        ballX =
+          paddleHit === 'player'
+            ? PADDLE_MARGIN + PADDLE_WIDTH + BALL_RADIUS
+            : STAGE_WIDTH - PADDLE_MARGIN - PADDLE_WIDTH - BALL_RADIUS;
+        setMatterBall(refs.ball, { ballX, ballY, ballVx, ballVy });
       }
 
       const maxSpeed = 560 + current.rally * 18;
@@ -282,6 +397,10 @@ export function SoloNeonPongGame({
         const scale = maxSpeed / speed;
         ballVx *= scale;
         ballVy *= scale;
+        Matter.Body.setVelocity(refs.ball, {
+          x: toMatterVelocity(ballVx),
+          y: toMatterVelocity(ballVy),
+        });
       }
 
       let playerScore = current.playerScore;
@@ -300,6 +419,7 @@ export function SoloNeonPongGame({
           ballVx = 0;
           ballVy = 0;
           rally += 1;
+          setMatterBall(refs.ball, createCenteredBall());
         }
       } else if (ballX > STAGE_WIDTH + BALL_RADIUS) {
         playerScore += 1;
@@ -312,6 +432,7 @@ export function SoloNeonPongGame({
           ballVx = 0;
           ballVy = 0;
           rally += 1;
+          setMatterBall(refs.ball, createCenteredBall());
         }
       }
 
@@ -348,6 +469,18 @@ export function SoloNeonPongGame({
       }
     };
   }, [stepWorld]);
+
+  useEffect(() => {
+    const refs = createPongPhysics();
+    physicsRef.current = refs;
+    resetPongMatterWorld(refs, createInitialState());
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     const stored =

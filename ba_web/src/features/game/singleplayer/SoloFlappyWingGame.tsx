@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
@@ -25,6 +26,18 @@ type SoloFlappyWingGameProps = {
   onLeave: () => void;
 };
 
+type FlappyPipeBodies = {
+  top: Matter.Body;
+  bottom: Matter.Body;
+};
+
+type FlappyPhysicsRefs = {
+  engine: Matter.Engine;
+  wing: Matter.Body;
+  pipeBodies: Map<number, FlappyPipeBodies>;
+  pendingCrash: boolean;
+};
+
 const STAGE_WIDTH = 900;
 const STAGE_HEIGHT = 520;
 const WING_X = 190;
@@ -36,6 +49,7 @@ const GRAVITY = 1120;
 const FLAP_STRENGTH = 410;
 const WIN_SCORE = 18;
 const BEST_SCORE_STORAGE_KEY = 'baturo_flappy_wing_best_score';
+const MATTER_TICK_SECONDS = 1 / 60;
 
 const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
 
@@ -66,22 +80,111 @@ const getStatusLabel = (state: FlappyWingState): string => {
   return 'Ready';
 };
 
-const hasPipeCollision = (wingY: number, pipe: FlappyWingPipe): boolean => {
-  const wingLeft = WING_X - WING_SIZE / 2;
-  const wingRight = WING_X + WING_SIZE / 2;
-  const wingTop = wingY - WING_SIZE / 2;
-  const wingBottom = wingY + WING_SIZE / 2;
-  const pipeLeft = pipe.x;
-  const pipeRight = pipe.x + PIPE_WIDTH;
-  const gapTop = pipe.gapY;
-  const gapBottom = pipe.gapY + GAP_HEIGHT;
+const toMatterVelocity = (velocity: number): number => velocity * MATTER_TICK_SECONDS;
 
-  const overlapsX = wingRight > pipeLeft && wingLeft < pipeRight;
-  if (!overlapsX) {
-    return false;
-  }
+const fromMatterVelocity = (velocity: number): number => velocity / MATTER_TICK_SECONDS;
 
-  return wingTop < gapTop || wingBottom > gapBottom;
+const setMatterWing = (body: Matter.Body, wingY: number, velocityY: number): void => {
+  Matter.Body.setPosition(body, { x: WING_X, y: wingY });
+  Matter.Body.setVelocity(body, { x: 0, y: toMatterVelocity(velocityY) });
+  Matter.Body.setAngularVelocity(body, 0);
+};
+
+const createPipeBodies = (pipe: FlappyWingPipe): FlappyPipeBodies => {
+  const bottomHeight = STAGE_HEIGHT - pipe.gapY - GAP_HEIGHT;
+  return {
+    top: Matter.Bodies.rectangle(pipe.x + PIPE_WIDTH / 2, pipe.gapY / 2, PIPE_WIDTH, pipe.gapY, {
+      isStatic: true,
+      isSensor: true,
+      label: `pipe:${pipe.id}:top`,
+    }),
+    bottom: Matter.Bodies.rectangle(
+      pipe.x + PIPE_WIDTH / 2,
+      pipe.gapY + GAP_HEIGHT + bottomHeight / 2,
+      PIPE_WIDTH,
+      bottomHeight,
+      {
+        isStatic: true,
+        isSensor: true,
+        label: `pipe:${pipe.id}:bottom`,
+      }
+    ),
+  };
+};
+
+const syncMatterPipes = (refs: FlappyPhysicsRefs, pipes: FlappyWingPipe[]): void => {
+  const wantedIds = new Set(pipes.map((pipe) => pipe.id));
+
+  refs.pipeBodies.forEach((bodies, id) => {
+    if (!wantedIds.has(id)) {
+      Matter.Composite.remove(refs.engine.world, bodies.top);
+      Matter.Composite.remove(refs.engine.world, bodies.bottom);
+      refs.pipeBodies.delete(id);
+    }
+  });
+
+  pipes.forEach((pipe) => {
+    let bodies = refs.pipeBodies.get(pipe.id);
+    if (!bodies) {
+      bodies = createPipeBodies(pipe);
+      refs.pipeBodies.set(pipe.id, bodies);
+      Matter.Composite.add(refs.engine.world, [bodies.top, bodies.bottom]);
+    }
+
+    const bottomHeight = STAGE_HEIGHT - pipe.gapY - GAP_HEIGHT;
+    Matter.Body.setPosition(bodies.top, { x: pipe.x + PIPE_WIDTH / 2, y: pipe.gapY / 2 });
+    Matter.Body.setPosition(bodies.bottom, {
+      x: pipe.x + PIPE_WIDTH / 2,
+      y: pipe.gapY + GAP_HEIGHT + bottomHeight / 2,
+    });
+  });
+};
+
+const resetFlappyMatterWorld = (refs: FlappyPhysicsRefs, state: FlappyWingState): void => {
+  refs.pendingCrash = false;
+  setMatterWing(refs.wing, state.wingY, state.velocityY);
+  syncMatterPipes(refs, state.pipes);
+};
+
+const createFlappyPhysics = (): FlappyPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const initial = createInitialState();
+  const wing = Matter.Bodies.circle(WING_X, initial.wingY, WING_SIZE / 2, {
+    restitution: 0,
+    friction: 0,
+    frictionAir: 0,
+    label: 'wing',
+  });
+  const ceiling = Matter.Bodies.rectangle(STAGE_WIDTH / 2, -8, STAGE_WIDTH, 16, {
+    isStatic: true,
+    isSensor: true,
+    label: 'world:ceiling',
+  });
+  const floor = Matter.Bodies.rectangle(STAGE_WIDTH / 2, STAGE_HEIGHT + 8, STAGE_WIDTH, 16, {
+    isStatic: true,
+    isSensor: true,
+    label: 'world:floor',
+  });
+  const refs: FlappyPhysicsRefs = {
+    engine,
+    wing,
+    pipeBodies: new Map(),
+    pendingCrash: false,
+  };
+
+  Matter.Composite.add(engine.world, [wing, ceiling, floor]);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (labels.includes('wing')) {
+        refs.pendingCrash = true;
+      }
+    });
+  });
+
+  return refs;
 };
 
 export function SoloFlappyWingGame({
@@ -99,13 +202,20 @@ export function SoloFlappyWingGame({
   const lastFrameTimeRef = useRef<number | null>(null);
   const nextPipeIdRef = useRef(1);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
+  const physicsRef = useRef<FlappyPhysicsRefs | null>(null);
   const gameLabel = formatGameName('flappy-wing', gameDefinitions);
 
   const handleRestart = useCallback(() => {
     lastFrameTimeRef.current = null;
     nextPipeIdRef.current = 1;
     lastReportedOutcomeRef.current = null;
-    setState((current) => createInitialState(current.bestScore));
+    setState((current) => {
+      const nextState = createInitialState(current.bestScore);
+      if (physicsRef.current) {
+        resetFlappyMatterWorld(physicsRef.current, nextState);
+      }
+      return nextState;
+    });
   }, []);
 
   const handleFlap = useCallback(() => {
@@ -114,6 +224,9 @@ export function SoloFlappyWingGame({
         return current;
       }
 
+      if (physicsRef.current) {
+        setMatterWing(physicsRef.current.wing, current.wingY, -FLAP_STRENGTH);
+      }
       return {
         ...current,
         status: 'flying',
@@ -135,6 +248,18 @@ export function SoloFlappyWingGame({
       ...current,
       bestScore: storedBest,
     }));
+  }, []);
+
+  useEffect(() => {
+    const refs = createFlappyPhysics();
+    physicsRef.current = refs;
+    resetFlappyMatterWorld(refs, createInitialState());
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -180,6 +305,11 @@ export function SoloFlappyWingGame({
           return current;
         }
 
+        const refs = physicsRef.current;
+        if (!refs) {
+          return current;
+        }
+
         let spawnTimer = current.spawnTimer - deltaMs;
         let pipes = current.pipes.map((pipe) => ({
           ...pipe,
@@ -203,13 +333,24 @@ export function SoloFlappyWingGame({
             return pipe;
           });
 
-        const velocityY = current.velocityY + GRAVITY * deltaSeconds;
-        const wingY = current.wingY + velocityY * deltaSeconds;
+        const matterVelocityY = fromMatterVelocity(refs.wing.velocity.y);
+        Matter.Body.setVelocity(refs.wing, {
+          x: 0,
+          y: toMatterVelocity(matterVelocityY + GRAVITY * deltaSeconds),
+        });
+        syncMatterPipes(refs, pipes);
+        Matter.Engine.update(refs.engine, deltaMs);
+        Matter.Body.setPosition(refs.wing, { x: WING_X, y: refs.wing.position.y });
+
+        const velocityY = fromMatterVelocity(refs.wing.velocity.y);
+        const wingY = refs.wing.position.y;
         const hitWorld = wingY - WING_SIZE / 2 < 0 || wingY + WING_SIZE / 2 > STAGE_HEIGHT;
-        const hitPipe = pipes.some((pipe) => hasPipeCollision(wingY, pipe));
+        const hitPipe = refs.pendingCrash;
+        refs.pendingCrash = false;
         const bestScore = Math.max(current.bestScore, score);
 
         if (score >= WIN_SCORE) {
+          setMatterWing(refs.wing, clamp(wingY, WING_SIZE / 2, STAGE_HEIGHT - WING_SIZE / 2), 0);
           return {
             ...current,
             status: 'won',
@@ -224,6 +365,7 @@ export function SoloFlappyWingGame({
         }
 
         if (hitWorld || hitPipe) {
+          setMatterWing(refs.wing, clamp(wingY, WING_SIZE / 2, STAGE_HEIGHT - WING_SIZE / 2), 0);
           return {
             ...current,
             status: 'crashed',

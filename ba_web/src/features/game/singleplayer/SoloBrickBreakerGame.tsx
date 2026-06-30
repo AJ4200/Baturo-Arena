@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowLeft,
@@ -48,6 +49,15 @@ type BrickBreakerState = {
   elapsedMs: number;
 };
 
+type BrickBreakerPhysicsRefs = {
+  engine: Matter.Engine;
+  ball: Matter.Body;
+  paddle: Matter.Body;
+  brickBodies: Map<string, Matter.Body>;
+  pendingBrickHits: Set<string>;
+  pendingPaddleHit: boolean;
+};
+
 type SoloBrickBreakerGameProps = {
   player: PlayerProfile;
   gameDefinitions: GameDefinition[];
@@ -75,6 +85,7 @@ const BRICK_GAP_Y = 10;
 const BRICK_START_Y = 92;
 const MAX_LEVEL = 3;
 const BEST_SCORE_STORAGE_KEY = 'baturo_brick_breaker_best_score';
+const MATTER_TICK_SECONDS = 1 / 60;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
@@ -161,32 +172,170 @@ const createInitialState = (): BrickBreakerState => {
 
 const getBallSpeed = (ball: BallState): number => Math.hypot(ball.vx, ball.vy);
 
-const updateBallDirectionAfterBrickHit = (
-  previousBall: BallState,
-  nextBall: BallState,
-  brick: Brick
-): BallState => {
-  const previousLeft = previousBall.x - BALL_RADIUS;
-  const previousRight = previousBall.x + BALL_RADIUS;
-  const previousTop = previousBall.y - BALL_RADIUS;
-  const previousBottom = previousBall.y + BALL_RADIUS;
+const toMatterVelocity = (velocity: number): number => velocity * MATTER_TICK_SECONDS;
 
-  let vx = nextBall.vx;
-  let vy = nextBall.vy;
+const fromMatterVelocity = (velocity: number): number => velocity / MATTER_TICK_SECONDS;
 
-  if (previousBottom <= brick.y || previousTop >= brick.y + brick.height) {
-    vy *= -1;
-  } else if (previousRight <= brick.x || previousLeft >= brick.x + brick.width) {
-    vx *= -1;
-  } else {
-    vy *= -1;
+const setMatterBallFromState = (body: Matter.Body, ball: BallState): void => {
+  Matter.Body.setPosition(body, { x: ball.x, y: ball.y });
+  Matter.Body.setVelocity(body, {
+    x: toMatterVelocity(ball.vx),
+    y: toMatterVelocity(ball.vy),
+  });
+  Matter.Body.setAngularVelocity(body, 0);
+};
+
+const getMatterBallState = (body: Matter.Body): BallState => ({
+  x: body.position.x,
+  y: body.position.y,
+  vx: fromMatterVelocity(body.velocity.x),
+  vy: fromMatterVelocity(body.velocity.y),
+});
+
+const clampMatterBallSpeed = (body: Matter.Body): void => {
+  const ball = getMatterBallState(body);
+  const speed = getBallSpeed(ball);
+  if (speed <= 0) {
+    return;
   }
 
-  return {
-    ...nextBall,
-    vx,
-    vy,
+  const nextSpeed = clamp(speed, BALL_BASE_SPEED, BALL_MAX_SPEED);
+  if (Math.abs(nextSpeed - speed) < 0.1) {
+    return;
+  }
+
+  const ratio = nextSpeed / speed;
+  Matter.Body.setVelocity(body, {
+    x: body.velocity.x * ratio,
+    y: body.velocity.y * ratio,
+  });
+};
+
+const createMatterBrick = (brick: Brick): Matter.Body =>
+  Matter.Bodies.rectangle(
+    brick.x + brick.width / 2,
+    brick.y + brick.height / 2,
+    brick.width,
+    brick.height,
+    {
+      isStatic: true,
+      restitution: 1.05,
+      friction: 0,
+      label: `brick:${brick.id}`,
+    }
+  );
+
+const syncMatterBricks = (refs: BrickBreakerPhysicsRefs, bricks: Brick[]): void => {
+  const wantedIds = new Set(bricks.map((brick) => brick.id));
+
+  refs.brickBodies.forEach((body, id) => {
+    if (!wantedIds.has(id)) {
+      Matter.Composite.remove(refs.engine.world, body);
+      refs.brickBodies.delete(id);
+    }
+  });
+
+  bricks.forEach((brick) => {
+    if (refs.brickBodies.has(brick.id)) {
+      return;
+    }
+
+    const body = createMatterBrick(brick);
+    refs.brickBodies.set(brick.id, body);
+    Matter.Composite.add(refs.engine.world, body);
+  });
+};
+
+const resetMatterWorld = (refs: BrickBreakerPhysicsRefs, state: BrickBreakerState): void => {
+  refs.pendingBrickHits.clear();
+  refs.pendingPaddleHit = false;
+  Matter.Body.setPosition(refs.paddle, {
+    x: state.paddleX + PADDLE_WIDTH / 2,
+    y: PADDLE_Y + PADDLE_HEIGHT / 2,
+  });
+  setMatterBallFromState(refs.ball, state.ball);
+  syncMatterBricks(refs, state.bricks);
+};
+
+const createBrickBreakerPhysics = (): BrickBreakerPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const initialPaddleX = createPaddleX();
+  const ball = Matter.Bodies.circle(
+    initialPaddleX + PADDLE_WIDTH / 2,
+    PADDLE_Y - BALL_RADIUS - 2,
+    BALL_RADIUS,
+    {
+      restitution: 1,
+      friction: 0,
+      frictionAir: 0,
+      inertia: Infinity,
+      label: 'ball',
+    }
+  );
+  const paddle = Matter.Bodies.rectangle(
+    initialPaddleX + PADDLE_WIDTH / 2,
+    PADDLE_Y + PADDLE_HEIGHT / 2,
+    PADDLE_WIDTH,
+    PADDLE_HEIGHT,
+    {
+      isStatic: true,
+      restitution: 1.08,
+      friction: 0,
+      label: 'paddle',
+    }
+  );
+  const walls = [
+    Matter.Bodies.rectangle(-12, STAGE_HEIGHT / 2, 24, STAGE_HEIGHT, {
+      isStatic: true,
+      restitution: 1,
+      friction: 0,
+      label: 'wall:left',
+    }),
+    Matter.Bodies.rectangle(STAGE_WIDTH + 12, STAGE_HEIGHT / 2, 24, STAGE_HEIGHT, {
+      isStatic: true,
+      restitution: 1,
+      friction: 0,
+      label: 'wall:right',
+    }),
+    Matter.Bodies.rectangle(STAGE_WIDTH / 2, -12, STAGE_WIDTH, 24, {
+      isStatic: true,
+      restitution: 1,
+      friction: 0,
+      label: 'wall:top',
+    }),
+  ];
+  const refs: BrickBreakerPhysicsRefs = {
+    engine,
+    ball,
+    paddle,
+    brickBodies: new Map(),
+    pendingBrickHits: new Set(),
+    pendingPaddleHit: false,
   };
+
+  Matter.Composite.add(engine.world, [ball, paddle, ...walls]);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (!labels.includes('ball')) {
+        return;
+      }
+
+      const brickLabel = labels.find((label) => label.startsWith('brick:'));
+      if (brickLabel) {
+        refs.pendingBrickHits.add(brickLabel.replace('brick:', ''));
+        return;
+      }
+
+      if (labels.includes('paddle')) {
+        refs.pendingPaddleHit = true;
+      }
+    });
+  });
+
+  return refs;
 };
 
 export function SoloBrickBreakerGame({
@@ -206,6 +355,7 @@ export function SoloBrickBreakerGame({
   const lastFrameTimeRef = useRef<number | null>(null);
   const leftPressedRef = useRef(false);
   const rightPressedRef = useRef(false);
+  const physicsRef = useRef<BrickBreakerPhysicsRefs | null>(null);
   const gameLabel = formatGameName('brickbreaker', gameDefinitions);
 
   const aliveBricks = state.bricks.length;
@@ -225,7 +375,11 @@ export function SoloBrickBreakerGame({
   const handleRestart = useCallback(() => {
     lastReportedOutcomeRef.current = null;
     lastFrameTimeRef.current = null;
-    setState(createInitialState());
+    const nextState = createInitialState();
+    if (physicsRef.current) {
+      resetMatterWorld(physicsRef.current, nextState);
+    }
+    setState(nextState);
   }, []);
 
   const handleLaunchBall = useCallback(() => {
@@ -233,10 +387,14 @@ export function SoloBrickBreakerGame({
       if (current.status !== 'ready') {
         return current;
       }
+      const nextBall = createLaunchBall(current.paddleX, current.level);
+      if (physicsRef.current) {
+        setMatterBallFromState(physicsRef.current.ball, nextBall);
+      }
       return {
         ...current,
         status: 'playing',
-        ball: createLaunchBall(current.paddleX, current.level),
+        ball: nextBall,
       };
     });
   }, []);
@@ -275,6 +433,18 @@ export function SoloBrickBreakerGame({
         ? Number.parseInt(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY) || '0', 10)
         : 0;
     setBestScore(Number.isFinite(storedBest) ? storedBest : 0);
+  }, []);
+
+  useEffect(() => {
+    const refs = createBrickBreakerPhysics();
+    physicsRef.current = refs;
+    resetMatterWorld(refs, createInitialState());
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -338,12 +508,22 @@ export function SoloBrickBreakerGame({
           0,
           STAGE_WIDTH - PADDLE_WIDTH
         );
+        const refs = physicsRef.current;
 
         if (current.status === 'ready') {
+          const nextBall = createDockedBall(nextPaddleX);
+          if (refs) {
+            Matter.Body.setPosition(refs.paddle, {
+              x: nextPaddleX + PADDLE_WIDTH / 2,
+              y: PADDLE_Y + PADDLE_HEIGHT / 2,
+            });
+            setMatterBallFromState(refs.ball, nextBall);
+            syncMatterBricks(refs, current.bricks);
+          }
           return {
             ...current,
             paddleX: nextPaddleX,
-            ball: createDockedBall(nextPaddleX),
+            ball: nextBall,
           };
         }
 
@@ -351,12 +531,23 @@ export function SoloBrickBreakerGame({
           return current;
         }
 
-        const previousBall = current.ball;
-        let nextBall: BallState = {
-          ...previousBall,
-          x: previousBall.x + previousBall.vx * deltaSeconds,
-          y: previousBall.y + previousBall.vy * deltaSeconds,
-        };
+        if (!refs) {
+          return current;
+        }
+
+        Matter.Body.setPosition(refs.paddle, {
+          x: nextPaddleX + PADDLE_WIDTH / 2,
+          y: PADDLE_Y + PADDLE_HEIGHT / 2,
+        });
+        syncMatterBricks(refs, current.bricks);
+        Matter.Engine.update(refs.engine, deltaSeconds * 1000);
+
+        const hitBrickIds = Array.from(refs.pendingBrickHits);
+        const hitPaddle = refs.pendingPaddleHit;
+        refs.pendingBrickHits.clear();
+        refs.pendingPaddleHit = false;
+
+        let nextBall = getMatterBallState(refs.ball);
         let nextBricks = current.bricks;
         let nextScore = current.score;
         let nextCombo = current.combo;
@@ -365,78 +556,60 @@ export function SoloBrickBreakerGame({
         let nextStatus: RunStatus = current.status;
         let nextElapsedMs = current.elapsedMs + deltaSeconds * 1000;
 
-        if (nextBall.x - BALL_RADIUS <= 0) {
-          nextBall = { ...nextBall, x: BALL_RADIUS, vx: Math.abs(nextBall.vx) };
-        }
-        if (nextBall.x + BALL_RADIUS >= STAGE_WIDTH) {
-          nextBall = {
-            ...nextBall,
-            x: STAGE_WIDTH - BALL_RADIUS,
-            vx: -Math.abs(nextBall.vx),
-          };
-        }
-        if (nextBall.y - BALL_RADIUS <= 0) {
-          nextBall = { ...nextBall, y: BALL_RADIUS, vy: Math.abs(nextBall.vy) };
-        }
-
-        const paddleTop = PADDLE_Y;
-        const paddleBottom = PADDLE_Y + PADDLE_HEIGHT;
-        const paddleLeft = nextPaddleX;
-        const paddleRight = nextPaddleX + PADDLE_WIDTH;
-
-        const touchesPaddle =
-          nextBall.vy > 0 &&
-          nextBall.y + BALL_RADIUS >= paddleTop &&
-          nextBall.y - BALL_RADIUS <= paddleBottom &&
-          nextBall.x >= paddleLeft - BALL_RADIUS &&
-          nextBall.x <= paddleRight + BALL_RADIUS;
-
-        if (touchesPaddle) {
-          const hitRatio = clamp((nextBall.x - (paddleLeft + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2), -1, 1);
+        if (hitPaddle) {
+          const hitRatio = clamp(
+            (refs.ball.position.x - (nextPaddleX + PADDLE_WIDTH / 2)) / (PADDLE_WIDTH / 2),
+            -1,
+            1
+          );
           const speed = clamp(getBallSpeed(nextBall) * 1.02, BALL_BASE_SPEED, BALL_MAX_SPEED);
           const vx = hitRatio * speed * 0.86;
           const vy = -Math.sqrt(Math.max(speed * speed - vx * vx, 42000));
+          Matter.Body.setPosition(refs.ball, {
+            x: clamp(refs.ball.position.x, BALL_RADIUS, STAGE_WIDTH - BALL_RADIUS),
+            y: PADDLE_Y - BALL_RADIUS - 1,
+          });
+          Matter.Body.setVelocity(refs.ball, {
+            x: toMatterVelocity(vx),
+            y: toMatterVelocity(vy),
+          });
           nextBall = {
-            ...nextBall,
-            x: clamp(nextBall.x, BALL_RADIUS, STAGE_WIDTH - BALL_RADIUS),
-            y: paddleTop - BALL_RADIUS - 1,
+            x: refs.ball.position.x,
+            y: refs.ball.position.y,
             vx,
             vy,
           };
           nextCombo = 0;
         }
 
-        let collidedBrickId: string | null = null;
-        for (const brick of current.bricks) {
-          const intersectsBrick =
-            nextBall.x + BALL_RADIUS >= brick.x &&
-            nextBall.x - BALL_RADIUS <= brick.x + brick.width &&
-            nextBall.y + BALL_RADIUS >= brick.y &&
-            nextBall.y - BALL_RADIUS <= brick.y + brick.height;
-
-          if (!intersectsBrick) {
-            continue;
-          }
-
-          collidedBrickId = brick.id;
-          nextBall = updateBallDirectionAfterBrickHit(previousBall, nextBall, brick);
+        const hitBrick = hitBrickIds
+          .map((id) => current.bricks.find((brick) => brick.id === id))
+          .find((brick): brick is Brick => Boolean(brick));
+        if (hitBrick) {
           nextCombo = current.combo + 1;
           const gain = 18 + current.level * 6 + nextCombo * 4;
           nextScore += gain;
 
           nextBricks = current.bricks.flatMap((entry) => {
-            if (entry.id !== brick.id) {
+            if (entry.id !== hitBrick.id) {
               return [entry];
             }
             if (entry.hp <= 1) {
+              const body = refs.brickBodies.get(entry.id);
+              if (body) {
+                Matter.Composite.remove(refs.engine.world, body);
+                refs.brickBodies.delete(entry.id);
+              }
               return [];
             }
             return [{ ...entry, hp: entry.hp - 1 }];
           });
-          break;
         }
 
-        if (collidedBrickId && nextBricks.length === 0) {
+        clampMatterBallSpeed(refs.ball);
+        nextBall = getMatterBallState(refs.ball);
+
+        if (hitBrick && nextBricks.length === 0) {
           if (current.level >= MAX_LEVEL) {
             nextStatus = 'won';
             nextBall = {
@@ -444,14 +617,15 @@ export function SoloBrickBreakerGame({
               vx: 0,
               vy: 0,
             };
+            setMatterBallFromState(refs.ball, nextBall);
           } else {
             nextLevel = current.level + 1;
             nextScore += 150 * current.level;
             nextCombo = 0;
             const levelPaddleX = createPaddleX();
-            return {
+            const nextState = {
               ...current,
-              status: 'ready',
+              status: 'ready' as const,
               paddleX: levelPaddleX,
               ball: createDockedBall(levelPaddleX),
               bricks: createBricks(nextLevel),
@@ -461,27 +635,36 @@ export function SoloBrickBreakerGame({
               combo: nextCombo,
               elapsedMs: nextElapsedMs,
             };
+            resetMatterWorld(refs, nextState);
+            return {
+              ...nextState,
+            };
           }
         }
 
         if (nextBall.y - BALL_RADIUS > STAGE_HEIGHT) {
           nextLives = current.lives - 1;
           if (nextLives <= 0) {
-            return {
+            const nextState = {
               ...current,
-              status: 'lost',
+              status: 'lost' as const,
               lives: 0,
               paddleX: nextPaddleX,
               ball: createDockedBall(nextPaddleX),
+              bricks: nextBricks,
+              score: nextScore,
+              level: nextLevel,
               combo: 0,
               elapsedMs: nextElapsedMs,
             };
+            resetMatterWorld(refs, nextState);
+            return nextState;
           }
 
           const resetPaddleX = createPaddleX();
-          return {
+          const nextState = {
             ...current,
-            status: 'ready',
+            status: 'ready' as const,
             paddleX: resetPaddleX,
             ball: createDockedBall(resetPaddleX),
             bricks: nextBricks,
@@ -491,6 +674,8 @@ export function SoloBrickBreakerGame({
             combo: 0,
             elapsedMs: nextElapsedMs,
           };
+          resetMatterWorld(refs, nextState);
+          return nextState;
         }
 
         return {

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowLeft,
@@ -73,6 +74,14 @@ type AirHockeyArenaGameProps = {
   onLeave: () => void;
 };
 
+type AirHockeyPhysicsRefs = {
+  engine: Matter.Engine;
+  puck: Matter.Body;
+  leftPaddle: Matter.Body;
+  rightPaddle: Matter.Body;
+  pendingPaddleHits: Set<Side>;
+};
+
 const TABLE_WIDTH = 920;
 const TABLE_HEIGHT = 540;
 const GOAL_HEIGHT = 170;
@@ -90,6 +99,7 @@ const MATCH_POINT = 5;
 const MIN_PUCK_SPEED = 260;
 const MAX_PUCK_SPEED = 760;
 const ONLINE_SYNC_INTERVAL_MS = 33;
+const MATTER_TICK_SECONDS = 1 / 60;
 
 const clamp = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, value));
@@ -171,6 +181,106 @@ const normalizeVector = (x: number, y: number): { x: number; y: number } => {
   return { x: x / magnitude, y: y / magnitude };
 };
 
+const toMatterVelocity = (velocity: number): number => velocity * MATTER_TICK_SECONDS;
+
+const fromMatterVelocity = (velocity: number): number => velocity / MATTER_TICK_SECONDS;
+
+const setMatterPuck = (body: Matter.Body, puck: PuckState): void => {
+  Matter.Body.setPosition(body, { x: puck.x, y: puck.y });
+  Matter.Body.setVelocity(body, {
+    x: toMatterVelocity(puck.vx),
+    y: toMatterVelocity(puck.vy),
+  });
+  Matter.Body.setAngularVelocity(body, 0);
+};
+
+const getMatterPuck = (body: Matter.Body): PuckState => ({
+  x: body.position.x,
+  y: body.position.y,
+  vx: fromMatterVelocity(body.velocity.x),
+  vy: fromMatterVelocity(body.velocity.y),
+});
+
+const syncMatterPaddles = (
+  refs: AirHockeyPhysicsRefs,
+  leftPaddle: PaddleState,
+  rightPaddle: PaddleState
+): void => {
+  Matter.Body.setPosition(refs.leftPaddle, leftPaddle);
+  Matter.Body.setPosition(refs.rightPaddle, rightPaddle);
+};
+
+const resetAirHockeyMatterWorld = (refs: AirHockeyPhysicsRefs, state: AirHockeyState): void => {
+  refs.pendingPaddleHits.clear();
+  syncMatterPaddles(refs, state.leftPaddle, state.rightPaddle);
+  setMatterPuck(refs.puck, state.puck);
+};
+
+const createAirHockeyPhysics = (): AirHockeyPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const initial = createInitialState();
+  const puck = Matter.Bodies.circle(initial.puck.x, initial.puck.y, PUCK_RADIUS, {
+    restitution: 1,
+    friction: 0,
+    frictionAir: 0,
+    inertia: Infinity,
+    label: 'puck',
+  });
+  const leftPaddle = Matter.Bodies.circle(initial.leftPaddle.x, initial.leftPaddle.y, PADDLE_RADIUS, {
+    isStatic: true,
+    restitution: 1.08,
+    friction: 0,
+    label: 'paddle:left',
+  });
+  const rightPaddle = Matter.Bodies.circle(initial.rightPaddle.x, initial.rightPaddle.y, PADDLE_RADIUS, {
+    isStatic: true,
+    restitution: 1.08,
+    friction: 0,
+    label: 'paddle:right',
+  });
+  const topWall = Matter.Bodies.rectangle(
+    TABLE_WIDTH / 2,
+    TABLE_PADDING - 12,
+    TABLE_WIDTH,
+    24,
+    { isStatic: true, restitution: 1, friction: 0, label: 'wall:top' }
+  );
+  const bottomWall = Matter.Bodies.rectangle(
+    TABLE_WIDTH / 2,
+    TABLE_HEIGHT - TABLE_PADDING + 12,
+    TABLE_WIDTH,
+    24,
+    { isStatic: true, restitution: 1, friction: 0, label: 'wall:bottom' }
+  );
+  const refs: AirHockeyPhysicsRefs = {
+    engine,
+    puck,
+    leftPaddle,
+    rightPaddle,
+    pendingPaddleHits: new Set(),
+  };
+
+  Matter.Composite.add(engine.world, [puck, leftPaddle, rightPaddle, topWall, bottomWall]);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (!labels.includes('puck')) {
+        return;
+      }
+      if (labels.includes('paddle:left')) {
+        refs.pendingPaddleHits.add('left');
+      }
+      if (labels.includes('paddle:right')) {
+        refs.pendingPaddleHits.add('right');
+      }
+    });
+  });
+
+  return refs;
+};
+
 const isPaddleState = (value: unknown): value is PaddleState => {
   if (!value || typeof value !== 'object') {
     return false;
@@ -246,6 +356,7 @@ export function AirHockeyArenaGame({
   const localSideRef = useRef<Side | null>(mode === 'online' ? null : 'left');
   const remotePaddleRef = useRef<PaddleState | null>(null);
   const lastOnlineSyncRef = useRef(0);
+  const physicsRef = useRef<AirHockeyPhysicsRefs | null>(null);
   const leftInputRef = useRef<Record<DirectionKey, boolean>>({
     up: false,
     down: false,
@@ -295,6 +406,9 @@ export function AirHockeyArenaGame({
     remotePaddleRef.current = null;
     const nextState = createInitialState();
     stateRef.current = nextState;
+    if (physicsRef.current) {
+      resetAirHockeyMatterWorld(physicsRef.current, nextState);
+    }
     setState(nextState);
     if (mode === 'online') {
       sendSocketMessage({ type: 'air-hockey-rematch' });
@@ -363,6 +477,18 @@ export function AirHockeyArenaGame({
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
+
+  useEffect(() => {
+    const refs = createAirHockeyPhysics();
+    physicsRef.current = refs;
+    resetAirHockeyMatterWorld(refs, createInitialState());
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     localSideRef.current = localSide;
@@ -482,6 +608,9 @@ export function AirHockeyArenaGame({
             remotePaddleRef.current = null;
             const nextState = createInitialState();
             stateRef.current = nextState;
+            if (physicsRef.current) {
+              resetAirHockeyMatterWorld(physicsRef.current, nextState);
+            }
             setState(nextState);
           }
           return;
@@ -490,6 +619,9 @@ export function AirHockeyArenaGame({
         if (payload.type === 'air-hockey-state' && localSideRef.current === 'right' && isAirHockeyState(payload.state)) {
           setIsOpponentConnected(true);
           stateRef.current = payload.state;
+          if (physicsRef.current) {
+            resetAirHockeyMatterWorld(physicsRef.current, payload.state);
+          }
           setState(payload.state);
           return;
         }
@@ -510,6 +642,9 @@ export function AirHockeyArenaGame({
           remotePaddleRef.current = null;
           const nextState = createInitialState();
           stateRef.current = nextState;
+          if (physicsRef.current) {
+            resetAirHockeyMatterWorld(physicsRef.current, nextState);
+          }
           setState(nextState);
         }
       } catch (_error) {
@@ -543,10 +678,15 @@ export function AirHockeyArenaGame({
           if (current.phase !== 'faceoff' && current.phase !== 'goal') {
             return current;
           }
+          const puck = launchPuck(current.serveTo);
+          if (physicsRef.current) {
+            syncMatterPaddles(physicsRef.current, current.leftPaddle, current.rightPaddle);
+            setMatterPuck(physicsRef.current.puck, puck);
+          }
           return {
             ...current,
             phase: 'playing',
-            puck: launchPuck(current.serveTo),
+            puck,
           };
         });
       }, FACE_OFF_DELAY_MS);
@@ -724,28 +864,20 @@ export function AirHockeyArenaGame({
           y: nextRightPaddle.y - current.rightPaddle.y,
         };
 
-        let nextPuck: PuckState = {
-          ...current.puck,
-          x: current.puck.x + current.puck.vx * deltaSeconds,
-          y: current.puck.y + current.puck.vy * deltaSeconds,
-        };
+        const refs = physicsRef.current;
+        if (!refs) {
+          return current;
+        }
+
+        syncMatterPaddles(refs, nextLeftPaddle, nextRightPaddle);
+        Matter.Engine.update(refs.engine, deltaSeconds * 1000);
+        let nextPuck = getMatterPuck(refs.puck);
+        const hitSides = Array.from(refs.pendingPaddleHits);
+        refs.pendingPaddleHits.clear();
 
         const damping = Math.pow(0.992, deltaSeconds * 60);
         nextPuck.vx *= damping;
         nextPuck.vy *= damping;
-        const clampedSpeed = clamp(Math.hypot(nextPuck.vx, nextPuck.vy), MIN_PUCK_SPEED, MAX_PUCK_SPEED);
-        const speedNorm = normalizeVector(nextPuck.vx, nextPuck.vy);
-        nextPuck.vx = speedNorm.x * clampedSpeed;
-        nextPuck.vy = speedNorm.y * clampedSpeed;
-
-        if (nextPuck.y - PUCK_RADIUS <= TABLE_PADDING) {
-          nextPuck.y = TABLE_PADDING + PUCK_RADIUS;
-          nextPuck.vy = Math.abs(nextPuck.vy);
-        }
-        if (nextPuck.y + PUCK_RADIUS >= TABLE_HEIGHT - TABLE_PADDING) {
-          nextPuck.y = TABLE_HEIGHT - TABLE_PADDING - PUCK_RADIUS;
-          nextPuck.vy = -Math.abs(nextPuck.vy);
-        }
 
         const resolvePaddleCollision = (
           puck: PuckState,
@@ -757,19 +889,19 @@ export function AirHockeyArenaGame({
           const distance = Math.hypot(dx, dy);
           const minDistance = PUCK_RADIUS + PADDLE_RADIUS;
 
-          if (distance <= 0 || distance >= minDistance) {
+          if (distance <= 0 || distance > minDistance + 16) {
             return puck;
           }
 
           const normal = normalizeVector(dx, dy);
-          const overlap = minDistance - distance;
+          const overlap = Math.max(0, minDistance - distance);
           const relativeVx = puck.vx + paddleVelocity.x * PADDLE_SHOT_BOOST;
           const relativeVy = puck.vy + paddleVelocity.y * PADDLE_SHOT_BOOST;
           const dot = relativeVx * normal.x + relativeVy * normal.y;
-          const reflectedVx = relativeVx - 2 * dot * normal.x;
-          const reflectedVy = relativeVy - 2 * dot * normal.y;
-          const speed = clamp(Math.hypot(reflectedVx, reflectedVy) * 1.02, MIN_PUCK_SPEED, MAX_PUCK_SPEED);
-          const direction = normalizeVector(reflectedVx, reflectedVy);
+          const outgoingVx = dot < 0 ? relativeVx - 2 * dot * normal.x : relativeVx;
+          const outgoingVy = dot < 0 ? relativeVy - 2 * dot * normal.y : relativeVy;
+          const speed = clamp(Math.hypot(outgoingVx, outgoingVy) * 1.02, MIN_PUCK_SPEED, MAX_PUCK_SPEED);
+          const direction = normalizeVector(outgoingVx, outgoingVy);
 
           return {
             x: puck.x + normal.x * overlap,
@@ -779,8 +911,17 @@ export function AirHockeyArenaGame({
           };
         };
 
-        nextPuck = resolvePaddleCollision(nextPuck, nextLeftPaddle, leftPaddleVelocity);
-        nextPuck = resolvePaddleCollision(nextPuck, nextRightPaddle, rightPaddleVelocity);
+        if (hitSides.includes('left')) {
+          nextPuck = resolvePaddleCollision(nextPuck, nextLeftPaddle, leftPaddleVelocity);
+        }
+        if (hitSides.includes('right')) {
+          nextPuck = resolvePaddleCollision(nextPuck, nextRightPaddle, rightPaddleVelocity);
+        }
+
+        const clampedSpeed = clamp(Math.hypot(nextPuck.vx, nextPuck.vy), MIN_PUCK_SPEED, MAX_PUCK_SPEED);
+        const speedNorm = normalizeVector(nextPuck.vx, nextPuck.vy);
+        nextPuck.vx = speedNorm.x * clampedSpeed;
+        nextPuck.vy = speedNorm.y * clampedSpeed;
 
         const inGoalWindow = nextPuck.y >= GOAL_TOP && nextPuck.y <= GOAL_BOTTOM;
         if (nextPuck.x - PUCK_RADIUS <= TABLE_PADDING) {
@@ -788,7 +929,7 @@ export function AirHockeyArenaGame({
             const nextRightScore = current.rightScore + 1;
             const won = nextRightScore >= MATCH_POINT;
             const resetPaddles = createPaddles();
-            return syncOnlineState({
+            const nextState: AirHockeyState = {
               ...current,
               phase: won ? 'won' : 'goal',
               leftScore: current.leftScore,
@@ -799,7 +940,9 @@ export function AirHockeyArenaGame({
               lastScorer: 'right',
               serveTo: 'left',
               elapsedMs: current.elapsedMs + deltaSeconds * 1000,
-            });
+            };
+            resetAirHockeyMatterWorld(refs, nextState);
+            return syncOnlineState(nextState);
           }
           nextPuck.x = TABLE_PADDING + PUCK_RADIUS;
           nextPuck.vx = Math.abs(nextPuck.vx);
@@ -810,7 +953,7 @@ export function AirHockeyArenaGame({
             const nextLeftScore = current.leftScore + 1;
             const won = nextLeftScore >= MATCH_POINT;
             const resetPaddles = createPaddles();
-            return syncOnlineState({
+            const nextState: AirHockeyState = {
               ...current,
               phase: won ? 'won' : 'goal',
               leftScore: nextLeftScore,
@@ -821,11 +964,15 @@ export function AirHockeyArenaGame({
               lastScorer: 'left',
               serveTo: 'right',
               elapsedMs: current.elapsedMs + deltaSeconds * 1000,
-            });
+            };
+            resetAirHockeyMatterWorld(refs, nextState);
+            return syncOnlineState(nextState);
           }
           nextPuck.x = TABLE_WIDTH - TABLE_PADDING - PUCK_RADIUS;
           nextPuck.vx = -Math.abs(nextPuck.vx);
         }
+
+        setMatterPuck(refs.puck, nextPuck);
 
         return syncOnlineState({
           ...current,

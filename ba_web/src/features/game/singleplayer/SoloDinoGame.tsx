@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classnames from 'classnames';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowUp,
@@ -70,6 +71,14 @@ type Box = {
   y: number;
   width: number;
   height: number;
+};
+
+type DinoPhysicsRefs = {
+  engine: Matter.Engine;
+  dino: Matter.Body;
+  obstacleBodies: Map<number, Matter.Body>;
+  pendingCrash: boolean;
+  dinoHeight: number;
 };
 
 const STAGE_WIDTH = 860;
@@ -155,9 +164,14 @@ const intersects = (left: Box, right: Box): boolean => {
   );
 };
 
-const getDinoBox = (world: DinoWorldState): Box => {
+const getDinoSize = (world: DinoWorldState): { width: number; height: number } => {
   const width = world.isDucking ? DINO_WIDTH + 10 : DINO_WIDTH;
   const height = world.isDucking ? DINO_DUCK_HEIGHT : DINO_HEIGHT;
+  return { width, height };
+};
+
+const getDinoBox = (world: DinoWorldState): Box => {
+  const { width, height } = getDinoSize(world);
   const top = GROUND_Y - world.dinoY - height;
   return {
     x: DINO_X + 4,
@@ -177,6 +191,115 @@ const hasCollision = (world: DinoWorldState): boolean => {
       height: Math.max(1, obstacle.height - 4),
     })
   );
+};
+
+const toDinoMatterVelocity = (velocityY: number): number => -velocityY;
+
+const fromDinoMatterVelocity = (velocityY: number): number => -velocityY;
+
+const createDinoBody = (world: DinoWorldState): Matter.Body => {
+  const box = getDinoBox(world);
+  return Matter.Bodies.rectangle(
+    box.x + box.width / 2,
+    box.y + box.height / 2,
+    box.width,
+    box.height,
+    {
+      isSensor: true,
+      label: 'dino',
+    }
+  );
+};
+
+const createObstacleBody = (obstacle: Obstacle): Matter.Body =>
+  Matter.Bodies.rectangle(
+    obstacle.x + 3 + Math.max(1, obstacle.width - 6) / 2,
+    obstacle.y + 2 + Math.max(1, obstacle.height - 4) / 2,
+    Math.max(1, obstacle.width - 6),
+    Math.max(1, obstacle.height - 4),
+    {
+      isStatic: true,
+      isSensor: true,
+      label: `obstacle:${obstacle.id}`,
+    }
+  );
+
+const syncDinoMatterObstacles = (refs: DinoPhysicsRefs, obstacles: Obstacle[]): void => {
+  const wantedIds = new Set(obstacles.map((obstacle) => obstacle.id));
+
+  refs.obstacleBodies.forEach((body, id) => {
+    if (!wantedIds.has(id)) {
+      Matter.Composite.remove(refs.engine.world, body);
+      refs.obstacleBodies.delete(id);
+    }
+  });
+
+  obstacles.forEach((obstacle) => {
+    let body = refs.obstacleBodies.get(obstacle.id);
+    if (!body) {
+      body = createObstacleBody(obstacle);
+      refs.obstacleBodies.set(obstacle.id, body);
+      Matter.Composite.add(refs.engine.world, body);
+      return;
+    }
+
+    Matter.Body.setPosition(body, {
+      x: obstacle.x + 3 + Math.max(1, obstacle.width - 6) / 2,
+      y: obstacle.y + 2 + Math.max(1, obstacle.height - 4) / 2,
+    });
+  });
+};
+
+const syncDinoMatterBody = (refs: DinoPhysicsRefs, world: DinoWorldState): void => {
+  const { height } = getDinoSize(world);
+  if (height !== refs.dinoHeight) {
+    Matter.Composite.remove(refs.engine.world, refs.dino);
+    refs.dino = createDinoBody(world);
+    refs.dinoHeight = height;
+    Matter.Composite.add(refs.engine.world, refs.dino);
+  }
+
+  const box = getDinoBox(world);
+  Matter.Body.setPosition(refs.dino, {
+    x: box.x + box.width / 2,
+    y: box.y + box.height / 2,
+  });
+  Matter.Body.setVelocity(refs.dino, { x: 0, y: toDinoMatterVelocity(world.velocityY) });
+};
+
+const resetDinoMatterWorld = (refs: DinoPhysicsRefs, world: DinoWorldState): void => {
+  refs.pendingCrash = false;
+  refs.obstacleBodies.forEach((body) => Matter.Composite.remove(refs.engine.world, body));
+  refs.obstacleBodies.clear();
+  syncDinoMatterBody(refs, world);
+  syncDinoMatterObstacles(refs, world.obstacles);
+};
+
+const createDinoPhysics = (): DinoPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const initialWorld = createInitialWorld();
+  const dino = createDinoBody(initialWorld);
+  const refs: DinoPhysicsRefs = {
+    engine,
+    dino,
+    obstacleBodies: new Map(),
+    pendingCrash: false,
+    dinoHeight: getDinoSize(initialWorld).height,
+  };
+
+  Matter.Composite.add(engine.world, dino);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (labels.includes('dino') && labels.some((label) => label.startsWith('obstacle:'))) {
+        refs.pendingCrash = true;
+      }
+    });
+  });
+
+  return refs;
 };
 
 const drawCloud = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) => {
@@ -321,6 +444,7 @@ export function SoloDinoGame({
   const bestScoreRef = useRef(0);
   const obstacleIdRef = useRef(1);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
+  const physicsRef = useRef<DinoPhysicsRefs | null>(null);
   const gameLabel = formatGameName('dino-run', gameDefinitions);
 
   const syncHud = useCallback(() => {
@@ -368,6 +492,9 @@ export function SoloDinoGame({
     worldRef.current = nextWorld;
     obstacleIdRef.current = 1;
     lastReportedOutcomeRef.current = null;
+    if (physicsRef.current) {
+      resetDinoMatterWorld(physicsRef.current, nextWorld);
+    }
     setIsDuckPressed(false);
     syncHud();
   }, [syncHud]);
@@ -413,6 +540,9 @@ export function SoloDinoGame({
       world.wantsDuck = false;
       world.isDucking = false;
       world.jumps += 1;
+      if (physicsRef.current) {
+        syncDinoMatterBody(physicsRef.current, world);
+      }
       setIsDuckPressed(false);
     }
 
@@ -431,6 +561,18 @@ export function SoloDinoGame({
       persistBestScore();
     };
   }, [persistBestScore, syncHud]);
+
+  useEffect(() => {
+    const refs = createDinoPhysics();
+    physicsRef.current = refs;
+    resetDinoMatterWorld(refs, worldRef.current);
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
+  }, []);
 
   const controllerButtons = [
     { key: 'jump', label: 'Jump', icon: <AiOutlineArrowUp />, slot: 'up' as const, onClick: handleJump },
@@ -550,28 +692,63 @@ export function SoloDinoGame({
         }
         world.obstacles = survivors;
 
-        if (world.wantsDuck && world.dinoY > 0) {
-          world.velocityY -= GRAVITY * deltaFrames * 0.78;
-        }
+        const refs = physicsRef.current;
+        if (refs) {
+          world.isDucking = world.wantsDuck && world.dinoY <= 0.01;
+          syncDinoMatterBody(refs, world);
+          syncDinoMatterObstacles(refs, world.obstacles);
 
-        world.velocityY -= GRAVITY * deltaFrames;
-        world.dinoY = Math.max(0, world.dinoY + world.velocityY * deltaFrames);
-        if (world.dinoY === 0 && world.velocityY < 0) {
-          world.velocityY = 0;
+          let matterVelocityY = refs.dino.velocity.y;
+          if (world.wantsDuck && world.dinoY > 0) {
+            matterVelocityY += GRAVITY * deltaFrames * 0.78;
+          }
+          matterVelocityY += GRAVITY * deltaFrames;
+          Matter.Body.setVelocity(refs.dino, { x: 0, y: matterVelocityY });
+          Matter.Engine.update(refs.engine, deltaFrames * (1000 / 60));
+
+          const { height } = getDinoSize(world);
+          world.dinoY = Math.max(0, GROUND_Y - refs.dino.position.y - height / 2);
+          world.velocityY = fromDinoMatterVelocity(refs.dino.velocity.y);
+          if (world.dinoY <= 0 && world.velocityY < 0) {
+            world.dinoY = 0;
+            world.velocityY = 0;
+            syncDinoMatterBody(refs, world);
+          }
+        } else {
+          if (world.wantsDuck && world.dinoY > 0) {
+            world.velocityY -= GRAVITY * deltaFrames * 0.78;
+          }
+
+          world.velocityY -= GRAVITY * deltaFrames;
+          world.dinoY = Math.max(0, world.dinoY + world.velocityY * deltaFrames);
+          if (world.dinoY === 0 && world.velocityY < 0) {
+            world.velocityY = 0;
+          }
         }
 
         world.isDucking = world.wantsDuck && world.dinoY <= 0.01;
         world.score += world.speed * deltaFrames * SCORE_RATE;
 
-        if (hasCollision(world)) {
+        const hitObstacle = physicsRef.current ? physicsRef.current.pendingCrash : hasCollision(world);
+        if (physicsRef.current) {
+          physicsRef.current.pendingCrash = false;
+        }
+
+        if (hitObstacle) {
           world.status = 'crashed';
           world.velocityY = 0;
           world.isDucking = false;
+          if (physicsRef.current) {
+            syncDinoMatterBody(physicsRef.current, world);
+          }
           setIsDuckPressed(false);
         } else if (world.score >= WIN_SCORE) {
           world.status = 'won';
           world.velocityY = 0;
           world.isDucking = false;
+          if (physicsRef.current) {
+            syncDinoMatterBody(physicsRef.current, world);
+          }
           setIsDuckPressed(false);
         }
 

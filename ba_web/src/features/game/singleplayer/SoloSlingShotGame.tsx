@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import Matter from 'matter-js';
 import {
   AiOutlineArrowDown,
   AiOutlineArrowLeft,
@@ -28,6 +29,13 @@ type SoloSlingShotGameProps = {
   onLeave: () => void;
 };
 
+type SlingShotPhysicsRefs = {
+  engine: Matter.Engine;
+  projectile: Matter.Body;
+  targetBodies: Map<number, Matter.Body>;
+  pendingTargetId: number | null;
+};
+
 const STAGE_WIDTH = 900;
 const STAGE_HEIGHT = 520;
 const LAUNCH_X = 98;
@@ -36,6 +44,7 @@ const GRAVITY = 620;
 const PROJECTILE_RADIUS = 13;
 const MAX_SHOTS = 5;
 const BEST_SCORE_STORAGE_KEY = 'baturo_sling_shot_best_score';
+const MATTER_TICK_SECONDS = 1 / 60;
 
 const clamp = (value: number, min: number, max: number): number => Math.max(min, Math.min(max, value));
 
@@ -68,13 +77,101 @@ const getStatusLabel = (state: SlingShotState): string => {
   return 'Ready';
 };
 
-const intersectsTarget = (
-  projectile: NonNullable<SlingShotState['projectile']>,
-  target: SlingShotTarget
-): boolean => {
-  const nearestX = clamp(projectile.x, target.x, target.x + target.width);
-  const nearestY = clamp(projectile.y, target.y, target.y + target.height);
-  return Math.hypot(projectile.x - nearestX, projectile.y - nearestY) <= PROJECTILE_RADIUS;
+const toMatterVelocity = (velocity: number): number => velocity * MATTER_TICK_SECONDS;
+
+const fromMatterVelocity = (velocity: number): number => velocity / MATTER_TICK_SECONDS;
+
+const setMatterProjectile = (
+  body: Matter.Body,
+  projectile: NonNullable<SlingShotState['projectile']> | null
+): void => {
+  Matter.Body.setPosition(body, {
+    x: projectile?.x ?? LAUNCH_X,
+    y: projectile?.y ?? LAUNCH_Y,
+  });
+  Matter.Body.setVelocity(body, {
+    x: toMatterVelocity(projectile?.vx ?? 0),
+    y: toMatterVelocity(projectile?.vy ?? 0),
+  });
+  Matter.Body.setAngularVelocity(body, 0);
+};
+
+const getMatterProjectile = (body: Matter.Body): NonNullable<SlingShotState['projectile']> => ({
+  x: body.position.x,
+  y: body.position.y,
+  vx: fromMatterVelocity(body.velocity.x),
+  vy: fromMatterVelocity(body.velocity.y),
+});
+
+const createMatterTarget = (target: SlingShotTarget): Matter.Body =>
+  Matter.Bodies.rectangle(
+    target.x + target.width / 2,
+    target.y + target.height / 2,
+    target.width,
+    target.height,
+    {
+      isStatic: true,
+      isSensor: true,
+      label: `target:${target.id}`,
+    }
+  );
+
+const syncMatterTargets = (refs: SlingShotPhysicsRefs, targets: SlingShotTarget[]): void => {
+  const wantedIds = new Set(targets.map((target) => target.id));
+
+  refs.targetBodies.forEach((body, id) => {
+    if (!wantedIds.has(id)) {
+      Matter.Composite.remove(refs.engine.world, body);
+      refs.targetBodies.delete(id);
+    }
+  });
+
+  targets.forEach((target) => {
+    if (refs.targetBodies.has(target.id)) {
+      return;
+    }
+
+    const body = createMatterTarget(target);
+    refs.targetBodies.set(target.id, body);
+    Matter.Composite.add(refs.engine.world, body);
+  });
+};
+
+const createSlingShotPhysics = (): SlingShotPhysicsRefs => {
+  const engine = Matter.Engine.create({
+    gravity: { x: 0, y: 0, scale: 0 },
+  });
+  const projectile = Matter.Bodies.circle(LAUNCH_X, LAUNCH_Y, PROJECTILE_RADIUS, {
+    restitution: 0.15,
+    friction: 0,
+    frictionAir: 0,
+    label: 'projectile',
+  });
+  const refs: SlingShotPhysicsRefs = {
+    engine,
+    projectile,
+    targetBodies: new Map(),
+    pendingTargetId: null,
+  };
+
+  Matter.Composite.add(engine.world, projectile);
+  Matter.Events.on(engine, 'collisionStart', (event) => {
+    event.pairs.forEach((pair) => {
+      const labels = [pair.bodyA.label, pair.bodyB.label];
+      if (!labels.includes('projectile')) {
+        return;
+      }
+
+      const targetLabel = labels.find((label) => label.startsWith('target:'));
+      if (!targetLabel) {
+        return;
+      }
+
+      refs.pendingTargetId = Number.parseInt(targetLabel.replace('target:', ''), 10);
+    });
+  });
+
+  return refs;
 };
 
 export function SoloSlingShotGame({
@@ -92,6 +189,7 @@ export function SoloSlingShotGame({
   const frameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
+  const physicsRef = useRef<SlingShotPhysicsRefs | null>(null);
   const gameLabel = formatGameName('sling-shot', gameDefinitions);
 
   const targetsLeft = state.targets.length;
@@ -138,16 +236,22 @@ export function SoloSlingShotGame({
 
       const angleRad = (current.angle * Math.PI) / 180;
       const speed = shotSpeed(current.power);
+      const projectile = {
+        x: LAUNCH_X,
+        y: LAUNCH_Y,
+        vx: Math.cos(angleRad) * speed,
+        vy: -Math.sin(angleRad) * speed,
+      };
+      if (physicsRef.current) {
+        physicsRef.current.pendingTargetId = null;
+        syncMatterTargets(physicsRef.current, current.targets);
+        setMatterProjectile(physicsRef.current.projectile, projectile);
+      }
       return {
         ...current,
         status: 'flying',
         shotsLeft: current.shotsLeft - 1,
-        projectile: {
-          x: LAUNCH_X,
-          y: LAUNCH_Y,
-          vx: Math.cos(angleRad) * speed,
-          vy: -Math.sin(angleRad) * speed,
-        },
+        projectile,
       };
     });
   }, []);
@@ -155,7 +259,13 @@ export function SoloSlingShotGame({
   const handleRestart = useCallback(() => {
     lastFrameTimeRef.current = null;
     lastReportedOutcomeRef.current = null;
-    setState(createInitialState());
+    const nextState = createInitialState();
+    if (physicsRef.current) {
+      physicsRef.current.pendingTargetId = null;
+      setMatterProjectile(physicsRef.current.projectile, null);
+      syncMatterTargets(physicsRef.current, nextState.targets);
+    }
+    setState(nextState);
   }, []);
 
   useEffect(() => {
@@ -164,6 +274,18 @@ export function SoloSlingShotGame({
         ? Number.parseInt(window.localStorage.getItem(BEST_SCORE_STORAGE_KEY) || '0', 10)
         : 0;
     setBestScore(Number.isFinite(storedBest) ? storedBest : 0);
+  }, []);
+
+  useEffect(() => {
+    const refs = createSlingShotPhysics();
+    physicsRef.current = refs;
+    syncMatterTargets(refs, createTargets());
+
+    return () => {
+      Matter.Composite.clear(refs.engine.world, false);
+      Matter.Engine.clear(refs.engine);
+      physicsRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -228,14 +350,24 @@ export function SoloSlingShotGame({
           return current;
         }
 
-        const projectile = {
-          x: current.projectile.x + current.projectile.vx * deltaSeconds,
-          y: current.projectile.y + current.projectile.vy * deltaSeconds,
-          vx: current.projectile.vx,
-          vy: current.projectile.vy + GRAVITY * deltaSeconds,
-        };
+        const refs = physicsRef.current;
+        if (!refs) {
+          return current;
+        }
 
-        const hitTarget = current.targets.find((target) => intersectsTarget(projectile, target));
+        const velocity = getMatterProjectile(refs.projectile);
+        Matter.Body.setVelocity(refs.projectile, {
+          x: refs.projectile.velocity.x,
+          y: toMatterVelocity(velocity.vy + GRAVITY * deltaSeconds),
+        });
+        syncMatterTargets(refs, current.targets);
+        Matter.Engine.update(refs.engine, deltaSeconds * 1000);
+
+        const projectile = getMatterProjectile(refs.projectile);
+        const hitTargetId = refs.pendingTargetId;
+        refs.pendingTargetId = null;
+
+        const hitTarget = current.targets.find((target) => target.id === hitTargetId);
         if (hitTarget) {
           const nextTargets = current.targets.flatMap((target) => {
             if (target.id !== hitTarget.id) {
@@ -244,6 +376,8 @@ export function SoloSlingShotGame({
             return target.hp > 1 ? [{ ...target, hp: target.hp - 1 }] : [];
           });
           const nextScore = current.score + 140 + Math.round(current.power * 1.6) + current.shotsLeft * 18;
+          syncMatterTargets(refs, nextTargets);
+          setMatterProjectile(refs.projectile, null);
           return {
             ...current,
             status: nextTargets.length === 0 ? 'won' : current.shotsLeft <= 0 ? 'lost' : 'ready',
@@ -259,6 +393,7 @@ export function SoloSlingShotGame({
           projectile.y > STAGE_HEIGHT + 40 ||
           projectile.y < -80;
         if (isOut) {
+          setMatterProjectile(refs.projectile, null);
           return {
             ...current,
             status: current.shotsLeft <= 0 ? 'lost' : 'ready',
