@@ -47,6 +47,36 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'line-rush',
+    category: 'board',
+    name: 'Line Rush',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A compact 5x5 duel. Claim cells quickly and connect four before the board closes in.',
+    rows: 5,
+    columns: 5,
+    connect: 4,
+    moveMode: 'cell',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: 'meteor-drop',
+    category: 'strategy',
+    name: 'Meteor Drop',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Drop falling markers into a deep 7x7 sky well and chain five before your rival blocks the lane.',
+    rows: 7,
+    columns: 7,
+    connect: 5,
+    moveMode: 'column',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
     id: 'orbital-flip',
     category: 'board',
     name: 'Orbital-Flip',
@@ -524,6 +554,36 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'solo-blackjack',
     winCondition: 'blackjack-five-wins',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'color-code',
+    category: 'strategy',
+    name: 'Color Code',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Crack a hidden four-color vault code through exact and near-match clues before the final attempt.',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-color-code',
+    winCondition: 'color-code-break',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'tower-lights',
+    category: 'puzzle',
+    name: 'Tower Lights',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Toggle linked tower panels until every lamp is dark. Every tap flips its neighbors too.',
+    rows: 5,
+    columns: 5,
+    connect: 0,
+    moveMode: 'solo-tower-lights',
+    winCondition: 'tower-lights-clear',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1120,6 +1180,8 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'solo-color-code' ||
+    game.moveMode === 'solo-tower-lights' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1186,6 +1248,8 @@ export const applyMove = (
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-prism-relay' ||
     game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'solo-color-code' ||
+    game.moveMode === 'solo-tower-lights' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1391,6 +1455,8 @@ export const evaluateBoard = (
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'prism-relay-stabilize' ||
     game.winCondition === 'blackjack-five-wins' ||
+    game.winCondition === 'color-code-break' ||
+    game.winCondition === 'tower-lights-clear' ||
     game.winCondition === 'cube-clash-score' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||

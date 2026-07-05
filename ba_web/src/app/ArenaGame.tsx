@@ -28,6 +28,7 @@ import { SoloCrateShiftGame } from '@/features/game/singleplayer/SoloCrateShiftG
 import { SoloMoleBashGame } from '@/features/game/singleplayer/SoloMoleBashGame';
 import { SoloPinballRushGame } from '@/features/game/singleplayer/SoloPinballRushGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
+import { SoloColorCodeGame, SoloTowerLightsGame } from '@/features/game/singleplayer/SoloLibraryMicroGames';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctionArenaGame';
@@ -66,6 +67,8 @@ type ArenaGameProps = {
 const SHARED_BOARD_GAME_TYPES = new Set<GameType>([
   'tic-tac-two',
   'connect-all-four',
+  'line-rush',
+  'meteor-drop',
   'orbital-flip',
   'corner-clash',
   'checkers',
@@ -221,6 +224,34 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'blackjack') {
     return (
       <SoloBlackjackGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'color-code') {
+    return (
+      <SoloColorCodeGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'tower-lights') {
+    return (
+      <SoloTowerLightsGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

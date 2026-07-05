@@ -18,6 +18,8 @@ export type GameCategory =
 export type GameType =
   | 'tic-tac-two'
   | 'connect-all-four'
+  | 'line-rush'
+  | 'meteor-drop'
   | 'orbital-flip'
   | 'corner-clash'
   | 'checkers'
@@ -50,6 +52,8 @@ export type GameType =
   | 'cube-clash-3d'
   | 'pinball-rush'
   | 'blackjack'
+  | 'color-code'
+  | 'tower-lights'
   | 'turbo-rush'
   | 'cipher-auction';
 
@@ -97,6 +101,8 @@ export type GameDefinition = {
     | 'cube-clash-3d'
     | 'solo-pinball-rush'
     | 'solo-blackjack'
+    | 'solo-color-code'
+    | 'solo-tower-lights'
     | 'air-hockey'
     | 'racing'
     | 'cipher-auction';
@@ -132,6 +138,8 @@ export type GameDefinition = {
     | 'cube-clash-score'
     | 'pinball-rush-score'
     | 'blackjack-five-wins'
+    | 'color-code-break'
+    | 'tower-lights-clear'
     | 'air-hockey-score'
     | 'race-finish'
     | 'cipher-score'

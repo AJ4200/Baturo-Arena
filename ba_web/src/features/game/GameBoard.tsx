@@ -351,6 +351,8 @@ export function GameBoard({
     game.moveMode === 'solo-mole-bash' ||
     game.moveMode === 'solo-pinball-rush' ||
     game.moveMode === 'solo-blackjack' ||
+    game.moveMode === 'solo-color-code' ||
+    game.moveMode === 'solo-tower-lights' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||

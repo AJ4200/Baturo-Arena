@@ -63,6 +63,12 @@ const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } =>
   if (currentGameType === 'connect-all-four') {
     return { x: 'Red Team', o: 'Blue Team' };
   }
+  if (currentGameType === 'line-rush') {
+    return { x: 'Rush Team', o: 'Guard Team' };
+  }
+  if (currentGameType === 'meteor-drop') {
+    return { x: 'Comet Team', o: 'Orbit Team' };
+  }
   if (currentGameType === 'orbital-flip') {
     return { x: 'Nova Team', o: 'Pulse Team' };
   }

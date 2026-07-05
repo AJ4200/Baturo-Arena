@@ -10,6 +10,8 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
 > = {
   'tic-tac-two': { label: 'X / O', className: 'choose-game-thumb-tic-tac-two' },
   'connect-all-four': { label: '4 IN A ROW', className: 'choose-game-thumb-connect-all-four' },
+  'line-rush': { label: 'LINE RUSH', className: 'choose-game-thumb-line-rush' },
+  'meteor-drop': { label: 'METEORS', className: 'choose-game-thumb-meteor-drop' },
   'orbital-flip': { label: 'ORBIT', className: 'choose-game-thumb-orbital-flip' },
   'corner-clash': { label: 'CORNERS', className: 'choose-game-thumb-corner-clash' },
   checkers: { label: 'CHECKERS', className: 'choose-game-thumb-checkers' },
@@ -42,6 +44,8 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'pinball-rush': { label: 'PINBALL', className: 'choose-game-thumb-pinball-rush' },
   'cube-clash-3d': { label: '3D DUEL', className: 'choose-game-thumb-cube-clash-3d' },
   blackjack: { label: 'BLACKJACK', className: 'choose-game-thumb-blackjack' },
+  'color-code': { label: 'CODE', className: 'choose-game-thumb-color-code' },
+  'tower-lights': { label: 'LIGHTS', className: 'choose-game-thumb-tower-lights' },
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
   'cipher-auction': { label: 'SEALED BIDS', className: 'choose-game-thumb-cipher-auction' },
 };

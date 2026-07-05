@@ -29,6 +29,36 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  'line-rush': {
+    id: 'line-rush',
+    category: 'board',
+    name: 'Line Rush',
+    rows: 5,
+    columns: 5,
+    connect: 4,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A compact 5x5 duel. Claim cells quickly and connect four before the board closes in.',
+    moveMode: 'cell',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  'meteor-drop': {
+    id: 'meteor-drop',
+    category: 'strategy',
+    name: 'Meteor Drop',
+    rows: 7,
+    columns: 7,
+    connect: 5,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'Drop falling markers into a deep 7x7 sky well and chain five before your rival blocks the lane.',
+    moveMode: 'column',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
   'orbital-flip': {
     id: 'orbital-flip',
     category: 'board',
@@ -507,6 +537,36 @@ const GAME_RULES = {
     description: 'Play classic twenty-one against the arena dealer. Read the table, manage your aces, and win five hands to take the match.',
     moveMode: 'solo-blackjack',
     winCondition: 'blackjack-five-wins',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'color-code': {
+    id: 'color-code',
+    category: 'strategy',
+    name: 'Color Code',
+    rows: 1,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Crack a hidden four-color vault code through exact and near-match clues before the final attempt.',
+    moveMode: 'solo-color-code',
+    winCondition: 'color-code-break',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'tower-lights': {
+    id: 'tower-lights',
+    category: 'puzzle',
+    name: 'Tower Lights',
+    rows: 5,
+    columns: 5,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Toggle linked tower panels until every lamp is dark. Every tap flips its neighbors too.',
+    moveMode: 'solo-tower-lights',
+    winCondition: 'tower-lights-clear',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1169,6 +1229,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'prism-relay-stabilize' ||
     rules.winCondition === 'blackjack-five-wins' ||
+    rules.winCondition === 'color-code-break' ||
+    rules.winCondition === 'tower-lights-clear' ||
     rules.winCondition === 'cube-clash-score' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
@@ -1338,6 +1400,8 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
+    rules.moveMode === 'solo-color-code' ||
+    rules.moveMode === 'solo-tower-lights' ||
     rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
@@ -1444,6 +1508,8 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-pulse-forge' ||
     rules.moveMode === 'solo-prism-relay' ||
     rules.moveMode === 'solo-blackjack' ||
+    rules.moveMode === 'solo-color-code' ||
+    rules.moveMode === 'solo-tower-lights' ||
     rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
