@@ -353,6 +353,9 @@ export function GameBoard({
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'solo-color-code' ||
     game.moveMode === 'solo-tower-lights' ||
+    game.moveMode === 'solo-glyph-chain' ||
+    game.moveMode === 'solo-number-trail' ||
+    game.moveMode === 'solo-timing-ring' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||

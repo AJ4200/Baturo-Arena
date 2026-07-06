@@ -69,6 +69,15 @@ const getPlayerLabels = (currentGameType: GameType): { x: string; o: string } =>
   if (currentGameType === 'meteor-drop') {
     return { x: 'Comet Team', o: 'Orbit Team' };
   }
+  if (currentGameType === 'quad-line') {
+    return { x: 'Alpha Line', o: 'Beta Line' };
+  }
+  if (currentGameType === 'gravity-grove') {
+    return { x: 'Root Team', o: 'Canopy Team' };
+  }
+  if (currentGameType === 'switchback') {
+    return { x: 'Switch Team', o: 'Back Team' };
+  }
   if (currentGameType === 'orbital-flip') {
     return { x: 'Nova Team', o: 'Pulse Team' };
   }

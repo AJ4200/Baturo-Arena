@@ -59,6 +59,51 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  'quad-line': {
+    id: 'quad-line',
+    category: 'board',
+    name: 'Quad Line',
+    rows: 6,
+    columns: 6,
+    connect: 4,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Four-seat line tactics on a wide 6x6 board. Build a four-chain while three rivals crowd the grid.',
+    moveMode: 'cell',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  'gravity-grove': {
+    id: 'gravity-grove',
+    category: 'strategy',
+    name: 'Gravity Grove',
+    rows: 8,
+    columns: 8,
+    connect: 5,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A tall drop-board duel where pieces fall into an 8x8 grove and five in a row wins the canopy.',
+    moveMode: 'column',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  switchback: {
+    id: 'switchback',
+    category: 'strategy',
+    name: 'Switchback',
+    rows: 7,
+    columns: 7,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A 7x7 territory flip fight. Every placement converts all neighboring rivals and the full board crowns majority control.',
+    moveMode: 'flip',
+    winCondition: 'majority',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
   'orbital-flip': {
     id: 'orbital-flip',
     category: 'board',
@@ -567,6 +612,51 @@ const GAME_RULES = {
     description: 'Toggle linked tower panels until every lamp is dark. Every tap flips its neighbors too.',
     moveMode: 'solo-tower-lights',
     winCondition: 'tower-lights-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'glyph-chain': {
+    id: 'glyph-chain',
+    category: 'rhythm',
+    name: 'Glyph Chain',
+    rows: 2,
+    columns: 2,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Watch the glyph pattern, repeat each growing chain, and hold the sequence through eight levels.',
+    moveMode: 'solo-glyph-chain',
+    winCondition: 'glyph-chain-complete',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'number-trail': {
+    id: 'number-trail',
+    category: 'puzzle',
+    name: 'Number Trail',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Find the scrambled numbers in order, move fast, and clear the full trail before mistakes stack up.',
+    moveMode: 'solo-number-trail',
+    winCondition: 'number-trail-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'timing-ring': {
+    id: 'timing-ring',
+    category: 'arcade',
+    name: 'Timing Ring',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Strike a spinning needle through shifting target arcs. Chain precise hits before the ring burns out.',
+    moveMode: 'solo-timing-ring',
+    winCondition: 'timing-ring-score',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1231,6 +1321,9 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'color-code-break' ||
     rules.winCondition === 'tower-lights-clear' ||
+    rules.winCondition === 'glyph-chain-complete' ||
+    rules.winCondition === 'number-trail-clear' ||
+    rules.winCondition === 'timing-ring-score' ||
     rules.winCondition === 'cube-clash-score' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
@@ -1402,6 +1495,9 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'solo-color-code' ||
     rules.moveMode === 'solo-tower-lights' ||
+    rules.moveMode === 'solo-glyph-chain' ||
+    rules.moveMode === 'solo-number-trail' ||
+    rules.moveMode === 'solo-timing-ring' ||
     rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
@@ -1510,6 +1606,9 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'solo-blackjack' ||
     rules.moveMode === 'solo-color-code' ||
     rules.moveMode === 'solo-tower-lights' ||
+    rules.moveMode === 'solo-glyph-chain' ||
+    rules.moveMode === 'solo-number-trail' ||
+    rules.moveMode === 'solo-timing-ring' ||
     rules.moveMode === 'cube-clash-3d' ||
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||

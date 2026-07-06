@@ -61,6 +61,15 @@ const getPlayerLabels = (currentGameType: string | null | undefined): { x: strin
   if (currentGameType === 'meteor-drop') {
     return { x: 'Comet Team', o: 'Orbit Team', y: 'Spectator', z: 'Spectator' };
   }
+  if (currentGameType === 'quad-line') {
+    return { x: 'Alpha Line', o: 'Beta Line', y: 'Gamma Line', z: 'Delta Line' };
+  }
+  if (currentGameType === 'gravity-grove') {
+    return { x: 'Root Team', o: 'Canopy Team', y: 'Spectator', z: 'Spectator' };
+  }
+  if (currentGameType === 'switchback') {
+    return { x: 'Switch Team', o: 'Back Team', y: 'Spectator', z: 'Spectator' };
+  }
   if (currentGameType === 'orbital-flip') {
     return { x: 'Nova Team', o: 'Pulse Team', y: 'Yellow Team', z: 'Purple Team' };
   }

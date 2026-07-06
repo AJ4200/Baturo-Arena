@@ -77,6 +77,51 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'quad-line',
+    category: 'board',
+    name: 'Quad Line',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Four-seat line tactics on a wide 6x6 board. Build a four-chain while three rivals crowd the grid.',
+    rows: 6,
+    columns: 6,
+    connect: 4,
+    moveMode: 'cell',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: 'gravity-grove',
+    category: 'strategy',
+    name: 'Gravity Grove',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A tall drop-board duel where pieces fall into an 8x8 grove and five in a row wins the canopy.',
+    rows: 8,
+    columns: 8,
+    connect: 5,
+    moveMode: 'column',
+    winCondition: 'connect',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
+    id: 'switchback',
+    category: 'strategy',
+    name: 'Switchback',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A 7x7 territory flip fight. Every placement converts all neighboring rivals and the full board crowns majority control.',
+    rows: 7,
+    columns: 7,
+    connect: 0,
+    moveMode: 'flip',
+    winCondition: 'majority',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
+  {
     id: 'orbital-flip',
     category: 'board',
     name: 'Orbital-Flip',
@@ -584,6 +629,51 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'solo-tower-lights',
     winCondition: 'tower-lights-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'glyph-chain',
+    category: 'rhythm',
+    name: 'Glyph Chain',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Watch the glyph pattern, repeat each growing chain, and hold the sequence through eight levels.',
+    rows: 2,
+    columns: 2,
+    connect: 0,
+    moveMode: 'solo-glyph-chain',
+    winCondition: 'glyph-chain-complete',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'number-trail',
+    category: 'puzzle',
+    name: 'Number Trail',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Find the scrambled numbers in order, move fast, and clear the full trail before mistakes stack up.',
+    rows: 4,
+    columns: 4,
+    connect: 0,
+    moveMode: 'solo-number-trail',
+    winCondition: 'number-trail-clear',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'timing-ring',
+    category: 'arcade',
+    name: 'Timing Ring',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Strike a spinning needle through shifting target arcs. Chain precise hits before the ring burns out.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-timing-ring',
+    winCondition: 'timing-ring-score',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1182,6 +1272,9 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'solo-color-code' ||
     game.moveMode === 'solo-tower-lights' ||
+    game.moveMode === 'solo-glyph-chain' ||
+    game.moveMode === 'solo-number-trail' ||
+    game.moveMode === 'solo-timing-ring' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1250,6 +1343,9 @@ export const applyMove = (
     game.moveMode === 'solo-blackjack' ||
     game.moveMode === 'solo-color-code' ||
     game.moveMode === 'solo-tower-lights' ||
+    game.moveMode === 'solo-glyph-chain' ||
+    game.moveMode === 'solo-number-trail' ||
+    game.moveMode === 'solo-timing-ring' ||
     game.moveMode === 'cube-clash-3d' ||
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
@@ -1457,6 +1553,9 @@ export const evaluateBoard = (
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'color-code-break' ||
     game.winCondition === 'tower-lights-clear' ||
+    game.winCondition === 'glyph-chain-complete' ||
+    game.winCondition === 'number-trail-clear' ||
+    game.winCondition === 'timing-ring-score' ||
     game.winCondition === 'cube-clash-score' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||

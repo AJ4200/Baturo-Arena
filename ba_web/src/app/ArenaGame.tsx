@@ -28,7 +28,13 @@ import { SoloCrateShiftGame } from '@/features/game/singleplayer/SoloCrateShiftG
 import { SoloMoleBashGame } from '@/features/game/singleplayer/SoloMoleBashGame';
 import { SoloPinballRushGame } from '@/features/game/singleplayer/SoloPinballRushGame';
 import { SoloBlackjackGame } from '@/features/game/singleplayer/SoloBlackjackGame';
-import { SoloColorCodeGame, SoloTowerLightsGame } from '@/features/game/singleplayer/SoloLibraryMicroGames';
+import {
+  SoloColorCodeGame,
+  SoloGlyphChainGame,
+  SoloNumberTrailGame,
+  SoloTimingRingGame,
+  SoloTowerLightsGame,
+} from '@/features/game/singleplayer/SoloLibraryMicroGames';
 import { AirHockeyArenaGame } from '@/features/game/multiplayer/AirHockeyArenaGame';
 import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctionArenaGame';
@@ -69,6 +75,9 @@ const SHARED_BOARD_GAME_TYPES = new Set<GameType>([
   'connect-all-four',
   'line-rush',
   'meteor-drop',
+  'quad-line',
+  'gravity-grove',
+  'switchback',
   'orbital-flip',
   'corner-clash',
   'checkers',
@@ -252,6 +261,48 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'tower-lights') {
     return (
       <SoloTowerLightsGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'glyph-chain') {
+    return (
+      <SoloGlyphChainGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'number-trail') {
+    return (
+      <SoloNumberTrailGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'timing-ring') {
+    return (
+      <SoloTimingRingGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
