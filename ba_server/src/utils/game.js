@@ -690,6 +690,21 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  heartstream: {
+    id: 'heartstream',
+    category: 'action',
+    name: 'Heartstream',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A luminous 3D physics chase: pilot twin comet hearts, collect love shards, bump through gravity wells, and race to fill the signal.',
+    moveMode: 'heartstream',
+    winCondition: 'heartstream-score',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
 };
 
 function getGameRules(gameType) {
@@ -1327,7 +1342,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'cube-clash-score' ||
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
-    rules.winCondition === 'cipher-score'
+    rules.winCondition === 'cipher-score' ||
+    rules.winCondition === 'heartstream-score'
   ) {
     return null;
   }
@@ -1502,6 +1518,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
+    rules.moveMode === 'heartstream' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -1613,6 +1630,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'air-hockey' ||
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
+    rules.moveMode === 'heartstream' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'
   ) {

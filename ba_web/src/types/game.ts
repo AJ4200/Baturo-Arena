@@ -61,7 +61,8 @@ export type GameType =
   | 'number-trail'
   | 'timing-ring'
   | 'turbo-rush'
-  | 'cipher-auction';
+  | 'cipher-auction'
+  | 'heartstream';
 
 export type GameDefinition = {
   id: GameType;
@@ -114,7 +115,8 @@ export type GameDefinition = {
     | 'solo-timing-ring'
     | 'air-hockey'
     | 'racing'
-    | 'cipher-auction';
+    | 'cipher-auction'
+    | 'heartstream';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -155,6 +157,7 @@ export type GameDefinition = {
     | 'air-hockey-score'
     | 'race-finish'
     | 'cipher-score'
+    | 'heartstream-score'
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

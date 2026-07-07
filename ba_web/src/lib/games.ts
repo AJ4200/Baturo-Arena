@@ -707,6 +707,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: true,
     supportsCpu: true,
   },
+  {
+    id: 'heartstream',
+    category: 'action',
+    name: 'Heartstream',
+    minPlayers: 2,
+    maxPlayers: 2,
+    description: 'A luminous 3D physics chase: pilot twin comet hearts, collect love shards, bump through gravity wells, and race to fill the signal.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'heartstream',
+    winCondition: 'heartstream-score',
+    supportsOnline: true,
+    supportsCpu: true,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -1279,6 +1294,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
+    game.moveMode === 'heartstream' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1350,6 +1366,7 @@ export const applyMove = (
     game.moveMode === 'air-hockey' ||
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
+    game.moveMode === 'heartstream' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1559,7 +1576,8 @@ export const evaluateBoard = (
     game.winCondition === 'cube-clash-score' ||
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||
-    game.winCondition === 'cipher-score'
+    game.winCondition === 'cipher-score' ||
+    game.winCondition === 'heartstream-score'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;
