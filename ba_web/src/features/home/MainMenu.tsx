@@ -9,6 +9,7 @@ import {
 
 type MainMenuProps = {
   enableAnimations: boolean;
+  gameCount: number;
   onPlay: () => void;
   onLeaderboard: () => void;
   onHistory: () => void;
@@ -17,6 +18,7 @@ type MainMenuProps = {
 
 export function MainMenu({
   enableAnimations,
+  gameCount,
   onPlay,
   onLeaderboard,
   onHistory,
@@ -39,6 +41,11 @@ export function MainMenu({
             </span>
             <span className="title-main-last">Arena</span>
           </h1>
+
+          <div className="main-menu-game-count" aria-label={`${gameCount} games available`}>
+            <strong>{gameCount}</strong>
+            <span>{gameCount === 1 ? 'Game' : 'Games'} Playable</span>
+          </div>
         </div>
       </div>
 

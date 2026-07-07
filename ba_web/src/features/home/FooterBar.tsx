@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BiHeart } from 'react-icons/bi';
 import {
+  AiFillGithub,
+  AiFillLinkedin,
   AiOutlineDatabase,
   AiOutlineSafetyCertificate,
   AiOutlineUser,
@@ -42,6 +44,38 @@ export function FooterBar({
     return null;
   }
 
+  const footerCredit = (
+    <div className="site-footer-credit">
+      <span className="site-footer-signature">
+        Made With <BiHeart className="site-footer-heart" /> By AJ4200 © 2023
+      </span>
+
+      <nav className="site-footer-socials" aria-label="AJ4200 social links">
+        <a
+          href="https://github.com/AJ4200"
+          target="_blank"
+          rel="noreferrer"
+          className="site-footer-social-link"
+          aria-label="AJ4200 on GitHub"
+        >
+          <span className="site-footer-social-flare" aria-hidden="true" />
+          <AiFillGithub className="site-footer-social-icon" />
+        </a>
+
+        <a
+          href="https://www.linkedin.com/in/abel-majadibodu-5a0583193/"
+          target="_blank"
+          rel="noreferrer"
+          className="site-footer-social-link"
+          aria-label="AJ4200 on LinkedIn"
+        >
+          <span className="site-footer-social-flare" aria-hidden="true" />
+          <AiFillLinkedin className="site-footer-social-icon" />
+        </a>
+      </nav>
+    </div>
+  );
+
   return (
     <footer className="site-footer" aria-label="Site footer">
       <AnimatePresence mode="wait">
@@ -73,10 +107,7 @@ export function FooterBar({
             </div>
 
             <div className="site-footer-panel-head">
-              <span className="site-footer-signature">
-                Made With <BiHeart className="site-footer-heart" /> By AJ4200 ©
-                2023
-              </span>
+              {footerCredit}
 
               <button
                 type="button"
@@ -166,10 +197,13 @@ export function FooterBar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="site-footer-bar"
           >
+            {footerCredit}
+
             <button
               type="button"
-              className="site-footer-toggle main-menu-btn footerfun"
+              className="site-footer-toggle footerfun"
               onClick={() => {
                 playClick();
                 setIsExpanded(true);

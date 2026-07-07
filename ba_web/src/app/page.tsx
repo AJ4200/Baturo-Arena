@@ -18,7 +18,6 @@ import {
   MenuDestinationSplash,
   type MenuDestination,
 } from '@/features/home/MenuDestinationSplash';
-import { TopBar } from '@/features/home/TopBar';
 import { ChatDock } from '@/features/home/ChatDock';
 import { MusicDock, type MusicTrack } from '@/features/home/MusicDock';
 import { GoogleNoticeDock, type NoticeTone } from '@/features/home/GoogleNoticeDock';
@@ -1687,6 +1686,7 @@ export default function Home() {
       return (
         <MainMenu
           enableAnimations={enableAnimations}
+          gameCount={availableGames.length}
           onPlay={() => void openMenuDestination('game-type-select')}
           onLeaderboard={() => void openMenuDestination('leaderboard')}
           onHistory={() => void openMenuDestination('history')}
@@ -1989,7 +1989,6 @@ export default function Home() {
       className={classnames(isInMatch ? 'match-screen-root' : 'title-screen-root', !enableAnimations && 'motion-off')}
       style={matchThemeStyle}
     >
-      {!isAppBooting && !isInMatch ? <TopBar /> : null}
       {!isAppBooting ? renderScreen() : null}
       <AppLoader active={isAppBooting || activeRequests > 0} subtle={!isAppBooting && isInMatch} />
       {!isAppBooting && saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
