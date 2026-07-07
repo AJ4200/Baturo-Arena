@@ -3018,6 +3018,58 @@ h1 span:last-child {
   width: min(90vw, 430px);
 }
 
+.main-menu-game-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.32rem auto 0;
+  border: 3px solid rgba(0, 0, 0, 0.82);
+  border-radius: 999px;
+  padding: 0.28rem 0.7rem 0.28rem 0.38rem;
+  background:
+    linear-gradient(110deg, rgba(69, 242, 173, 0.34), transparent 54%),
+    rgba(3, 8, 16, 0.46);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  text-shadow: var(--signature-shadow);
+  backdrop-filter: blur(10px) saturate(1.12);
+  box-shadow:
+    3px 4px 0 rgba(0, 0, 0, 0.48),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 0 18px rgba(69, 242, 173, 0.18);
+}
+
+.main-menu-game-count strong {
+  min-width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(0, 0, 0, 0.76);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.62), transparent 30%),
+    #45f2ad;
+  color: #08100d;
+  font-size: 0.9rem;
+  line-height: 1;
+  text-shadow: none;
+  box-shadow:
+    2px 3px 0 rgba(0, 0, 0, 0.48),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.main-menu-game-count span {
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .lobby-screen .public-room-item {
   position: relative;
   overflow: hidden;
@@ -3497,6 +3549,18 @@ h1 span:last-child {
     min-height: 60px;
     padding: 0.5rem 1rem;
     font-size: 1.25rem;
+  }
+
+  .main-menu-game-count {
+    margin-top: 0.25rem;
+    padding: 0.24rem 0.56rem 0.24rem 0.32rem;
+    font-size: 0.64rem;
+  }
+
+  .main-menu-game-count strong {
+    min-width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.78rem;
   }
 
   .main-menu-btn-icon {
