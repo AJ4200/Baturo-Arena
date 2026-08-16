@@ -29,6 +29,7 @@ export function FooterBar({
   hasSavedGuestProfile,
 }: FooterBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSubtleRevealed, setIsSubtleRevealed] = useState(false);
 
   const playClick = () => {
     try {
@@ -77,7 +78,18 @@ export function FooterBar({
   );
 
   return (
-    <footer className="site-footer" aria-label="Site footer">
+    <footer
+      className={`site-footer${isExpanded ? ' site-footer-expanded' : ' site-footer-subtle'}${
+        isSubtleRevealed ? ' site-footer-revealed' : ''
+      }`}
+      aria-label="Site footer"
+      onClick={() => {
+        if (!isExpanded) {
+          setIsSubtleRevealed(true);
+        }
+      }}
+      onMouseLeave={() => setIsSubtleRevealed(false)}
+    >
       <AnimatePresence mode="wait">
         {isExpanded ? (
           <motion.div
@@ -115,6 +127,7 @@ export function FooterBar({
                 onClick={() => {
                   playClick();
                   setIsExpanded(false);
+                  setIsSubtleRevealed(false);
                 }}
                 aria-label="Collapse footer details"
               >
@@ -207,6 +220,7 @@ export function FooterBar({
               onClick={() => {
                 playClick();
                 setIsExpanded(true);
+                setIsSubtleRevealed(false);
               }}
               aria-label="Expand footer details"
             >
