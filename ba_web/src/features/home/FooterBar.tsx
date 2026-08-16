@@ -210,22 +210,39 @@ export function FooterBar({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="site-footer-bar"
+            className="site-footer-subtle-shell"
           >
-            {footerCredit}
-
             <button
               type="button"
-              className="site-footer-toggle footerfun"
-              onClick={() => {
+              className="site-footer-reveal"
+              onClick={(event) => {
+                event.stopPropagation();
                 playClick();
-                setIsExpanded(true);
-                setIsSubtleRevealed(false);
+                setIsSubtleRevealed((current) => !current);
               }}
-              aria-label="Expand footer details"
+              aria-label={isSubtleRevealed ? 'Hide footer bar' : 'Show footer bar'}
+              aria-expanded={isSubtleRevealed}
             >
-              <FaAngleDown />
+              <span className="site-footer-reveal-grip" aria-hidden="true" />
+              <span className="site-footer-reveal-dot" aria-hidden="true" />
             </button>
+
+            <div className="site-footer-bar">
+              {footerCredit}
+
+              <button
+                type="button"
+                className="site-footer-toggle footerfun"
+                onClick={() => {
+                  playClick();
+                  setIsExpanded(true);
+                  setIsSubtleRevealed(false);
+                }}
+                aria-label="Expand footer details"
+              >
+                <FaAngleDown />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
