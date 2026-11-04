@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BiHeart } from 'react-icons/bi';
 import {
@@ -30,6 +30,29 @@ export function FooterBar({
 }: FooterBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubtleRevealed, setIsSubtleRevealed] = useState(false);
+  const footerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isExpanded && !isSubtleRevealed) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (footerRef.current && event.target instanceof Node && footerRef.current.contains(event.target)) return;
+      setIsExpanded(false);
+      setIsSubtleRevealed(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setIsExpanded(false);
+      setIsSubtleRevealed(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isExpanded, isSubtleRevealed]);
 
   const playClick = () => {
     try {
@@ -79,6 +102,7 @@ export function FooterBar({
 
   return (
     <footer
+      ref={footerRef}
       className={`site-footer${isExpanded ? ' site-footer-expanded' : ' site-footer-subtle'}${
         isSubtleRevealed ? ' site-footer-revealed' : ''
       }`}
