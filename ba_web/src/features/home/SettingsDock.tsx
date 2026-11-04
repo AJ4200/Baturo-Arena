@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import classnames from 'classnames';
 import {
   AiFillSetting,
@@ -13,6 +13,8 @@ import {
 import type { CpuDifficulty } from '@/types/game';
 
 type SettingsDockProps = {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
   isMusicMuted: boolean;
   isUISoundsMuted: boolean;
   musicVolume: number;
@@ -31,7 +33,7 @@ type SettingsDockProps = {
 };
 
 export function SettingsDock(props: SettingsDockProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, onOpenChange } = props;
 
   return (
     <div className={classnames('settings-dock', isOpen && 'settings-dock-open')}>
@@ -43,7 +45,7 @@ export function SettingsDock(props: SettingsDockProps) {
         type="button"
         aria-label={isOpen ? 'Close quick settings' : 'Open quick settings'}
         title={isOpen ? 'Close quick settings' : 'Quick Settings'}
-        onClick={() => setIsOpen((currentValue) => !currentValue)}
+        onClick={() => onOpenChange(!isOpen)}
       >
         <AiFillSetting />
       </button>
@@ -51,7 +53,7 @@ export function SettingsDock(props: SettingsDockProps) {
       <section className="settings-dock-panel" aria-hidden={!isOpen}>
         <div className="settings-dock-panel-head">
           <strong>Quick Settings</strong>
-          <button className="settings-dock-close" type="button" onClick={() => setIsOpen(false)} aria-label="Close quick settings">
+          <button className="settings-dock-close" type="button" onClick={() => onOpenChange(false)} aria-label="Close quick settings">
             <AiOutlineClose />
           </button>
         </div>

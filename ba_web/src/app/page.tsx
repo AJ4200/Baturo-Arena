@@ -50,6 +50,8 @@ import type {
   Screen,
 } from '@/types/game';
 
+type DockId = 'profile' | 'notice' | 'music' | 'chat' | 'settings';
+
 type LocalBackupPayload = {
   version: 2;
   savedAt: string;
@@ -338,10 +340,17 @@ export default function Home() {
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
   const [isAppBooting, setIsAppBooting] = useState(true);
-  const [isProfileDockOpen, setIsProfileDockOpen] = useState(false);
-  const [isChatDockOpen, setIsChatDockOpen] = useState(false);
+  const [activeDock, setActiveDock] = useState<DockId | null>(null);
   const [areDockLaunchersVisible, setAreDockLaunchersVisible] = useState(false);
-  const [isNoticeDockOpen, setIsNoticeDockOpen] = useState(false);
+  const isProfileDockOpen = activeDock === 'profile';
+  const isChatDockOpen = activeDock === 'chat';
+  const isNoticeDockOpen = activeDock === 'notice';
+  const toggleDock = useCallback((dock: DockId) => {
+    setActiveDock((currentDock) => (currentDock === dock ? null : dock));
+  }, []);
+  const setDockOpen = useCallback((dock: DockId, isOpen: boolean) => {
+    setActiveDock((currentDock) => (isOpen ? dock : currentDock === dock ? null : currentDock));
+  }, []);
   const [isGoogleSignInLoading, setIsGoogleSignInLoading] = useState(false);
   const isGoogleSignInInFlightRef = useRef(false);
   const isCpuResultSyncingRef = useRef(false);
@@ -511,7 +520,7 @@ export default function Home() {
     const finishSignIn = (payload: GoogleSignInPayload) => {
       saveAuthToken(payload.authToken, payload.expiresAt);
       applyAuthenticatedSession(payload);
-      setIsProfileDockOpen(true);
+      setActiveDock('profile');
 
       syncAuthenticatedPlayerRecord(payload.player.playerId, payload.player.name)
         .then(() => {
@@ -712,7 +721,7 @@ export default function Home() {
     }
 
     setMessage(GOOGLE_ONLINE_NOTICE_MESSAGE);
-    setIsProfileDockOpen(true);
+    setActiveDock('profile');
     return null;
   }, [getValidAuthToken, googleAccount, player, saveGoogleAccount]);
 
@@ -1600,14 +1609,41 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setIsNoticeDockOpen(Boolean(message));
+    if (message) {
+      setActiveDock((currentDock) => currentDock ?? 'notice');
+    } else {
+      setActiveDock((currentDock) => (currentDock === 'notice' ? null : currentDock));
+    }
   }, [message]);
 
   useEffect(() => {
-    if (isProfileDockOpen || isChatDockOpen) {
+    if (activeDock) {
       setAreDockLaunchersVisible(true);
     }
-  }, [isChatDockOpen, isProfileDockOpen]);
+  }, [activeDock]);
+
+  useEffect(() => {
+    if (!activeDock && !areDockLaunchersVisible) {
+      return undefined;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      if (target.closest('.dock-launchers-shell, .chat-request-modal, .music-now-playing-toast')) {
+        return;
+      }
+
+      setActiveDock(null);
+      setAreDockLaunchersVisible(false);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [activeDock, areDockLaunchersVisible]);
 
   const noticeTone = useMemo<NoticeTone>(() => {
     const normalizedMessage = message.trim().toLowerCase();
@@ -2022,7 +2058,7 @@ export default function Home() {
             playerProfile={player}
             playerName={playerName}
             isSigningIn={isGoogleSignInLoading}
-            onToggleOpen={() => setIsProfileDockOpen((currentValue) => !currentValue)}
+            onToggleOpen={() => toggleDock('profile')}
             onSignIn={startGoogleSignIn}
             onSignOut={signOutGoogle}
             onPlayerNameChange={setPlayerName}
@@ -2043,9 +2079,9 @@ export default function Home() {
               title={noticeTitle}
               tone={noticeTone}
               message={message}
-              onToggleOpen={() => setIsNoticeDockOpen((currentValue) => !currentValue)}
+              onToggleOpen={() => toggleDock('notice')}
               onDismiss={() => {
-                setIsNoticeDockOpen(false);
+                setDockOpen('notice', false);
                 setMessage('');
               }}
             />
@@ -2055,6 +2091,8 @@ export default function Home() {
             isMuted={isMusicMuted}
             volume={musicVolume}
             showLauncher={!isProfileDockOpen}
+            isOpen={activeDock === 'music'}
+            onOpenChange={(isOpen) => setDockOpen('music', isOpen)}
             onToggleMute={() => {
               const nextValue = !isMusicMuted;
               setIsMusicMuted(nextValue);
@@ -2072,10 +2110,10 @@ export default function Home() {
             currentRoomCode={activeRoomCode}
             currentRoomName={roomName}
             callApi={callApi}
-            onToggleOpen={() => setIsChatDockOpen((currentValue) => !currentValue)}
+            onToggleOpen={() => toggleDock('chat')}
             onRequireSignIn={() => {
               setAreDockLaunchersVisible(true);
-              setIsProfileDockOpen(true);
+              setActiveDock('profile');
               if (!googleAccount) {
                 startGoogleSignIn();
               }
@@ -2084,6 +2122,8 @@ export default function Home() {
             onStatusMessage={setMessage}
           />
           <SettingsDock
+            isOpen={activeDock === 'settings'}
+            onOpenChange={(isOpen) => setDockOpen('settings', isOpen)}
             isMusicMuted={isMusicMuted}
             isUISoundsMuted={isUISoundsMuted}
             musicVolume={musicVolume}

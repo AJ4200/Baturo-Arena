@@ -27,6 +27,8 @@ type Props = {
   isMuted: boolean;
   volume: number;
   showLauncher?: boolean;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
   onToggleMute: () => void;
   onVolumeChange: (v: number) => void;
 };
@@ -43,8 +45,7 @@ const formatClock = (seconds: number) => {
 };
 
 export function MusicDock(props: Props) {
-  const { tracks, isMuted, volume, showLauncher = true, onToggleMute, onVolumeChange } = props;
-  const [isOpen, setIsOpen] = useState(false);
+  const { tracks, isMuted, volume, showLauncher = true, isOpen, onOpenChange, onToggleMute, onVolumeChange } = props;
   const [isTrackListMode, setIsTrackListMode] = useState(false);
   const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -325,7 +326,7 @@ export function MusicDock(props: Props) {
     <>
       <div className={classnames('music-dock', isOpen && 'music-dock-open')}>
       {!isOpen && showLauncher && (
-        <button className="music-dock-toggle" type="button" onClick={() => setIsOpen(true)} aria-label="Open music player">
+        <button className="music-dock-toggle" type="button" onClick={() => onOpenChange(true)} aria-label="Open music player">
           <IoMdMusicalNote />
         </button>
       )}
@@ -343,7 +344,7 @@ export function MusicDock(props: Props) {
             >
               <IoMdList />
             </button>
-            <button className="music-dock-head-btn" type="button" onClick={() => setIsOpen(false)} aria-label="Close music player">
+            <button className="music-dock-head-btn" type="button" onClick={() => onOpenChange(false)} aria-label="Close music player">
               <AiOutlineClose />
             </button>
           </div>
