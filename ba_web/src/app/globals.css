@@ -17198,6 +17198,7 @@ h1 span:last-child {
   position: absolute;
   left: 50%;
   bottom: calc(100% - 3px);
+  width: max-content;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17356,6 +17357,7 @@ h1 span:last-child {
   font-size: 0.92rem;
   font-weight: 700;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 .site-footer-credit {
@@ -17363,6 +17365,7 @@ h1 span:last-child {
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .site-footer-socials {
@@ -17700,6 +17703,12 @@ h1 span:last-child {
 
   .site-footer-signature {
     font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-footer-bar .site-footer-signature {
+    font-size: 0.68rem;
   }
 }
 
