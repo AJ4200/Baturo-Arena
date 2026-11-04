@@ -342,6 +342,7 @@ export const getCpuMove = (
     game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||
     game.moveMode === 'solo-prism-relay' ||
+    game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'solo-sling-shot' ||
     game.moveMode === 'solo-flappy-wing' ||
     game.moveMode === 'solo-voxel-yard' ||

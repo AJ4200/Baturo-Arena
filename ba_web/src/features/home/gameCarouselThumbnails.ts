@@ -39,6 +39,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'echo-bloom': { label: 'ECHO', className: 'choose-game-thumb-echo-bloom' },
   'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },
   'prism-relay': { label: 'PRISM', className: 'choose-game-thumb-prism-relay' },
+  'bastion-surge': { label: 'BASTION', className: 'choose-game-thumb-bastion-surge' },
   'sling-shot': { label: 'SLING', className: 'choose-game-thumb-sling-shot' },
   'flappy-wing': { label: 'FLAP', className: 'choose-game-thumb-flappy-wing' },
   'voxel-yard': { label: 'VOXELS', className: 'choose-game-thumb-voxel-yard' },

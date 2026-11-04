@@ -570,6 +570,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'bastion-surge': {
+    id: 'bastion-surge',
+    category: 'strategy',
+    name: 'Bastion Surge',
+    rows: 10,
+    columns: 16,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Real-time tower defense. Raise turrets, coils, rail lances and cryo nodes along the lane, then fire Surge Pulses to hold the bastion through fifteen escalating waves.',
+    moveMode: 'solo-bastion-surge',
+    winCondition: 'bastion-surge-hold',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   blackjack: {
     id: 'blackjack',
     category: 'cards',
@@ -1333,6 +1348,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'echo-bloom-resonate' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
     rules.winCondition === 'prism-relay-stabilize' ||
+    rules.winCondition === 'bastion-surge-hold' ||
     rules.winCondition === 'blackjack-five-wins' ||
     rules.winCondition === 'color-code-break' ||
     rules.winCondition === 'tower-lights-clear' ||
@@ -1519,6 +1535,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
+    rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo'
   ) {
     return [];
@@ -1631,6 +1648,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
+    rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'
   ) {

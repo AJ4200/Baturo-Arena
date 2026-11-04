@@ -588,6 +588,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'bastion-surge',
+    category: 'strategy',
+    name: 'Bastion Surge',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Real-time tower defense. Raise turrets, coils, rail lances and cryo nodes along the lane, then fire Surge Pulses to hold the bastion through fifteen escalating waves.',
+    rows: 10,
+    columns: 16,
+    connect: 0,
+    moveMode: 'solo-bastion-surge',
+    winCondition: 'bastion-surge-hold',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'blackjack',
     category: 'cards',
     name: 'Blackjack',
@@ -1295,6 +1310,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
+    game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1367,6 +1383,7 @@ export const applyMove = (
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
+    game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
   ) {
@@ -1567,6 +1584,7 @@ export const evaluateBoard = (
     game.winCondition === 'echo-bloom-resonate' ||
     game.winCondition === 'pulse-forge-stabilize' ||
     game.winCondition === 'prism-relay-stabilize' ||
+    game.winCondition === 'bastion-surge-hold' ||
     game.winCondition === 'blackjack-five-wins' ||
     game.winCondition === 'color-code-break' ||
     game.winCondition === 'tower-lights-clear' ||

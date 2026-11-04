@@ -20,6 +20,7 @@ import { SoloRiftRunnerGame } from '@/features/game/singleplayer/SoloRiftRunnerG
 import { SoloDreadSectorGame } from '@/features/game/singleplayer/SoloDreadSectorGame';
 import { SoloEchoBloomGame } from '@/features/game/singleplayer/SoloEchoBloomGame';
 import { SoloPulseForgeGame } from '@/features/game/singleplayer/SoloPulseForgeGame';
+import { SoloBastionSurgeGame } from '@/features/game/singleplayer/SoloBastionSurgeGame';
 import { SoloPrismRelayGame } from '@/features/game/singleplayer/SoloPrismRelayGame';
 import { SoloSlingShotGame } from '@/features/game/singleplayer/SoloSlingShotGame';
 import { SoloFlappyWingGame } from '@/features/game/singleplayer/SoloFlappyWingGame';
@@ -486,6 +487,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'pulse-forge') {
     return (
       <SoloPulseForgeGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'bastion-surge') {
+    return (
+      <SoloBastionSurgeGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}
