@@ -337,6 +337,7 @@ export default function Home() {
   const [lastLocalSavedAt, setLastLocalSavedAt] = useState<string | null>(null);
   const [saveIndicator, setSaveIndicator] = useState('');
   const [showSaveTip, setShowSaveTip] = useState(false);
+  const [hasAcceptedEula, setHasAcceptedEula] = useState<boolean | null>(null);
   const [dontShowSaveTipAgain, setDontShowSaveTipAgain] = useState(false);
   const [matchHistory, setMatchHistory] = useState<MatchHistoryEntry[]>([]);
   const [googleAccount, setGoogleAccount] = useState<GoogleAccount | null>(null);
@@ -1442,6 +1443,7 @@ export default function Home() {
 
     const shouldHideSaveTip = window.localStorage.getItem(STORAGE_KEYS.hideSaveTip);
     setShowSaveTip(shouldHideSaveTip !== 'true');
+    setHasAcceptedEula(window.localStorage.getItem(STORAGE_KEYS.eulaAccepted) === 'true');
     const syncLocalState = () => {
       const savedBackup = parseLocalBackup(window.localStorage.getItem(STORAGE_KEYS.localBackup));
       if (savedBackup) {
@@ -2033,8 +2035,14 @@ export default function Home() {
       {!isAppBooting ? renderScreen() : null}
       <AppLoader active={isAppBooting || activeRequests > 0} subtle={!isAppBooting && isInMatch} />
       {!isAppBooting && saveIndicator ? <div className="save-indicator">{saveIndicator}</div> : null}
-      {!isAppBooting && showSaveTip ? (
+      {!isAppBooting && screen !== 'eula' && (showSaveTip || hasAcceptedEula === false) ? (
         <BackupNotice
+          requireEula={hasAcceptedEula === false}
+          onAcceptEula={() => {
+            window.localStorage.setItem(STORAGE_KEYS.eulaAccepted, 'true');
+            setHasAcceptedEula(true);
+          }}
+          onReadEula={() => setScreen('eula')}
           dontShowAgain={dontShowSaveTipAgain}
           onDontShowAgainChange={setDontShowSaveTipAgain}
           onDismiss={dismissBackupNotice}

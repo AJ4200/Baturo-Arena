@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AiOutlineCheck,
   AiOutlineClose,
@@ -11,6 +11,9 @@ import {
 } from 'react-icons/ai';
 
 type BackupNoticeProps = {
+  requireEula: boolean;
+  onAcceptEula: () => void;
+  onReadEula: () => void;
   dontShowAgain: boolean;
   onDontShowAgainChange: (checked: boolean) => void;
   onDismiss: () => void;
@@ -18,12 +21,19 @@ type BackupNoticeProps = {
 };
 
 export function BackupNotice({
+  requireEula,
+  onAcceptEula,
+  onReadEula,
   dontShowAgain,
   onDontShowAgainChange,
   onDismiss,
   onOpenSettings,
 }: BackupNoticeProps) {
+  const [eulaChecked, setEulaChecked] = useState(false);
+  const canContinue = !requireEula || eulaChecked;
+
   useEffect(() => {
+    if (requireEula) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onDismiss();
@@ -31,7 +41,13 @@ export function BackupNotice({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onDismiss]);
+  }, [onDismiss, requireEula]);
+
+  const handleContinue = () => {
+    if (!canContinue) return;
+    if (requireEula) onAcceptEula();
+    onDismiss();
+  };
 
   return (
     <div className="backup-notice-backdrop" role="presentation">
@@ -42,14 +58,16 @@ export function BackupNotice({
         aria-labelledby="backup-notice-title"
         aria-describedby="backup-notice-summary"
       >
-        <button
-          className="backup-notice-close"
-          type="button"
-          onClick={onDismiss}
-          aria-label="Close backup information"
-        >
-          <AiOutlineClose />
-        </button>
+        {requireEula ? null : (
+          <button
+            className="backup-notice-close"
+            type="button"
+            onClick={onDismiss}
+            aria-label="Close backup information"
+          >
+            <AiOutlineClose />
+          </button>
+        )}
 
         <header className="backup-notice-head">
           <span className="backup-notice-kicker">
@@ -101,29 +119,52 @@ export function BackupNotice({
         </p>
 
         <div className="backup-notice-footer">
-          <label className="backup-notice-check">
-            <input
-              type="checkbox"
-              checked={dontShowAgain}
-              onChange={(event) => onDontShowAgainChange(event.target.checked)}
-            />
-            <span className="backup-notice-check-box" aria-hidden="true">
-              <AiOutlineCheck />
-            </span>
-            <span>Don&apos;t show this guide again</span>
-          </label>
+          {requireEula ? (
+            <label className="backup-notice-check backup-notice-check-eula">
+              <input
+                type="checkbox"
+                checked={eulaChecked}
+                onChange={(event) => setEulaChecked(event.target.checked)}
+              />
+              <span className="backup-notice-check-box" aria-hidden="true">
+                <AiOutlineCheck />
+              </span>
+              <span>
+                I have read and accept the{' '}
+                <button type="button" className="backup-notice-eula-link" onClick={onReadEula}>
+                  EULA
+                </button>{' '}
+                and how my data is handled
+              </span>
+            </label>
+          ) : (
+            <label className="backup-notice-check">
+              <input
+                type="checkbox"
+                checked={dontShowAgain}
+                onChange={(event) => onDontShowAgainChange(event.target.checked)}
+              />
+              <span className="backup-notice-check-box" aria-hidden="true">
+                <AiOutlineCheck />
+              </span>
+              <span>Don&apos;t show this guide again</span>
+            </label>
+          )}
 
           <div className="backup-notice-actions">
-            <button className="backup-notice-action backup-notice-action-secondary" type="button" onClick={onOpenSettings}>
-              <AiOutlineSetting /> Backup settings
-            </button>
+            {requireEula ? null : (
+              <button className="backup-notice-action backup-notice-action-secondary" type="button" onClick={onOpenSettings}>
+                <AiOutlineSetting /> Backup settings
+              </button>
+            )}
             <button
               className="backup-notice-action backup-notice-action-primary"
               type="button"
-              onClick={onDismiss}
+              onClick={handleContinue}
+              disabled={!canContinue}
               autoFocus
             >
-              Got it
+              {requireEula ? 'Accept & Continue' : 'Got it'}
             </button>
           </div>
         </div>

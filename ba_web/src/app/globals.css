@@ -4035,6 +4035,22 @@ h1 span:last-child {
   margin-top: 1rem;
 }
 
+.backup-notice-eula-link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 900;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.backup-notice-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .backup-notice-check {
   position: relative;
   display: inline-flex;
@@ -17416,14 +17432,15 @@ h1 span:last-child {
 .site-footer-eula-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 999px;
-  padding: 0.28rem 0.7rem;
+  padding: 0;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
-  font-size: 0.74rem;
-  font-weight: 800;
+  font-size: 1.05rem;
   text-shadow: none;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
@@ -17433,20 +17450,6 @@ h1 span:last-child {
 .site-footer-eula-link:focus-visible {
   background: rgba(0, 0, 0, 0.78);
   transform: translateY(-2px);
-}
-
-.site-footer-eula-short {
-  display: none;
-}
-
-@media (max-width: 640px) {
-  .site-footer-eula-full {
-    display: none;
-  }
-
-  .site-footer-eula-short {
-    display: inline;
-  }
 }
 
 /* EULA screen */

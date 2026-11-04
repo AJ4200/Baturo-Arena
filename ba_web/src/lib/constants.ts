@@ -19,5 +19,6 @@ export const STORAGE_KEYS = {
   matchHistory: 'baruto_match_history_v2',
   pendingCpuResults: 'baruto_pending_cpu_results_v1',
   hideSaveTip: 'baruto_hide_save_tip',
+  eulaAccepted: 'baturo_eula_accepted',
   googleAccount: 'baruto_google_account_v1',
 };

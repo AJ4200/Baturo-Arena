@@ -87,10 +87,10 @@ export function FooterBar({
             setIsSubtleRevealed(false);
             onOpenEula();
           }}
+          aria-label="Read the EULA (early version)"
+          title="EULA (early version)"
         >
           <AiOutlineFileText aria-hidden="true" />
-          <span className="site-footer-eula-full">An early version of our EULA</span>
-          <span className="site-footer-eula-short">EULA</span>
         </button>
         <a
           href="https://github.com/AJ4200"
