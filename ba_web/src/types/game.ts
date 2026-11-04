@@ -1,4 +1,4 @@
-export type Screen = 'home' | 'menu-intro' | 'game-type-select' | 'game-select' | 'game-intro' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'game';
+export type Screen = 'home' | 'menu-intro' | 'game-type-select' | 'game-select' | 'game-intro' | 'lobby' | 'single-player-lobby' | 'leaderboard' | 'history' | 'settings' | 'eula' | 'game';
 
 export type GameMode = 'online' | 'cpu' | 'offline';
 

@@ -7,6 +7,7 @@ import {
   AiFillGithub,
   AiFillLinkedin,
   AiOutlineDatabase,
+  AiOutlineFileText,
   AiOutlineSafetyCertificate,
   AiOutlineUser,
 } from 'react-icons/ai';
@@ -19,6 +20,7 @@ type FooterBarProps = {
   hasGoogleAccount: boolean;
   hasLocalBackup: boolean;
   hasSavedGuestProfile: boolean;
+  onOpenEula: () => void;
 };
 
 export function FooterBar({
@@ -27,6 +29,7 @@ export function FooterBar({
   hasGoogleAccount,
   hasLocalBackup,
   hasSavedGuestProfile,
+  onOpenEula,
 }: FooterBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubtleRevealed, setIsSubtleRevealed] = useState(false);
@@ -75,6 +78,20 @@ export function FooterBar({
       </span>
 
       <nav className="site-footer-socials" aria-label="AJ4200 social links">
+        <button
+          type="button"
+          className="site-footer-eula-link"
+          onClick={() => {
+            playClick();
+            setIsExpanded(false);
+            setIsSubtleRevealed(false);
+            onOpenEula();
+          }}
+        >
+          <AiOutlineFileText aria-hidden="true" />
+          <span className="site-footer-eula-full">An early version of our EULA</span>
+          <span className="site-footer-eula-short">EULA</span>
+        </button>
         <a
           href="https://github.com/AJ4200"
           target="_blank"

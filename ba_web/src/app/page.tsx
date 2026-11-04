@@ -10,6 +10,7 @@ import { FooterBar } from '@/features/home/FooterBar';
 import { GameIntroSplash } from '@/features/home/GameIntroSplash';
 import { GameSelectScreen } from '@/features/home/GameSelectScreen';
 import { GameTypeSelectScreen } from '@/features/home/GameTypeSelectScreen';
+import { EulaScreen } from '@/features/home/EulaScreen';
 import { HistoryScreen } from '@/features/home/HistoryScreen';
 import { LeaderboardScreen } from '@/features/home/LeaderboardScreen';
 import { LobbyScreen } from '@/features/home/LobbyScreen';
@@ -1906,6 +1907,10 @@ export default function Home() {
       );
     }
 
+    if (screen === 'eula') {
+      return <EulaScreen onBack={() => setScreen('home')} />;
+    }
+
     if (screen === 'history') {
       return (
         <HistoryScreen
@@ -2174,6 +2179,7 @@ export default function Home() {
         googleProfileLabel={googleAccount?.email || googleAccount?.name || null}
         hasLocalBackup={hasLocalSave}
         hasSavedGuestProfile={Boolean(player)}
+        onOpenEula={() => setScreen('eula')}
       /> : null}
     </main>
   );
