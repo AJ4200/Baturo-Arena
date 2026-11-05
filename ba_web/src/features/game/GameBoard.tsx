@@ -340,6 +340,7 @@ export function GameBoard({
     game.moveMode === 'solo-tetris' ||
     game.moveMode === 'solo-starfall' ||
     game.moveMode === 'solo-rift-runner' ||
+    game.moveMode === 'solo-dune-drift' ||
     game.moveMode === 'solo-dread-sector' ||
     game.moveMode === 'solo-echo-bloom' ||
     game.moveMode === 'solo-pulse-forge' ||

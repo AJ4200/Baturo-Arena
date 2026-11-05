@@ -16,6 +16,7 @@ import { SoloNeonPongGame } from '@/features/game/singleplayer/SoloNeonPongGame'
 import { SoloBrickBreakerGame } from '@/features/game/singleplayer/SoloBrickBreakerGame';
 import { SoloTetrisGame } from '@/features/game/singleplayer/SoloTetrisGame';
 import { SoloStarfallSurvivorGame } from '@/features/game/singleplayer/SoloStarfallSurvivorGame';
+import { SoloDuneDriftGame } from '@/features/game/singleplayer/SoloDuneDriftGame';
 import { SoloRiftRunnerGame } from '@/features/game/singleplayer/SoloRiftRunnerGame';
 import { SoloDreadSectorGame } from '@/features/game/singleplayer/SoloDreadSectorGame';
 import { SoloEchoBloomGame } from '@/features/game/singleplayer/SoloEchoBloomGame';
@@ -445,6 +446,20 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'rift-runner') {
     return (
       <SoloRiftRunnerGame
+        player={player}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'dune-drift') {
+    return (
+      <SoloDuneDriftGame
         player={player}
         gameDefinitions={gameDefinitions}
         isMusicMuted={isMusicMuted}

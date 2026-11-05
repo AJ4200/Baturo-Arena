@@ -528,6 +528,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsCpu: true,
   },
   {
+    id: 'dune-drift',
+    category: 'arcade',
+    name: 'Dune Drift',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'An endless sandboard run. Carve down glowing dunes, backflip off ridges, chain landings, and outrun the dusk.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-dune-drift',
+    winCondition: 'dune-drift-distance',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
     id: 'dread-sector',
     category: 'action',
     name: 'Dread Sector',
@@ -1276,6 +1291,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
   const game = getGameDefinition(gameType, games);
 
   if (
+    game.moveMode === 'solo-dune-drift' ||
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
@@ -1349,6 +1365,7 @@ export const applyMove = (
 ): BoardCell[] => {
   const game = getGameDefinition(gameType, games);
   if (
+    game.moveMode === 'solo-dune-drift' ||
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
@@ -1580,6 +1597,7 @@ export const evaluateBoard = (
     game.winCondition === 'tetris-score' ||
     game.winCondition === 'starfall-survive' ||
     game.winCondition === 'rift-runner-extract' ||
+    game.winCondition === 'dune-drift-distance' ||
     game.winCondition === 'dread-sector-extract' ||
     game.winCondition === 'echo-bloom-resonate' ||
     game.winCondition === 'pulse-forge-stabilize' ||

@@ -510,6 +510,21 @@ const GAME_RULES = {
     supportsOnline: false,
     supportsCpu: true,
   },
+  'dune-drift': {
+    id: 'dune-drift',
+    category: 'arcade',
+    name: 'Dune Drift',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'An endless sandboard run. Carve down glowing dunes, backflip off ridges, chain landings, and outrun the dusk.',
+    moveMode: 'solo-dune-drift',
+    winCondition: 'dune-drift-distance',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
   'dread-sector': {
     id: 'dread-sector',
     category: 'action',
@@ -1344,6 +1359,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'tetris-score' ||
     rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'rift-runner-extract' ||
+    rules.winCondition === 'dune-drift-distance' ||
     rules.winCondition === 'dread-sector-extract' ||
     rules.winCondition === 'echo-bloom-resonate' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
@@ -1501,6 +1517,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
   }
 
   if (
+    rules.moveMode === 'solo-dune-drift' ||
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
@@ -1614,6 +1631,7 @@ function applyMove(gameType, board, move, symbol) {
   }
 
   if (
+    rules.moveMode === 'solo-dune-drift' ||
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||

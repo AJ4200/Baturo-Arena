@@ -35,6 +35,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   tetris: { label: 'TETRIS', className: 'choose-game-thumb-tetris' },
   'starfall-survivor': { label: 'STARFALL', className: 'choose-game-thumb-starfall-survivor' },
   'rift-runner': { label: 'RIFT RUN', className: 'choose-game-thumb-rift-runner' },
+  'dune-drift': { label: 'DRIFT', className: 'choose-game-thumb-dune-drift' },
   'dread-sector': { label: 'DREAD', className: 'choose-game-thumb-dread-sector' },
   'echo-bloom': { label: 'ECHO', className: 'choose-game-thumb-echo-bloom' },
   'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },

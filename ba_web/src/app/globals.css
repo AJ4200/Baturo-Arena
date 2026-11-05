@@ -15297,6 +15297,24 @@ h1 span:last-child {
   background: linear-gradient(160deg, rgba(18, 33, 58, 0.94), rgba(124, 63, 29, 0.92));
 }
 
+.choose-game-carousel-card .choose-game-thumb-dune-drift,
+.choose-game-option-card .choose-game-thumb-dune-drift {
+  border: 3px solid #000;
+  background:
+    radial-gradient(circle at 74% 28%, #fff3c4 0 9px, rgba(255, 190, 110, 0.5) 10px 18px, transparent 19px),
+    radial-gradient(ellipse 70% 40% at 20% 100%, #c2542d 0 98%, transparent 100%),
+    radial-gradient(ellipse 80% 45% at 80% 105%, #8e3a2a 0 98%, transparent 100%),
+    linear-gradient(180deg, #ffb45e 0%, #f27a4f 55%, #6b2e4a 100%);
+  box-shadow:
+    inset 0 0 28px rgba(255, 230, 170, 0.25),
+    0 0 18px rgba(242, 122, 79, 0.25);
+}
+
+.choose-game-carousel-card .choose-game-thumb-dune-drift > span,
+.choose-game-option-card .choose-game-thumb-dune-drift > span {
+  background: linear-gradient(160deg, rgba(107, 46, 74, 0.94), rgba(194, 84, 45, 0.92));
+}
+
 .choose-game-carousel-card .choose-game-thumb-rift-runner,
 .choose-game-option-card .choose-game-thumb-rift-runner {
   border: 3px solid #000;
@@ -24179,5 +24197,112 @@ h1 span:last-child {
     min-width: 1.85rem;
     height: 1.85rem;
     font-size: 0.72rem;
+  }
+}
+
+.dune-drift-shell {
+  width: min(960px, 96vw);
+  margin: 4.5rem auto 0;
+  display: grid;
+  gap: 0.6rem;
+  color: var(--match-text);
+}
+
+.dune-drift-hud {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.dune-drift-hud > div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.45rem 0.7rem;
+  border: 2px solid var(--match-outline);
+  border-radius: 12px;
+  background: var(--match-surface);
+}
+
+.dune-drift-hud span {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.dune-drift-hud strong {
+  font-size: 1rem;
+}
+
+.dune-drift-stage-wrap {
+  position: relative;
+  border: 3px solid var(--match-outline);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--match-surface-soft);
+  touch-action: none;
+  user-select: none;
+  cursor: pointer;
+}
+
+.dune-drift-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.dune-drift-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.6rem;
+  padding: 1rem;
+  text-align: center;
+  background: var(--match-tint-medium);
+  backdrop-filter: blur(3px);
+}
+
+.dune-drift-overlay > span {
+  font-size: clamp(1.4rem, 4vw, 2.4rem);
+  font-weight: 800;
+  padding: 0.2rem 1rem;
+  border-radius: 12px;
+  background: var(--match-surface);
+  border: 2px solid var(--match-outline);
+}
+
+.dune-drift-overlay p {
+  margin: 0;
+  padding: 0.3rem 0.8rem;
+  border-radius: 10px;
+  background: var(--match-surface);
+}
+
+.dune-drift-overlay button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border: 2px solid var(--match-outline);
+  border-radius: 999px;
+  background: var(--match-surface);
+  color: var(--match-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dune-drift-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+  .dune-drift-hud {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
