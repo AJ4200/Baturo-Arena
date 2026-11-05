@@ -202,7 +202,7 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     name: 'Leap',
     minPlayers: 1,
     maxPlayers: 4,
-    description: 'Orbit a fixed central anchor, chain leaps between safe white orbs, avoid black hazards, and survive the inward pull.',
+    description: 'Hold or tap to leap between orbs, spin around each one for exponential points, and dodge shapes and the dark half of split orbs.',
     rows: 1,
     columns: 1,
     connect: 0,
@@ -539,6 +539,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     connect: 0,
     moveMode: 'solo-dune-drift',
     winCondition: 'dune-drift-distance',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  {
+    id: 'well-putt',
+    category: 'puzzle',
+    name: 'Well Putt',
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Mini-golf through gravity. Slingshot the ball around attractor and repeller wells and sink it within the stroke limit.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'solo-well-putt',
+    winCondition: 'well-putt-clear',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1292,6 +1307,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
 
   if (
     game.moveMode === 'solo-dune-drift' ||
+    game.moveMode === 'solo-well-putt' ||
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
@@ -1366,6 +1382,7 @@ export const applyMove = (
   const game = getGameDefinition(gameType, games);
   if (
     game.moveMode === 'solo-dune-drift' ||
+    game.moveMode === 'solo-well-putt' ||
     game.moveMode === 'solo-2048' ||
     game.moveMode === 'solo-sudoku' ||
     game.moveMode === 'solo-minesweeper' ||
@@ -1598,6 +1615,7 @@ export const evaluateBoard = (
     game.winCondition === 'starfall-survive' ||
     game.winCondition === 'rift-runner-extract' ||
     game.winCondition === 'dune-drift-distance' ||
+    game.winCondition === 'well-putt-clear' ||
     game.winCondition === 'dread-sector-extract' ||
     game.winCondition === 'echo-bloom-resonate' ||
     game.winCondition === 'pulse-forge-stabilize' ||

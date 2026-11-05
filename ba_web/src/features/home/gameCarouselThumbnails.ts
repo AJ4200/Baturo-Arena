@@ -36,6 +36,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'starfall-survivor': { label: 'STARFALL', className: 'choose-game-thumb-starfall-survivor' },
   'rift-runner': { label: 'RIFT RUN', className: 'choose-game-thumb-rift-runner' },
   'dune-drift': { label: 'DRIFT', className: 'choose-game-thumb-dune-drift' },
+  'well-putt': { label: 'WELLS', className: 'choose-game-thumb-well-putt' },
   'dread-sector': { label: 'DREAD', className: 'choose-game-thumb-dread-sector' },
   'echo-bloom': { label: 'ECHO', className: 'choose-game-thumb-echo-bloom' },
   'pulse-forge': { label: 'PULSE', className: 'choose-game-thumb-pulse-forge' },

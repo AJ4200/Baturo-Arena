@@ -188,7 +188,7 @@ const GAME_RULES = {
     connect: 0,
     minPlayers: 1,
     maxPlayers: 4,
-    description: 'Orbit a fixed central anchor, chain leaps between safe white orbs, avoid black hazards, and survive the inward pull.',
+    description: 'Hold or tap to leap between orbs, spin around each one for exponential points, and dodge shapes and the dark half of split orbs.',
     moveMode: 'leap-on',
     winCondition: 'leap-on-score',
     supportsOnline: true,
@@ -522,6 +522,21 @@ const GAME_RULES = {
     description: 'An endless sandboard run. Carve down glowing dunes, backflip off ridges, chain landings, and outrun the dusk.',
     moveMode: 'solo-dune-drift',
     winCondition: 'dune-drift-distance',
+    supportsOnline: false,
+    supportsCpu: true,
+  },
+  'well-putt': {
+    id: 'well-putt',
+    category: 'puzzle',
+    name: 'Well Putt',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 1,
+    maxPlayers: 1,
+    description: 'Mini-golf through gravity. Slingshot the ball around attractor and repeller wells and sink it within the stroke limit.',
+    moveMode: 'solo-well-putt',
+    winCondition: 'well-putt-clear',
     supportsOnline: false,
     supportsCpu: true,
   },
@@ -1360,6 +1375,7 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'starfall-survive' ||
     rules.winCondition === 'rift-runner-extract' ||
     rules.winCondition === 'dune-drift-distance' ||
+    rules.winCondition === 'well-putt-clear' ||
     rules.winCondition === 'dread-sector-extract' ||
     rules.winCondition === 'echo-bloom-resonate' ||
     rules.winCondition === 'pulse-forge-stabilize' ||
@@ -1518,6 +1534,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
 
   if (
     rules.moveMode === 'solo-dune-drift' ||
+    rules.moveMode === 'solo-well-putt' ||
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
@@ -1632,6 +1649,7 @@ function applyMove(gameType, board, move, symbol) {
 
   if (
     rules.moveMode === 'solo-dune-drift' ||
+    rules.moveMode === 'solo-well-putt' ||
     rules.moveMode === 'solo-2048' ||
     rules.moveMode === 'solo-sudoku' ||
     rules.moveMode === 'solo-minesweeper' ||
