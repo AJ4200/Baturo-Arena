@@ -57,6 +57,7 @@ const GRAVITY = 1500;
 const SLOPE_PULL = 920;
 const DRAG = 0.0006;
 const MIN_SPEED = 170;
+const JUMP_SPEED = 430;
 const SPIN_RATE = 6.4;
 const TARGET_DISTANCE = 2500;
 const PX_PER_METER = 10;
@@ -109,7 +110,7 @@ export function SoloDuneDriftGame({
   const puffsRef = useRef<Puff[]>([]);
   const holdRef = useRef(false);
   const statusRef = useRef<Status>('ready');
-  const scoreRef = useRef({ score: 0, combo: 0, flips: 0, spun: 0, note: 'Hold to dive and spin. Release to land.' });
+  const scoreRef = useRef({ score: 0, combo: 0, flips: 0, spun: 0, note: 'Tap to jump. Hold in the air to flip; release to land.' });
   const reportedRef = useRef(false);
   const lastHudRef = useRef(0);
   const frameRef = useRef<number | null>(null);
@@ -144,7 +145,7 @@ export function SoloDuneDriftGame({
     terrainRef.current = createTerrain(Math.random() * 100);
     riderRef.current = createRider(terrainRef.current);
     puffsRef.current = [];
-    scoreRef.current = { score: 0, combo: 0, flips: 0, spun: 0, note: 'Hold to dive and spin. Release to land.' };
+    scoreRef.current = { score: 0, combo: 0, flips: 0, spun: 0, note: 'Tap to jump. Hold in the air to flip; release to land.' };
     statusRef.current = 'ready';
     reportedRef.current = false;
     holdRef.current = false;
@@ -153,9 +154,17 @@ export function SoloDuneDriftGame({
   }, [publishHud]);
 
   const press = useCallback(() => {
+    if (statusRef.current === 'won' || statusRef.current === 'crashed' || holdRef.current) return;
     holdRef.current = true;
     if (statusRef.current === 'ready') {
       statusRef.current = 'riding';
+    }
+    const rider = riderRef.current;
+    if (rider.grounded) {
+      rider.grounded = false;
+      rider.vy = Math.min(0, rider.vy) - JUMP_SPEED;
+      rider.airTime = 0;
+      scoreRef.current.spun = 0;
     }
   }, []);
 
@@ -183,9 +192,11 @@ export function SoloDuneDriftGame({
     };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', release);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', release);
     };
   }, [press, release, restart]);
 
@@ -217,7 +228,7 @@ export function SoloDuneDriftGame({
 
       if (rider.grounded) {
         const slope = slopeAt(rider.x);
-        rider.vx += (slope * SLOPE_PULL * (hold ? 1.6 : 1) - DRAG * rider.vx * rider.vx) * dt;
+        rider.vx += (slope * SLOPE_PULL - DRAG * rider.vx * rider.vx) * dt;
         rider.vx = Math.max(MIN_SPEED, rider.vx);
         const nextX = rider.x + rider.vx * dt;
         const groundY = height(nextX);
@@ -410,7 +421,7 @@ export function SoloDuneDriftGame({
       buttons: [
         {
           key: 'spin',
-          label: 'Hold: Dive / Spin',
+          label: 'Jump / Hold to Flip',
           icon: <AiOutlineThunderbolt />,
           onPointerDown: press,
           onPointerUp: release,
@@ -426,7 +437,7 @@ export function SoloDuneDriftGame({
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
 
-      <AdaptiveControllerOverlay sections={controllerSections} title="Dune Drift" subtitle="Hold Space / tap to dive and spin" />
+      <AdaptiveControllerOverlay sections={controllerSections} title="Dune Drift" subtitle="Tap Space or touch to jump; hold to flip" />
 
       <motion.div
         drag
