@@ -34,7 +34,7 @@ import {
   readPendingCpuResults,
   removePendingCpuResult,
 } from '@/lib/offlineSync';
-import { getRandomBrightColor } from '@/lib/random';
+import { getRandomBrightColor, getRandomUsername } from '@/lib/random';
 import type {
   CpuDifficulty,
   GameDefinition,
@@ -1405,6 +1405,10 @@ export default function Home() {
 
     if (savedName) {
       setPlayerName(savedName);
+    } else {
+      const generatedName = getRandomUsername();
+      setPlayerName(generatedName);
+      window.localStorage.setItem(STORAGE_KEYS.playerName, generatedName);
     }
     if (savedMuted) {
       setIsMusicMuted(savedMuted === 'true');
