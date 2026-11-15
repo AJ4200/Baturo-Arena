@@ -74,6 +74,14 @@ type AirHockeyArenaGameProps = {
   onLeave: () => void;
 };
 
+type Notification = {
+  id: string;
+  type: 'join' | 'leave';
+  playerName: string;
+  connectedCount: number;
+  totalCount: number;
+};
+
 type AirHockeyPhysicsRefs = {
   engine: Matter.Engine;
   puck: Matter.Body;
@@ -347,6 +355,8 @@ export function AirHockeyArenaGame({
   const [localSide, setLocalSide] = useState<Side | null>(mode === 'online' ? null : 'left');
   const [isOpponentConnected, setIsOpponentConnected] = useState(mode !== 'online');
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationDockVisible, setIsNotificationDockVisible] = useState(false);
   const lastReportedOutcomeRef = useRef<'win' | 'loss' | null>(null);
   const frameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
@@ -646,6 +656,31 @@ export function AirHockeyArenaGame({
             resetAirHockeyMatterWorld(physicsRef.current, nextState);
           }
           setState(nextState);
+        }
+
+        if (payload.type === 'air-hockey-event') {
+          const eventData = payload as any;
+          const notifId = `${Date.now()}-${Math.random()}`;
+          setIsNotificationDockVisible(true);
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: notifId,
+              type: eventData.eventType,
+              playerName: eventData.playerName,
+              connectedCount: eventData.connectedCount,
+              totalCount: eventData.totalCount,
+            },
+          ]);
+          window.setTimeout(() => {
+            setNotifications((prev) => {
+              const updated = prev.filter((n) => n.id !== notifId);
+              if (updated.length === 0) {
+                setIsNotificationDockVisible(false);
+              }
+              return updated;
+            });
+          }, 4000);
         }
       } catch (_error) {
         setConnectionLabel('Socket payload skipped');
@@ -1136,6 +1171,49 @@ export function AirHockeyArenaGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <motion.div
+        className={`air-hockey-notification-dock${isNotificationDockVisible ? ' visible' : ''}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={isNotificationDockVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        style={{ pointerEvents: isNotificationDockVisible ? 'auto' : 'none' }}
+      >
+        <div className="air-hockey-notification-dock-header">
+          <span className="air-hockey-notification-dock-title">Players</span>
+          <button
+            className="air-hockey-notification-dock-close"
+            type="button"
+            onClick={() => setIsNotificationDockVisible(false)}
+            aria-label="Close notifications"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="air-hockey-notification-dock-content">
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              className={`air-hockey-notification air-hockey-notification-${notif.type}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="air-hockey-notification-icon">
+                {notif.type === 'join' ? '✓' : '✗'}
+              </span>
+              <span className="air-hockey-notification-text">
+                <strong>{notif.playerName}</strong>
+                <small>{notif.type === 'join' ? 'joined' : 'left'}</small>
+              </span>
+              <span className="air-hockey-notification-count">
+                {notif.connectedCount}/{notif.totalCount}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <AdaptiveControllerOverlay
         sections={controllerSections}

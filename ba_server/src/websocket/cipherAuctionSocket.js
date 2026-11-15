@@ -107,6 +107,11 @@ function broadcastState(room) {
   });
 }
 
+function broadcastEvent(room, eventType, eventData) {
+  const payload = { type: 'cipher-auction-event', eventType, ...eventData };
+  room.sockets.forEach((socket) => sendJson(socket, payload));
+}
+
 function beginCountdown(room) {
   room.phase = 'countdown';
   room.deadline = Date.now() + COUNTDOWN_MS;
@@ -306,6 +311,13 @@ function leaveRoom(socket) {
   if (player && !stillConnected) {
     player.connected = false;
     player.locked = false;
+
+    broadcastEvent(room, 'player-left', {
+      playerId: socket.cipherPlayerId,
+      playerName: socket.cipherPlayerName,
+      connectedCount: getConnectedPlayers(room).length,
+      totalCount: room.players.size,
+    });
   }
   if (room.sockets.size === 0) {
     cipherRooms.delete(room.code);
@@ -373,6 +385,7 @@ function attachCipherAuctionWebSocket(server) {
       wss.handleUpgrade(request, socket, head, (ws) => {
         ws.cipherRoomCode = auth.roomCode;
         ws.cipherPlayerId = auth.playerId;
+        ws.cipherPlayerName = auth.playerName;
         ws.isAlive = true;
         const room = getCipherRoom(auth.roomCode);
         const existing = room.players.get(auth.playerId);
@@ -389,6 +402,13 @@ function attachCipherAuctionWebSocket(server) {
           connected: true,
         });
         room.sockets.add(ws);
+
+        broadcastEvent(room, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: auth.playerName,
+          connectedCount: getConnectedPlayers(room).length,
+          totalCount: room.players.size,
+        });
 
         ws.on('pong', () => {
           ws.isAlive = true;

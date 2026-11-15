@@ -32,6 +32,15 @@ function broadcastToRoom(socket, payload) {
   });
 }
 
+function broadcastEvent(roomCode, eventType, eventData) {
+  const roomSockets = heartstreamRooms.get(roomCode);
+  if (!roomSockets) {
+    return;
+  }
+  const payload = { type: 'heartstream-event', eventType, ...eventData };
+  roomSockets.forEach((socket) => sendJson(socket, payload));
+}
+
 function leaveRoom(socket) {
   const roomCode = socket.heartstreamRoomCode;
   if (!roomCode) {
@@ -44,6 +53,19 @@ function leaveRoom(socket) {
   }
 
   roomSockets.delete(socket);
+  const playerStillConnected = Array.from(roomSockets).some(
+    (peer) => peer.heartstreamPlayerId === socket.heartstreamPlayerId
+  );
+
+  if (!playerStillConnected) {
+    broadcastEvent(roomCode, 'player-left', {
+      playerId: socket.heartstreamPlayerId,
+      playerName: socket.heartstreamPlayerName,
+      connectedCount: roomSockets.size,
+      totalCount: 2,
+    });
+  }
+
   if (roomSockets.size === 0) {
     heartstreamRooms.delete(roomCode);
     return;
@@ -177,6 +199,13 @@ function attachHeartstreamWebSocket(server) {
           });
         });
         roomSockets.add(ws);
+
+        broadcastEvent(auth.roomCode, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: auth.playerName,
+          connectedCount: roomSockets.size,
+          totalCount: 2,
+        });
 
         ws.on('pong', () => {
           ws.isAlive = true;

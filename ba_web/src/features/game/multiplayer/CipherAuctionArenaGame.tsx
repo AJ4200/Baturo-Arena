@@ -101,6 +101,14 @@ type CipherAuctionArenaGameProps = {
   onLeave: () => void;
 };
 
+type Notification = {
+  id: string;
+  type: 'join' | 'leave';
+  playerName: string;
+  connectedCount: number;
+  totalCount: number;
+};
+
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
   const token = window.localStorage.getItem(STORAGE_KEYS.authToken);
@@ -347,6 +355,8 @@ export function CipherAuctionArenaGame({
   const [clockNow, setClockNow] = useState(Date.now());
   const [serverOffset, setServerOffset] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationDockVisible, setIsNotificationDockVisible] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const reportedWinnerRef = useRef<string | null>(null);
   const gameLabel = formatGameName('cipher-auction', gameDefinitions);
@@ -394,10 +404,40 @@ export function CipherAuctionArenaGame({
     socket.onerror = () => setConnectionLabel('Cipher link error');
     socket.onmessage = (event) => {
       try {
-        const payload = JSON.parse(String(event.data)) as CipherState & { type?: string };
-        if (payload.type !== 'cipher-auction-state') return;
-        setServerOffset(payload.serverNow - Date.now());
-        setGameState(payload);
+        const payload = JSON.parse(String(event.data)) as (CipherState & { type?: string }) | {
+          type: string;
+          eventType: string;
+          playerName: string;
+          connectedCount: number;
+          totalCount: number;
+        };
+        if (payload.type === 'cipher-auction-state') {
+          setServerOffset(payload.serverNow - Date.now());
+          setGameState(payload as CipherState);
+        } else if (payload.type === 'cipher-auction-event') {
+          const eventData = payload as any;
+          const notifId = `${Date.now()}-${Math.random()}`;
+          setIsNotificationDockVisible(true);
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: notifId,
+              type: eventData.eventType,
+              playerName: eventData.playerName,
+              connectedCount: eventData.connectedCount,
+              totalCount: eventData.totalCount,
+            },
+          ]);
+          window.setTimeout(() => {
+            setNotifications((prev) => {
+              const updated = prev.filter((n) => n.id !== notifId);
+              if (updated.length === 0) {
+                setIsNotificationDockVisible(false);
+              }
+              return updated;
+            });
+          }, 4000);
+        }
       } catch (_error) {
         setConnectionLabel('Cipher packet skipped');
       }
@@ -574,6 +614,49 @@ export function CipherAuctionArenaGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <motion.div
+        className={`cipher-auction-notification-dock${isNotificationDockVisible ? ' visible' : ''}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={isNotificationDockVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        style={{ pointerEvents: isNotificationDockVisible ? 'auto' : 'none' }}
+      >
+        <div className="cipher-auction-notification-dock-header">
+          <span className="cipher-auction-notification-dock-title">Players</span>
+          <button
+            className="cipher-auction-notification-dock-close"
+            type="button"
+            onClick={() => setIsNotificationDockVisible(false)}
+            aria-label="Close notifications"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="cipher-auction-notification-dock-content">
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              className={`cipher-auction-notification cipher-auction-notification-${notif.type}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="cipher-auction-notification-icon">
+                {notif.type === 'join' ? '✓' : '✗'}
+              </span>
+              <span className="cipher-auction-notification-text">
+                <strong>{notif.playerName}</strong>
+                <small>{notif.type === 'join' ? 'joined' : 'left'}</small>
+              </span>
+              <span className="cipher-auction-notification-count">
+                {notif.connectedCount}/{notif.totalCount}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <AdaptiveControllerOverlay
         title="Cipher Auction Controls"

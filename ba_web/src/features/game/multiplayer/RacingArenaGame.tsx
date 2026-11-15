@@ -55,6 +55,14 @@ type RaceState = {
   lastEvent: string;
 };
 
+type Notification = {
+  id: string;
+  type: 'join' | 'leave';
+  playerName: string;
+  connectedCount: number;
+  totalCount: number;
+};
+
 type RacingArenaGameProps = {
   player: PlayerProfile;
   mode: GameMode;
@@ -312,6 +320,8 @@ export function RacingArenaGame({
   );
   const [connectionLabel, setConnectionLabel] = useState(mode === 'online' ? 'Socket idle' : 'Local engine');
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationDockVisible, setIsNotificationDockVisible] = useState(false);
   const inputRef = useRef<RacerInput>(createInput());
   const remoteInputsRef = useRef<Record<string, RacerInput>>({});
   const frameRef = useRef<number | null>(null);
@@ -510,6 +520,31 @@ export function RacingArenaGame({
             winnerId: payload.winnerId || null,
             lastEvent: `${payload.winnerName || 'A rival'} crossed the line first.`,
           }));
+        }
+
+        if (payload.type === 'racing-event') {
+          const eventData = payload as any;
+          const notifId = `${Date.now()}-${Math.random()}`;
+          setIsNotificationDockVisible(true);
+          setNotifications((prev) => [
+            ...prev,
+            {
+              id: notifId,
+              type: eventData.eventType,
+              playerName: eventData.playerName,
+              connectedCount: eventData.connectedCount,
+              totalCount: eventData.totalCount,
+            },
+          ]);
+          window.setTimeout(() => {
+            setNotifications((prev) => {
+              const updated = prev.filter((n) => n.id !== notifId);
+              if (updated.length === 0) {
+                setIsNotificationDockVisible(false);
+              }
+              return updated;
+            });
+          }, 4000);
         }
       } catch (_error) {
         setConnectionLabel('Socket payload skipped');
@@ -735,6 +770,49 @@ export function RacingArenaGame({
       <div>
         <h1 className="game-screen-title">{gameLabel}</h1>
       </div>
+
+      <motion.div
+        className={`racing-notification-dock${isNotificationDockVisible ? ' visible' : ''}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={isNotificationDockVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        style={{ pointerEvents: isNotificationDockVisible ? 'auto' : 'none' }}
+      >
+        <div className="racing-notification-dock-header">
+          <span className="racing-notification-dock-title">Players</span>
+          <button
+            className="racing-notification-dock-close"
+            type="button"
+            onClick={() => setIsNotificationDockVisible(false)}
+            aria-label="Close notifications"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="racing-notification-dock-content">
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              className={`racing-notification racing-notification-${notif.type}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="racing-notification-icon">
+                {notif.type === 'join' ? '✓' : '✗'}
+              </span>
+              <span className="racing-notification-text">
+                <strong>{notif.playerName}</strong>
+                <small>{notif.type === 'join' ? 'joined' : 'left'}</small>
+              </span>
+              <span className="racing-notification-count">
+                {notif.connectedCount}/{notif.totalCount}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <AdaptiveControllerOverlay
         title={gameLabel}

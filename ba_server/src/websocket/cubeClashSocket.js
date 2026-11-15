@@ -107,6 +107,11 @@ function broadcastRoom(room, payload = serializeRoom(room)) {
   room.sockets.forEach((socket) => sendJson(socket, payload));
 }
 
+function broadcastEvent(room, eventType, eventData) {
+  const payload = { type: 'cube-clash-event', eventType, ...eventData };
+  room.sockets.forEach((socket) => sendJson(socket, payload));
+}
+
 function resetRoom(room) {
   const players = Array.from(room.players.values());
   players.forEach((player, index) => {
@@ -293,6 +298,15 @@ function leaveRoom(socket) {
     player.connected = false;
   }
 
+  if (!stillConnected && player) {
+    broadcastEvent(room, 'player-left', {
+      playerId: socket.cubeClashPlayerId,
+      playerName: socket.cubeClashPlayerName,
+      connectedCount: Array.from(room.players.values()).filter((p) => p.connected).length,
+      totalCount: room.players.size,
+    });
+  }
+
   if (room.sockets.size === 0) {
     if (room.tickId) {
       clearInterval(room.tickId);
@@ -412,6 +426,13 @@ function attachCubeClashWebSocket(server) {
         ws.cubeClashPlayerName = auth.playerName;
         ws.isAlive = true;
         room.sockets.add(ws);
+
+        broadcastEvent(room, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: auth.playerName,
+          connectedCount: Array.from(room.players.values()).filter((p) => p.connected).length,
+          totalCount: room.players.size,
+        });
 
         if (!room.tickId) {
           room.tickId = setInterval(() => tickRoom(room), TICK_INTERVAL_MS);

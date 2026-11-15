@@ -32,6 +32,19 @@ function leaveRoom(socket) {
   }
 
   roomSockets.delete(socket);
+  const playerStillConnected = Array.from(roomSockets).some(
+    (peer) => peer.racingPlayerId === socket.racingPlayerId
+  );
+
+  if (!playerStillConnected) {
+    broadcastEvent(roomCode, 'player-left', {
+      playerId: socket.racingPlayerId,
+      playerName: socket.racingPlayerName,
+      connectedCount: roomSockets.size,
+      totalCount: 2,
+    });
+  }
+
   if (roomSockets.size === 0) {
     racingRooms.delete(roomCode);
     return;
@@ -58,6 +71,15 @@ function broadcastToRoom(socket, payload) {
       sendJson(peer, payload);
     }
   });
+}
+
+function broadcastEvent(roomCode, eventType, eventData) {
+  const roomSockets = racingRooms.get(roomCode);
+  if (!roomSockets) {
+    return;
+  }
+  const payload = { type: 'racing-event', eventType, ...eventData };
+  roomSockets.forEach((socket) => sendJson(socket, payload));
 }
 
 function normalizeRacingPayload(socket, rawData) {
@@ -154,6 +176,13 @@ function attachRacingWebSocket(server) {
         ws.isAlive = true;
 
         getRoomSockets(auth.roomCode).add(ws);
+
+        broadcastEvent(auth.roomCode, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: auth.playerName,
+          connectedCount: racingRooms.get(auth.roomCode).size,
+          totalCount: 2,
+        });
 
         ws.on('pong', () => {
           ws.isAlive = true;
