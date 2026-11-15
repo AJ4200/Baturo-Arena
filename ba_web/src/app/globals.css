@@ -25573,6 +25573,723 @@ h1 span:last-child {
   justify-content: center;
 }
 
+/* Notification dock styles for all games */
+
+/* Heartstream */
+.heartstream-notification-dock {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.heartstream-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.heartstream-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.heartstream-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.heartstream-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.heartstream-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.heartstream-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.heartstream-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.heartstream-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.heartstream-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.heartstream-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.heartstream-notification-text strong {
+  color: white;
+  font-weight: 600;
+}
+
+.heartstream-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.heartstream-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.heartstream-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.heartstream-notification-join .heartstream-notification-icon {
+  color: #4caf50;
+}
+
+.heartstream-notification-join .heartstream-notification-text strong {
+  color: #81c784;
+}
+
+.heartstream-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.heartstream-notification-leave .heartstream-notification-icon {
+  color: #f44336;
+}
+
+.heartstream-notification-leave .heartstream-notification-text strong {
+  color: #ef5350;
+}
+
+/* Racing */
+.racing-notification-dock {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.racing-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.racing-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.racing-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.racing-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.racing-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.racing-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.racing-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.racing-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.racing-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.racing-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.racing-notification-text strong {
+  color: white;
+  font-weight: 600;
+}
+
+.racing-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.racing-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.racing-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.racing-notification-join .racing-notification-icon {
+  color: #4caf50;
+}
+
+.racing-notification-join .racing-notification-text strong {
+  color: #81c784;
+}
+
+.racing-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.racing-notification-leave .racing-notification-icon {
+  color: #f44336;
+}
+
+.racing-notification-leave .racing-notification-text strong {
+  color: #ef5350;
+}
+
+/* CubeClash */
+.cube-clash-notification-dock {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.cube-clash-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.cube-clash-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.cube-clash-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cube-clash-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.cube-clash-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cube-clash-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.cube-clash-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cube-clash-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.cube-clash-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.cube-clash-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cube-clash-notification-text strong {
+  color: white;
+  font-weight: 600;
+}
+
+.cube-clash-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.cube-clash-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.cube-clash-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.cube-clash-notification-join .cube-clash-notification-icon {
+  color: #4caf50;
+}
+
+.cube-clash-notification-join .cube-clash-notification-text strong {
+  color: #81c784;
+}
+
+.cube-clash-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.cube-clash-notification-leave .cube-clash-notification-icon {
+  color: #f44336;
+}
+
+.cube-clash-notification-leave .cube-clash-notification-text strong {
+  color: #ef5350;
+}
+
+/* AirHockey */
+.air-hockey-notification-dock {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.air-hockey-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.air-hockey-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.air-hockey-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.air-hockey-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.air-hockey-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.air-hockey-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.air-hockey-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.air-hockey-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.air-hockey-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.air-hockey-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.air-hockey-notification-text strong {
+  color: white;
+  font-weight: 600;
+}
+
+.air-hockey-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.air-hockey-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.air-hockey-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.air-hockey-notification-join .air-hockey-notification-icon {
+  color: #4caf50;
+}
+
+.air-hockey-notification-join .air-hockey-notification-text strong {
+  color: #81c784;
+}
+
+.air-hockey-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.air-hockey-notification-leave .air-hockey-notification-icon {
+  color: #f44336;
+}
+
+.air-hockey-notification-leave .air-hockey-notification-text strong {
+  color: #ef5350;
+}
+
+/* CipherAuction */
+.cipher-auction-notification-dock {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.cipher-auction-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.cipher-auction-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.cipher-auction-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cipher-auction-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.cipher-auction-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.cipher-auction-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.cipher-auction-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cipher-auction-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.cipher-auction-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.cipher-auction-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.cipher-auction-notification-text strong {
+  color: white;
+  font-weight: 600;
+}
+
+.cipher-auction-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.cipher-auction-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.cipher-auction-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.cipher-auction-notification-join .cipher-auction-notification-icon {
+  color: #4caf50;
+}
+
+.cipher-auction-notification-join .cipher-auction-notification-text strong {
+  color: #81c784;
+}
+
+.cipher-auction-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.cipher-auction-notification-leave .cipher-auction-notification-icon {
+  color: #f44336;
+}
+
+.cipher-auction-notification-leave .cipher-auction-notification-text strong {
+  color: #ef5350;
+}
+
 .sparkstorm-notification-dock {
   position: fixed;
   top: 4.2rem;
