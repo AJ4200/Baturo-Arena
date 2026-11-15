@@ -59,6 +59,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'cipher-auction': { label: 'SEALED BIDS', className: 'choose-game-thumb-cipher-auction' },
   heartstream: { label: 'HEARTS', className: 'choose-game-thumb-heartstream' },
   'rune-rally': { label: 'RUNE RALLY', className: 'choose-game-thumb-rune-rally' },
+  sparkstorm: { label: 'SPARKSTORM', className: 'choose-game-thumb-sparkstorm' },
 };
 
 export const getGameCarouselThumbnail = (gameType: GameType) => GAME_CAROUSEL_THUMBNAILS[gameType];

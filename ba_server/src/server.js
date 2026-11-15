@@ -8,6 +8,7 @@ const { attachCipherAuctionWebSocket } = require("./websocket/cipherAuctionSocke
 const { attachCubeClashWebSocket } = require("./websocket/cubeClashSocket");
 const { attachHeartstreamWebSocket } = require("./websocket/heartstreamSocket");
 const { attachRuneRallyWebSocket } = require("./websocket/runeRallySocket");
+const { attachSparkstormWebSocket } = require("./websocket/sparkstormSocket");
 
 function sleep(ms) {
   return new Promise((resolve) => {
@@ -43,6 +44,7 @@ async function startServer() {
   attachCubeClashWebSocket(server);
   attachHeartstreamWebSocket(server);
   attachRuneRallyWebSocket(server);
+  attachSparkstormWebSocket(server);
   server.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`baturo-arena api listening on http://localhost:${port}`);

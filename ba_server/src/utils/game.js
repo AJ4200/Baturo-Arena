@@ -765,6 +765,21 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: false,
   },
+  sparkstorm: {
+    id: 'sparkstorm',
+    category: 'arcade',
+    name: 'Sparkstorm',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A simultaneous neon scramble: steer your runner, dash through the arena, and snatch sparks before the other players.',
+    moveMode: 'sparkstorm',
+    winCondition: 'sparkstorm-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
 };
 
 function getGameRules(gameType) {
@@ -1407,7 +1422,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'race-finish' ||
     rules.winCondition === 'cipher-score' ||
     rules.winCondition === 'heartstream-score' ||
-    rules.winCondition === 'rune-rally-score'
+    rules.winCondition === 'rune-rally-score' ||
+    rules.winCondition === 'sparkstorm-score'
   ) {
     return null;
   }
@@ -1586,6 +1602,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
     rules.moveMode === 'rune-rally' ||
+    rules.moveMode === 'sparkstorm' ||
     rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo'
   ) {
@@ -1702,6 +1719,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
     rules.moveMode === 'rune-rally' ||
+    rules.moveMode === 'sparkstorm' ||
     rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'

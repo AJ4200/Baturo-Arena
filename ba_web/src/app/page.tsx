@@ -1161,7 +1161,8 @@ export default function Home() {
       if (
         definition.maxPlayers > 1 &&
         definition.moveMode !== 'cipher-auction' &&
-        definition.moveMode !== 'rune-rally'
+        definition.moveMode !== 'rune-rally' &&
+        definition.moveMode !== 'sparkstorm'
       ) {
         modes.push('offline');
       }
@@ -1276,7 +1277,8 @@ export default function Home() {
     if (
       selectedDefinition.maxPlayers <= 1 ||
       selectedDefinition.moveMode === 'cipher-auction' ||
-      selectedDefinition.moveMode === 'rune-rally'
+      selectedDefinition.moveMode === 'rune-rally' ||
+      selectedDefinition.moveMode === 'sparkstorm'
     ) {
       setMessage(`${selectedDefinition.name} requires an online room`);
       return;

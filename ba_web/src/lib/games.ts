@@ -782,6 +782,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: true,
     supportsCpu: false,
   },
+  {
+    id: 'sparkstorm',
+    category: 'arcade',
+    name: 'Sparkstorm',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'A simultaneous neon scramble: steer your runner, dash through the arena, and snatch sparks before the other players.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'sparkstorm',
+    winCondition: 'sparkstorm-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -1358,6 +1373,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
     game.moveMode === 'rune-rally' ||
+    game.moveMode === 'sparkstorm' ||
     game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
@@ -1434,6 +1450,7 @@ export const applyMove = (
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
     game.moveMode === 'rune-rally' ||
+    game.moveMode === 'sparkstorm' ||
     game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
@@ -1649,7 +1666,8 @@ export const evaluateBoard = (
     game.winCondition === 'race-finish' ||
     game.winCondition === 'cipher-score' ||
     game.winCondition === 'heartstream-score' ||
-    game.winCondition === 'rune-rally-score'
+    game.winCondition === 'rune-rally-score' ||
+    game.winCondition === 'sparkstorm-score'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;

@@ -111,7 +111,8 @@ export function LobbyScreen({
   const supportsOffline =
     (selectedDefinition?.maxPlayers ?? 1) > 1 &&
     selectedDefinition?.moveMode !== 'cipher-auction' &&
-    selectedDefinition?.moveMode !== 'rune-rally';
+    selectedDefinition?.moveMode !== 'rune-rally' &&
+    selectedDefinition?.moveMode !== 'sparkstorm';
   const selectedGameName = formatGameName(selectedGame, games);
   const selectedGameDescription = selectedDefinition?.description || 'Choose a mode and jump in.';
   const selectedGameCategory = selectedDefinition ? formatGameCategory(selectedDefinition.category) : 'Arcade';

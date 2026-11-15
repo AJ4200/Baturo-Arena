@@ -66,7 +66,8 @@ export type GameType =
   | 'turbo-rush'
   | 'cipher-auction'
   | 'heartstream'
-  | 'rune-rally';
+  | 'rune-rally'
+  | 'sparkstorm';
 
 export type GameDefinition = {
   id: GameType;
@@ -124,7 +125,8 @@ export type GameDefinition = {
     | 'racing'
     | 'cipher-auction'
     | 'heartstream'
-    | 'rune-rally';
+    | 'rune-rally'
+    | 'sparkstorm';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -170,6 +172,7 @@ export type GameDefinition = {
     | 'cipher-score'
     | 'heartstream-score'
     | 'rune-rally-score'
+    | 'sparkstorm-score'
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;

@@ -44,6 +44,7 @@ import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctio
 import { CubeClashArenaGame } from '@/features/game/multiplayer/CubeClashArenaGame';
 import { HeartstreamArenaGame } from '@/features/game/multiplayer/HeartstreamArenaGame';
 import { RuneRallyArenaGame } from '@/features/game/multiplayer/RuneRallyArenaGame';
+import { SparkstormArenaGame } from '@/features/game/multiplayer/SparkstormArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -392,6 +393,22 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
   if (gameType === 'rune-rally') {
     return (
       <RuneRallyArenaGame
+        player={player}
+        mode={mode}
+        roomCode={roomCode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
+      />
+    );
+  }
+
+  if (gameType === 'sparkstorm') {
+    return (
+      <SparkstormArenaGame
         player={player}
         mode={mode}
         roomCode={roomCode}
