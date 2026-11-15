@@ -109,6 +109,15 @@ function broadcastState(room) {
   room.sockets.forEach((socket) => sendJson(socket, payload));
 }
 
+function broadcastEvent(room, eventType, eventData) {
+  const payload = {
+    type: 'rune-rally-event',
+    eventType,
+    ...eventData,
+  };
+  room.sockets.forEach((socket) => sendJson(socket, payload));
+}
+
 async function recordMatchResults(room) {
   if (room.phase !== 'finished' || room.resultRecorded) {
     return;
@@ -336,6 +345,15 @@ function leaveRoom(socket) {
   }
   room.lastActivityAt = Date.now();
 
+  if (!playerStillConnected && player) {
+    broadcastEvent(room, 'player-left', {
+      playerId: socket.runeRallyPlayerId,
+      playerName: player.name,
+      connectedCount: getConnectedPlayers(room).length,
+      totalCount: room.players.size,
+    });
+  }
+
   const connectedPlayers = getConnectedPlayers(room);
   if (room.phase === 'playing' && connectedPlayers.length < 2) {
     room.phase = 'waiting';
@@ -451,6 +469,13 @@ function attachRuneRallyWebSocket(server) {
         player.name = auth.roster.find((member) => member.player_id === auth.playerId)?.name || player.name;
         room.sockets.add(ws);
         room.lastActivityAt = Date.now();
+
+        broadcastEvent(room, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: player.name,
+          connectedCount: getConnectedPlayers(room).length,
+          totalCount: room.players.size,
+        });
 
         ws.on('pong', () => {
           ws.isAlive = true;

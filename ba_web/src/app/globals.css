@@ -24936,6 +24936,49 @@ h1 span:last-child {
   background: var(--match-tint-medium, rgba(255, 255, 255, 0.52));
 }
 
+.rune-rally-notifications {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 90vw;
+  pointer-events: none;
+}
+
+.rune-rally-notification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.88);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rune-rally-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.rune-rally-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+
 .motion-off .rune-rally-root *,
 .motion-off .rune-rally-root *::before,
 .motion-off .rune-rally-root *::after {
@@ -25429,6 +25472,49 @@ h1 span:last-child {
 
 .sparkstorm-finale-card > div {
   justify-content: center;
+}
+
+.sparkstorm-notifications {
+  position: fixed;
+  top: 4.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 90vw;
+  pointer-events: none;
+}
+
+.sparkstorm-notification {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.88);
+  backdrop-filter: blur(8px);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.sparkstorm-notification-join {
+  border-color: rgba(76, 175, 80, 0.3);
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.sparkstorm-notification-leave {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
 }
 
 .motion-off .sparkstorm-root *,

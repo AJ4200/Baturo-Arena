@@ -52,6 +52,14 @@ type RuneRallyState = {
   players: RuneRallyPlayer[];
 };
 
+type Notification = {
+  id: string;
+  type: 'join' | 'leave';
+  playerName: string;
+  connectedCount: number;
+  totalCount: number;
+};
+
 type RuneRallyArenaGameProps = {
   player: PlayerProfile;
   mode: GameMode;
@@ -97,6 +105,7 @@ export function RuneRallyArenaGame({
   const [clockNow, setClockNow] = useState(Date.now());
   const [serverOffset, setServerOffset] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
   const reportedResultRef = useRef<string | null>(null);
   const gameLabel = formatGameName('rune-rally', gameDefinitions);
@@ -146,10 +155,33 @@ export function RuneRallyArenaGame({
       socket.onerror = () => setConnectionLabel('Connection error — reconnecting');
       socket.onmessage = (event) => {
         try {
-          const payload = JSON.parse(String(event.data)) as RuneRallyState & { type?: string };
-          if (payload.type !== 'rune-rally-state') return;
-          setServerOffset(payload.serverNow - Date.now());
-          setGameState(payload);
+          const payload = JSON.parse(String(event.data)) as (RuneRallyState & { type?: string }) | {
+            type: string;
+            eventType: string;
+            playerName: string;
+            connectedCount: number;
+            totalCount: number;
+          };
+          if (payload.type === 'rune-rally-state') {
+            setServerOffset(payload.serverNow - Date.now());
+            setGameState(payload as RuneRallyState);
+          } else if (payload.type === 'rune-rally-event') {
+            const eventData = payload as any;
+            const notifId = `${Date.now()}-${Math.random()}`;
+            setNotifications((prev) => [
+              ...prev,
+              {
+                id: notifId,
+                type: eventData.eventType,
+                playerName: eventData.playerName,
+                connectedCount: eventData.connectedCount,
+                totalCount: eventData.totalCount,
+              },
+            ]);
+            window.setTimeout(() => {
+              setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+            }, 4000);
+          }
         } catch (_error) {
           setConnectionLabel('Game update skipped');
         }
@@ -249,6 +281,25 @@ export function RuneRallyArenaGame({
   return (
     <>
       <h1 className="game-screen-title">{gameLabel}</h1>
+
+      <div className="rune-rally-notifications">
+        {notifications.map((notif) => (
+          <motion.div
+            key={notif.id}
+            className={`rune-rally-notification rune-rally-notification-${notif.type}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {notif.type === 'join' ? (
+              <span>✓ {notif.playerName} joined ({notif.connectedCount}/{notif.totalCount})</span>
+            ) : (
+              <span>✗ {notif.playerName} left ({notif.connectedCount}/{notif.totalCount})</span>
+            )}
+          </motion.div>
+        ))}
+      </div>
 
       <AdaptiveControllerOverlay
         title="Rune Rally Controls"

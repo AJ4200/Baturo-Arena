@@ -55,6 +55,14 @@ type SparkstormState = {
   players: SparkstormPlayer[];
 };
 
+type Notification = {
+  id: string;
+  type: 'join' | 'leave';
+  playerName: string;
+  connectedCount: number;
+  totalCount: number;
+};
+
 type SparkstormArenaGameProps = {
   player: PlayerProfile;
   mode: GameMode;
@@ -106,6 +114,7 @@ export function SparkstormArenaGame({
   const [clockNow, setClockNow] = useState(Date.now());
   const [serverOffset, setServerOffset] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const socketRef = useRef<WebSocket | null>(null);
   const directionRef = useRef<Direction | null>(null);
   const pressedDirectionsRef = useRef<Direction[]>([]);
@@ -169,10 +178,33 @@ export function SparkstormArenaGame({
       socket.onerror = () => setConnectionLabel('Connection error — reconnecting');
       socket.onmessage = (event) => {
         try {
-          const payload = JSON.parse(String(event.data)) as SparkstormState & { type?: string };
-          if (payload.type !== 'sparkstorm-state') return;
-          setServerOffset(payload.serverNow - Date.now());
-          setGameState(payload);
+          const payload = JSON.parse(String(event.data)) as (SparkstormState & { type?: string }) | {
+            type: string;
+            eventType: string;
+            playerName: string;
+            connectedCount: number;
+            totalCount: number;
+          };
+          if (payload.type === 'sparkstorm-state') {
+            setServerOffset(payload.serverNow - Date.now());
+            setGameState(payload as SparkstormState);
+          } else if (payload.type === 'sparkstorm-event') {
+            const eventData = payload as any;
+            const notifId = `${Date.now()}-${Math.random()}`;
+            setNotifications((prev) => [
+              ...prev,
+              {
+                id: notifId,
+                type: eventData.eventType,
+                playerName: eventData.playerName,
+                connectedCount: eventData.connectedCount,
+                totalCount: eventData.totalCount,
+              },
+            ]);
+            window.setTimeout(() => {
+              setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+            }, 4000);
+          }
         } catch (_error) {
           setConnectionLabel('Arena update skipped');
         }
@@ -364,6 +396,25 @@ export function SparkstormArenaGame({
   return (
     <>
       <h1 className="game-screen-title">{gameLabel}</h1>
+
+      <div className="sparkstorm-notifications">
+        {notifications.map((notif) => (
+          <motion.div
+            key={notif.id}
+            className={`sparkstorm-notification sparkstorm-notification-${notif.type}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {notif.type === 'join' ? (
+              <span>✓ {notif.playerName} joined ({notif.connectedCount}/{notif.totalCount})</span>
+            ) : (
+              <span>✗ {notif.playerName} left ({notif.connectedCount}/{notif.totalCount})</span>
+            )}
+          </motion.div>
+        ))}
+      </div>
 
       <AdaptiveControllerOverlay
         title="Sparkstorm Controls"

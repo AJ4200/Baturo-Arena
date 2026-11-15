@@ -163,6 +163,11 @@ function serializeRoom(room) {
   };
 }
 
+function broadcastEvent(room, eventType, eventData) {
+  const payload = { type: 'sparkstorm-event', eventType, ...eventData };
+  room.sockets.forEach((socket) => sendJson(socket, payload));
+}
+
 function broadcastState(room) {
   const payload = serializeRoom(room);
   room.sockets.forEach((socket) => sendJson(socket, payload));
@@ -436,6 +441,16 @@ function leaveRoom(socket) {
     player.boostPending = false;
   }
   room.lastActivityAt = Date.now();
+
+  if (!playerStillConnected && player) {
+    broadcastEvent(room, 'player-left', {
+      playerId: socket.sparkstormPlayerId,
+      playerName: player.name,
+      connectedCount: getConnectedPlayers(room).length,
+      totalCount: room.players.size,
+    });
+  }
+
   if (getConnectedPlayers(room).length < 2 && room.phase !== 'finished' && room.phase !== 'waiting') {
     pauseForDisconnect(room, Date.now());
     return;
@@ -487,6 +502,13 @@ function attachSparkstormWebSocket(server) {
         player.name = auth.roster.find((member) => member.player_id === auth.playerId)?.name || player.name;
         room.sockets.add(ws);
         room.lastActivityAt = Date.now();
+
+        broadcastEvent(room, 'player-joined', {
+          playerId: auth.playerId,
+          playerName: auth.roster.find((member) => member.player_id === auth.playerId)?.name || player.name,
+          connectedCount: getConnectedPlayers(room).length,
+          totalCount: room.players.size,
+        });
 
         ws.on('pong', () => {
           ws.isAlive = true;
