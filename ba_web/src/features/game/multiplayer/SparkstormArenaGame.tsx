@@ -115,6 +115,7 @@ export function SparkstormArenaGame({
   const [serverOffset, setServerOffset] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationDockVisible, setIsNotificationDockVisible] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const directionRef = useRef<Direction | null>(null);
   const pressedDirectionsRef = useRef<Direction[]>([]);
@@ -191,6 +192,7 @@ export function SparkstormArenaGame({
           } else if (payload.type === 'sparkstorm-event') {
             const eventData = payload as any;
             const notifId = `${Date.now()}-${Math.random()}`;
+            setIsNotificationDockVisible(true);
             setNotifications((prev) => [
               ...prev,
               {
@@ -202,7 +204,13 @@ export function SparkstormArenaGame({
               },
             ]);
             window.setTimeout(() => {
-              setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+              setNotifications((prev) => {
+                const updated = prev.filter((n) => n.id !== notifId);
+                if (updated.length === 0) {
+                  setIsNotificationDockVisible(false);
+                }
+                return updated;
+              });
             }, 4000);
           }
         } catch (_error) {
@@ -397,24 +405,48 @@ export function SparkstormArenaGame({
     <>
       <h1 className="game-screen-title">{gameLabel}</h1>
 
-      <div className="sparkstorm-notifications">
-        {notifications.map((notif) => (
-          <motion.div
-            key={notif.id}
-            className={`sparkstorm-notification sparkstorm-notification-${notif.type}`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
+      <motion.div
+        className={`sparkstorm-notification-dock${isNotificationDockVisible ? ' visible' : ''}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={isNotificationDockVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        style={{ pointerEvents: isNotificationDockVisible ? 'auto' : 'none' }}
+      >
+        <div className="sparkstorm-notification-dock-header">
+          <span className="sparkstorm-notification-dock-title">Players</span>
+          <button
+            className="sparkstorm-notification-dock-close"
+            type="button"
+            onClick={() => setIsNotificationDockVisible(false)}
+            aria-label="Close notifications"
           >
-            {notif.type === 'join' ? (
-              <span>✓ {notif.playerName} joined ({notif.connectedCount}/{notif.totalCount})</span>
-            ) : (
-              <span>✗ {notif.playerName} left ({notif.connectedCount}/{notif.totalCount})</span>
-            )}
-          </motion.div>
-        ))}
-      </div>
+            ✕
+          </button>
+        </div>
+        <div className="sparkstorm-notification-dock-content">
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              className={`sparkstorm-notification sparkstorm-notification-${notif.type}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="sparkstorm-notification-icon">
+                {notif.type === 'join' ? '✓' : '✗'}
+              </span>
+              <span className="sparkstorm-notification-text">
+                <strong>{notif.playerName}</strong>
+                <small>{notif.type === 'join' ? 'joined' : 'left'}</small>
+              </span>
+              <span className="sparkstorm-notification-count">
+                {notif.connectedCount}/{notif.totalCount}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <AdaptiveControllerOverlay
         title="Sparkstorm Controls"

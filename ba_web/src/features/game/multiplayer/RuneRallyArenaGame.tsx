@@ -106,6 +106,7 @@ export function RuneRallyArenaGame({
   const [serverOffset, setServerOffset] = useState(0);
   const [isInfoCardCollapsed, setIsInfoCardCollapsed] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationDockVisible, setIsNotificationDockVisible] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const reportedResultRef = useRef<string | null>(null);
   const gameLabel = formatGameName('rune-rally', gameDefinitions);
@@ -168,6 +169,7 @@ export function RuneRallyArenaGame({
           } else if (payload.type === 'rune-rally-event') {
             const eventData = payload as any;
             const notifId = `${Date.now()}-${Math.random()}`;
+            setIsNotificationDockVisible(true);
             setNotifications((prev) => [
               ...prev,
               {
@@ -179,7 +181,13 @@ export function RuneRallyArenaGame({
               },
             ]);
             window.setTimeout(() => {
-              setNotifications((prev) => prev.filter((n) => n.id !== notifId));
+              setNotifications((prev) => {
+                const updated = prev.filter((n) => n.id !== notifId);
+                if (updated.length === 0) {
+                  setIsNotificationDockVisible(false);
+                }
+                return updated;
+              });
             }, 4000);
           }
         } catch (_error) {
@@ -282,24 +290,48 @@ export function RuneRallyArenaGame({
     <>
       <h1 className="game-screen-title">{gameLabel}</h1>
 
-      <div className="rune-rally-notifications">
-        {notifications.map((notif) => (
-          <motion.div
-            key={notif.id}
-            className={`rune-rally-notification rune-rally-notification-${notif.type}`}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
+      <motion.div
+        className={`rune-rally-notification-dock${isNotificationDockVisible ? ' visible' : ''}`}
+        initial={{ opacity: 0, y: -20 }}
+        animate={isNotificationDockVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: -20 }}
+        transition={{ duration: 0.3 }}
+        style={{ pointerEvents: isNotificationDockVisible ? 'auto' : 'none' }}
+      >
+        <div className="rune-rally-notification-dock-header">
+          <span className="rune-rally-notification-dock-title">Players</span>
+          <button
+            className="rune-rally-notification-dock-close"
+            type="button"
+            onClick={() => setIsNotificationDockVisible(false)}
+            aria-label="Close notifications"
           >
-            {notif.type === 'join' ? (
-              <span>✓ {notif.playerName} joined ({notif.connectedCount}/{notif.totalCount})</span>
-            ) : (
-              <span>✗ {notif.playerName} left ({notif.connectedCount}/{notif.totalCount})</span>
-            )}
-          </motion.div>
-        ))}
-      </div>
+            ✕
+          </button>
+        </div>
+        <div className="rune-rally-notification-dock-content">
+          {notifications.map((notif) => (
+            <motion.div
+              key={notif.id}
+              className={`rune-rally-notification rune-rally-notification-${notif.type}`}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <span className="rune-rally-notification-icon">
+                {notif.type === 'join' ? '✓' : '✗'}
+              </span>
+              <span className="rune-rally-notification-text">
+                <strong>{notif.playerName}</strong>
+                <small>{notif.type === 'join' ? 'joined' : 'left'}</small>
+              </span>
+              <span className="rune-rally-notification-count">
+                {notif.connectedCount}/{notif.totalCount}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
 
       <AdaptiveControllerOverlay
         title="Rune Rally Controls"

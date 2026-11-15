@@ -24936,47 +24936,146 @@ h1 span:last-child {
   background: var(--match-tint-medium, rgba(255, 255, 255, 0.52));
 }
 
-.rune-rally-notifications {
+.rune-rally-notification-dock {
   position: fixed;
   top: 4.2rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  max-width: 90vw;
-  pointer-events: none;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.rune-rally-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.rune-rally-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.rune-rally-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.rune-rally-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.rune-rally-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.rune-rally-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
 }
 
 .rune-rally-notification {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 0.6rem 1rem;
-  border-radius: 12px;
-  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.88);
-  backdrop-filter: blur(8px);
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.rune-rally-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.rune-rally-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.rune-rally-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.rune-rally-notification-text strong {
   color: white;
-  font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  white-space: nowrap;
+}
+
+.rune-rally-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.rune-rally-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .rune-rally-notification-join {
   border-color: rgba(76, 175, 80, 0.3);
-  background: rgba(76, 175, 80, 0.15);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.rune-rally-notification-join .rune-rally-notification-icon {
   color: #4caf50;
+}
+
+.rune-rally-notification-join .rune-rally-notification-text strong {
+  color: #81c784;
 }
 
 .rune-rally-notification-leave {
   border-color: rgba(244, 67, 54, 0.3);
-  background: rgba(244, 67, 54, 0.15);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.rune-rally-notification-leave .rune-rally-notification-icon {
   color: #f44336;
+}
+
+.rune-rally-notification-leave .rune-rally-notification-text strong {
+  color: #ef5350;
 }
 
 .motion-off .rune-rally-root *,
@@ -25474,47 +25573,146 @@ h1 span:last-child {
   justify-content: center;
 }
 
-.sparkstorm-notifications {
+.sparkstorm-notification-dock {
   position: fixed;
   top: 4.2rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 15;
+  max-width: 90vw;
+  width: auto;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  max-width: 90vw;
-  pointer-events: none;
+  gap: 0;
+  border-radius: 0 0 16px 16px;
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.sparkstorm-notification-dock.visible {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.sparkstorm-notification-dock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.96);
+}
+
+.sparkstorm-notification-dock-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.sparkstorm-notification-dock-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.sparkstorm-notification-dock-close:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.sparkstorm-notification-dock-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.5rem;
 }
 
 .sparkstorm-notification {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 0.6rem 1rem;
-  border-radius: 12px;
-  background: rgba(var(--match-dark-rgb, 5, 9, 20), 0.88);
-  backdrop-filter: blur(8px);
+  gap: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.sparkstorm-notification:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
+
+.sparkstorm-notification-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  min-width: 1.2rem;
+}
+
+.sparkstorm-notification-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sparkstorm-notification-text strong {
   color: white;
-  font-size: 0.85rem;
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  white-space: nowrap;
+}
+
+.sparkstorm-notification-text small {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.sparkstorm-notification-count {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .sparkstorm-notification-join {
   border-color: rgba(76, 175, 80, 0.3);
-  background: rgba(76, 175, 80, 0.15);
+  background: rgba(76, 175, 80, 0.12);
+}
+
+.sparkstorm-notification-join .sparkstorm-notification-icon {
   color: #4caf50;
+}
+
+.sparkstorm-notification-join .sparkstorm-notification-text strong {
+  color: #81c784;
 }
 
 .sparkstorm-notification-leave {
   border-color: rgba(244, 67, 54, 0.3);
-  background: rgba(244, 67, 54, 0.15);
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.sparkstorm-notification-leave .sparkstorm-notification-icon {
   color: #f44336;
+}
+
+.sparkstorm-notification-leave .sparkstorm-notification-text strong {
+  color: #ef5350;
 }
 
 .motion-off .sparkstorm-root *,
