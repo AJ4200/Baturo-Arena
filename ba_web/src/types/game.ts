@@ -65,7 +65,8 @@ export type GameType =
   | 'timing-ring'
   | 'turbo-rush'
   | 'cipher-auction'
-  | 'heartstream';
+  | 'heartstream'
+  | 'rune-rally';
 
 export type GameDefinition = {
   id: GameType;
@@ -122,7 +123,8 @@ export type GameDefinition = {
     | 'air-hockey'
     | 'racing'
     | 'cipher-auction'
-    | 'heartstream';
+    | 'heartstream'
+    | 'rune-rally';
   winCondition?:
     | 'connect'
     | 'majority'
@@ -167,6 +169,7 @@ export type GameDefinition = {
     | 'race-finish'
     | 'cipher-score'
     | 'heartstream-score'
+    | 'rune-rally-score'
     | 'leap-on-score';
   supportsOnline: boolean;
   supportsCpu: boolean;
@@ -385,6 +388,7 @@ export type MatchResultEvent = {
   gameType: GameType;
   outcome: MatchOutcome;
   opponent: string;
+  resultId?: string;
 };
 
 export type MatchHistoryEntry = MatchResultEvent & {

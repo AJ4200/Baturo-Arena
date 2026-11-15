@@ -750,6 +750,21 @@ const GAME_RULES = {
     supportsOnline: true,
     supportsCpu: true,
   },
+  'rune-rally': {
+    id: 'rune-rally',
+    category: 'arcade',
+    name: 'Rune Rally',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Race a glowing circuit, scoop up scattered runes, and spend stored charge to surge past or bump your rivals.',
+    moveMode: 'rune-rally',
+    winCondition: 'rune-rally-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
 };
 
 function getGameRules(gameType) {
@@ -1391,7 +1406,8 @@ function checkWinner(gameType, board, activeSymbol = null) {
     rules.winCondition === 'air-hockey-score' ||
     rules.winCondition === 'race-finish' ||
     rules.winCondition === 'cipher-score' ||
-    rules.winCondition === 'heartstream-score'
+    rules.winCondition === 'heartstream-score' ||
+    rules.winCondition === 'rune-rally-score'
   ) {
     return null;
   }
@@ -1569,6 +1585,7 @@ function getAvailableMoves(gameType, board, symbol = 'X') {
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
+    rules.moveMode === 'rune-rally' ||
     rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo'
   ) {
@@ -1684,6 +1701,7 @@ function applyMove(gameType, board, move, symbol) {
     rules.moveMode === 'racing' ||
     rules.moveMode === 'cipher-auction' ||
     rules.moveMode === 'heartstream' ||
+    rules.moveMode === 'rune-rally' ||
     rules.moveMode === 'solo-bastion-surge' ||
     rules.moveMode === 'ludo' ||
     rules.moveMode === 'leap-on'

@@ -914,7 +914,7 @@ export default function Home() {
   const recordMatchResult = useCallback(
     (result: MatchResultEvent) => {
       const entry: MatchHistoryEntry = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: result.resultId || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         finishedAt: new Date().toISOString(),
         mode: result.mode,
         gameType: result.gameType,
@@ -923,6 +923,9 @@ export default function Home() {
       };
 
       setMatchHistory((currentValue) => {
+        if (currentValue.some((existing) => existing.id === entry.id)) {
+          return currentValue;
+        }
         const nextValue = [entry, ...currentValue].slice(0, 20);
         window.localStorage.setItem(STORAGE_KEYS.matchHistory, JSON.stringify(nextValue));
         return nextValue;
@@ -1155,7 +1158,11 @@ export default function Home() {
       if (definition.supportsOnline) {
         modes.push('online');
       }
-      if (definition.maxPlayers > 1 && definition.moveMode !== 'cipher-auction') {
+      if (
+        definition.maxPlayers > 1 &&
+        definition.moveMode !== 'cipher-auction' &&
+        definition.moveMode !== 'rune-rally'
+      ) {
         modes.push('offline');
       }
       return modes;
@@ -1266,7 +1273,11 @@ export default function Home() {
 
   const startOfflineMatch = async () => {
     const selectedDefinition = findGameDefinition(selectedGame);
-    if (selectedDefinition.maxPlayers <= 1 || selectedDefinition.moveMode === 'cipher-auction') {
+    if (
+      selectedDefinition.maxPlayers <= 1 ||
+      selectedDefinition.moveMode === 'cipher-auction' ||
+      selectedDefinition.moveMode === 'rune-rally'
+    ) {
       setMessage(`${selectedDefinition.name} requires an online room`);
       return;
     }

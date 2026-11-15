@@ -43,6 +43,7 @@ import { RacingArenaGame } from '@/features/game/multiplayer/RacingArenaGame';
 import { CipherAuctionArenaGame } from '@/features/game/multiplayer/CipherAuctionArenaGame';
 import { CubeClashArenaGame } from '@/features/game/multiplayer/CubeClashArenaGame';
 import { HeartstreamArenaGame } from '@/features/game/multiplayer/HeartstreamArenaGame';
+import { RuneRallyArenaGame } from '@/features/game/multiplayer/RuneRallyArenaGame';
 import { OnlineArenaGame } from '@/features/game/OnlineArenaGame';
 import { OfflineArenaGame } from '@/features/game/OfflineArenaGame';
 import { Solo2048Game } from '@/features/game/singleplayer/Solo2048Game';
@@ -384,6 +385,22 @@ const ArenaGame: React.FC<ArenaGameProps> = ({
         onMatchComplete={onMatchComplete}
         onLeave={onLeave}
         offlineParticipantNames={offlineParticipantNames}
+      />
+    );
+  }
+
+  if (gameType === 'rune-rally') {
+    return (
+      <RuneRallyArenaGame
+        player={player}
+        mode={mode}
+        roomCode={roomCode}
+        gameDefinitions={gameDefinitions}
+        isMusicMuted={isMusicMuted}
+        enableAnimations={enableAnimations}
+        onToggleMusic={onToggleMusic}
+        onMatchComplete={onMatchComplete}
+        onLeave={onLeave}
       />
     );
   }

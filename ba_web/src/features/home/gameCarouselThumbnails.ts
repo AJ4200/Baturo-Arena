@@ -58,6 +58,7 @@ export const GAME_CAROUSEL_THUMBNAILS: Record<
   'turbo-rush': { label: 'TURBO', className: 'choose-game-thumb-turbo-rush' },
   'cipher-auction': { label: 'SEALED BIDS', className: 'choose-game-thumb-cipher-auction' },
   heartstream: { label: 'HEARTS', className: 'choose-game-thumb-heartstream' },
+  'rune-rally': { label: 'RUNE RALLY', className: 'choose-game-thumb-rune-rally' },
 };
 
 export const getGameCarouselThumbnail = (gameType: GameType) => GAME_CAROUSEL_THUMBNAILS[gameType];

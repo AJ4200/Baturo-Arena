@@ -767,6 +767,21 @@ export const FALLBACK_GAMES: GameDefinition[] = [
     supportsOnline: true,
     supportsCpu: true,
   },
+  {
+    id: 'rune-rally',
+    category: 'arcade',
+    name: 'Rune Rally',
+    minPlayers: 2,
+    maxPlayers: 4,
+    description: 'Race a glowing circuit, scoop up scattered runes, and spend stored charge to surge past or bump your rivals.',
+    rows: 1,
+    columns: 1,
+    connect: 0,
+    moveMode: 'rune-rally',
+    winCondition: 'rune-rally-score',
+    supportsOnline: true,
+    supportsCpu: false,
+  },
 ];
 
 export const getGameDefinition = (gameType: GameType, games = FALLBACK_GAMES): GameDefinition => {
@@ -1342,6 +1357,7 @@ export const getAvailableMoves = (gameType: GameType, board: BoardCell[], games 
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
+    game.moveMode === 'rune-rally' ||
     game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
@@ -1417,6 +1433,7 @@ export const applyMove = (
     game.moveMode === 'racing' ||
     game.moveMode === 'cipher-auction' ||
     game.moveMode === 'heartstream' ||
+    game.moveMode === 'rune-rally' ||
     game.moveMode === 'solo-bastion-surge' ||
     game.moveMode === 'ludo' ||
     game.moveMode === 'leap-on'
@@ -1631,7 +1648,8 @@ export const evaluateBoard = (
     game.winCondition === 'air-hockey-score' ||
     game.winCondition === 'race-finish' ||
     game.winCondition === 'cipher-score' ||
-    game.winCondition === 'heartstream-score'
+    game.winCondition === 'heartstream-score' ||
+    game.winCondition === 'rune-rally-score'
   ) {
     if (game.winCondition !== 'elimination') {
       return null;
