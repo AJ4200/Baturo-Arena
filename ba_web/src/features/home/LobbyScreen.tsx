@@ -155,7 +155,7 @@ export function LobbyScreen({
           : `${selectedGameName} is single-player only.`,
         disabled: !supportsOffline,
       },
-    ],
+    ].filter((modeOption) => !modeOption.disabled),
     [isSinglePlayerMode, selectedGameName, supportsCpu, supportsOffline, supportsOnline]
   );
   const offlineSeats = useMemo(
@@ -423,7 +423,14 @@ export function LobbyScreen({
             <div className="lobby-control-stack">
               <div className="lobby-play-mode-stack">
                 <span className="lobby-section-label"><AiOutlinePlayCircle /> Choose How To Play</span>
-                <div className="lobby-play-mode-slider" role="tablist" aria-label="Play mode selector">
+                <div
+                  className={classnames(
+                    'lobby-play-mode-slider',
+                    `lobby-play-mode-slider-count-${modeOptions.length}`
+                  )}
+                  role="tablist"
+                  aria-label="Play mode selector"
+                >
                   {modeOptions.map((modeOption) => {
                     const isActiveMode = playMode === modeOption.id;
                     return (
@@ -446,7 +453,6 @@ export function LobbyScreen({
                           aria-selected={isActiveMode}
                           aria-label={modeOption.label}
                           title={modeOption.label}
-                          disabled={modeOption.disabled}
                           onClick={() => onPlayModeChange(modeOption.id)}
                         >
                           <span className="lobby-play-mode-btn-kicker">{modeOption.kicker}</span>

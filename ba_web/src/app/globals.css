@@ -788,6 +788,14 @@ h1 span:last-child {
   overflow: hidden;
 }
 
+.lobby-play-mode-slider-count-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lobby-play-mode-slider-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .lobby-play-mode-card {
   --mode-accent: #58a8ff;
   --mode-rgb: 88, 168, 255;
